@@ -1,0 +1,71 @@
+package com.yupi.yuaiagent.config;
+
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.json.jackson.JacksonJsonpMapper;
+import co.elastic.clients.transport.ElasticsearchTransport;
+import co.elastic.clients.transport.rest_client.RestClientTransport;
+import org.apache.http.HttpHost;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.ssl.SSLContexts;
+import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestClientBuilder;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import javax.net.ssl.SSLContext;
+import java.security.cert.X509Certificate;
+
+
+// Elasticsearch客户端配置类
+@Configuration
+public class EsConfig {
+
+    @Value("${spring.elasticsearch.uris}")
+    private String uris;
+
+
+    @Value("${spring.elasticsearch.username}")
+    private String username;
+
+    @Value("${spring.elasticsearch.password}")
+    private String password;
+
+    @Bean
+    public ElasticsearchClient elasticsearchClient() {
+        // 创建低级客户端
+        RestClientBuilder builder = RestClient.builder(new HttpHost("localhost", 9200, "http"));
+
+        // 设置基本认证
+        if (username != null && !username.isEmpty()) {
+            BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
+            credsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(username, password));
+            builder.setHttpClientConfigCallback(httpClientBuilder -> {
+                // 忽略 TLS 证书（仅限开发环境）
+                try {
+                    SSLContext sslContext = SSLContexts.custom()
+                            .loadTrustMaterial(null, (X509Certificate[] chain, String authType) -> true)
+                            .build();
+                    httpClientBuilder.setSSLContext(sslContext);
+                    httpClientBuilder.setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE);
+                } catch (Exception e) {
+                    // ignore
+                }
+                return httpClientBuilder.setDefaultCredentialsProvider(credsProvider);
+            });
+        }
+
+        RestClient restClient = builder.build();
+
+        // 创建传输层
+        ElasticsearchTransport transport = new RestClientTransport(
+                restClient, new JacksonJsonpMapper()
+        );
+
+        // 返回高级客户端
+        return new ElasticsearchClient(transport);
+    }
+}

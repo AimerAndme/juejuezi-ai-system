@@ -1,0 +1,78 @@
+spring:
+  application:
+    name: yu-ai-agent
+  profiles:
+    active: local
+  data:
+    redis:
+      host: localhost  # Redis服务器地址
+      port: 6379       # 端口
+      password: 123 # 密码（无密码可省略）
+      database: 1      # 数据库编号（默认0）
+      timeout: 2000ms  # 连接超时时间
+  # Elasticsearch 配置
+  elasticsearch:
+    uris: http://localhost:9200  # ES地址
+    username: elastic            # 用户名（默认）
+    password: es123456   # 密码（ES启动时生成）
+# 临时注释掉，便于大家开发调试和部署（实际填写 PgVector 数据库信息）
+#  datasource:
+#    url: xxx
+#    username: root
+#    password: 123456
+  ai:
+    dashscope:
+      # 需要替换为你自己的 key
+      api-key: sk-da831ca6d01e4b8aaa04c1705d35f990
+      chat:
+        options:
+          model: qwen-plus
+    ollama:
+      base-url: http://localhost:11434
+      chat:
+        model: deepseek-r1:1.5b
+# 临时注释掉，便于大家开发调试和部署（实际需要启动 MCP 服务）
+    mcp:
+      client:
+#        sse:
+#          connections:
+#            server1:
+#              url: http://localhost:8127
+        stdio:
+          servers-configuration: classpath:mcp-servers.json
+# 临时注释掉，便于大家开发调试和部署（实际需要启动 PgVector 数据库）
+#    vectorstore:
+#      pgvector:
+#        index-type: HNSW
+#        dimensions: 1536
+#        distance-type: COSINE_DISTANCE
+#        max-document-batch-size: 10000 # Optional: Maximum number of documents per batch
+server:
+  port: 8123
+  servlet:
+    context-path: /api
+# springdoc-openapi config
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
+  group-configs:
+    - group: 'default'
+      paths-to-match: '/**'
+      packages-to-scan: com.yupi.yuaiagent.controller
+# knife4j config
+knife4j:
+  enable: true
+  setting:
+    language: zh_cn
+# searchAPI
+search-api:
+  # 需要替换为你自己的 key
+  api-key: GCTKUebFQ9d6WN9hxquXbZWG
+# 修改日志级别，查看 Spring AI 更多调用细节
+logging:
+  level:
+    org.springframework.ai: DEBUG

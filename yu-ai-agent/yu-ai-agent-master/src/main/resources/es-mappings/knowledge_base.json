@@ -1,0 +1,34 @@
+{
+  "mappings": {
+    "properties": {
+      "fileMd5": {
+        "type": "keyword"
+      },
+      "chunkId": {
+        "type": "integer"
+      },
+      "textContent": {
+        "type": "text",
+        "analyzer": "standard"
+      },
+      "vector": {
+        "type": "dense_vector",
+        "dims": 2048,
+        "index": true,
+        "similarity": "cosine"
+      },
+      "modelVersion": {
+        "type": "keyword"
+      },
+      "userId": {
+        "type": "keyword"
+      },
+      "orgTag": {
+        "type": "keyword"
+      },
+      "isPublic": {
+        "type": "boolean"
+      }
+    }
+  }
+}
