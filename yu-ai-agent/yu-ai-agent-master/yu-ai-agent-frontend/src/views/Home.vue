@@ -7,7 +7,7 @@
       <p class="subtitle">/ 探索AI的无限可能 /</p>
       <div class="cyber-line"></div>
     </div>
-    
+
     <div class="apps-container">
       <div class="app-card" @click="navigateTo('/love-master')">
         <div class="card-glow"></div>
@@ -21,7 +21,7 @@
           <span class="btn-icon">→</span>
         </div>
       </div>
-      
+
       <div class="app-card" @click="navigateTo('/super-agent')">
         <div class="card-glow"></div>
         <div class="app-icon robot-icon">🤖</div>
@@ -35,13 +35,13 @@
         </div>
       </div>
     </div>
-    
+
     <div class="cyber-circles">
       <div class="circle circle-1"></div>
       <div class="circle circle-2"></div>
       <div class="circle circle-3"></div>
     </div>
-    
+
     <AppFooter />
   </div>
 </template>
@@ -57,13 +57,15 @@ useHead({
   meta: [
     {
       name: 'description',
-      content: '鱼皮AI超级智能体应用平台提供AI恋爱大师和AI超级智能体服务，满足您的各种AI对话需求'
+      content:
+        '鱼皮AI超级智能体应用平台提供AI恋爱大师和AI超级智能体服务，满足您的各种AI对话需求',
     },
     {
       name: 'keywords',
-      content: 'AI智能体,AI应用,AI恋爱大师,AI助手,智能对话,鱼皮,AI超级智能体,首页'
-    }
-  ]
+      content:
+        'AI智能体,AI应用,AI恋爱大师,AI助手,智能对话,鱼皮,AI超级智能体,首页',
+    },
+  ],
 })
 
 const router = useRouter()
@@ -78,25 +80,23 @@ const navigateTo = (path) => {
 
 /* 全局样式变量 */
 :root {
-  --neon-blue: #00f0ff;
-  --neon-purple: #9000ff;
-  --neon-pink: #ff00d4;
-  --cyber-black: #0a0a12;
+  --light-blue: #add8e6;
+  --sky-blue: #87ceeb;
+  --light-gray-blue: #ddeeff;
+  --light-purple: #e0bbe4;
   --cyber-dark: #111122;
   --cyber-light: #edf7ff;
+  --light-bg: #f5faff;
 }
 
 .home-container {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background-color: var(--cyber-dark);
-  background-image: 
-    linear-gradient(0deg, rgba(8, 17, 34, 0.9), rgba(5, 8, 20, 0.9)),
-    url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect x="0" y="0" width="100" height="1" fill="%23111133" opacity="0.3"/><rect x="0" y="0" width="1" height="100" fill="%23111133" opacity="0.3"/></svg>');
-  background-size: auto, 40px 40px;
+  background: linear-gradient(135deg, var(--light-blue), var(--sky-blue));
   position: relative;
   overflow: hidden;
+  padding-bottom: 40px;
 }
 
 /* 赛博朋克风格标题 */
@@ -118,14 +118,17 @@ const navigateTo = (path) => {
   font-family: 'Orbitron', sans-serif;
   font-size: 3.2rem;
   font-weight: 700;
-  color: var(--cyber-light);
-  text-shadow: 
-    0 0 5px rgba(0, 240, 255, 0.7),
-    0 0 10px rgba(0, 240, 255, 0.5),
-    0 0 20px rgba(0, 240, 255, 0.3);
+  color: var(--light-blue);
+  text-shadow: 0 0 5px rgba(173, 216, 230, 0.7),
+    0 0 10px rgba(173, 216, 230, 0.5), 0 0 20px rgba(173, 216, 230, 0.3);
   letter-spacing: 2px;
   position: relative;
-  animation: glitch 3s infinite;
+  animation: blueGlow 3s infinite;
+  background: linear-gradient(45deg, var(--light-blue), var(--sky-blue));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 0 5px rgba(173, 216, 230, 0.5));
 }
 
 .glitch-title::before,
@@ -140,13 +143,13 @@ const navigateTo = (path) => {
 }
 
 .glitch-title::before {
-  color: var(--neon-pink);
+  color: var(--light-purple);
   z-index: -1;
   animation: glitch-anim 2s infinite;
 }
 
 .glitch-title::after {
-  color: var(--neon-blue);
+  color: var(--light-blue);
   z-index: -2;
   animation: glitch-anim-2 3s infinite;
 }
@@ -154,11 +157,12 @@ const navigateTo = (path) => {
 .subtitle {
   font-family: 'Orbitron', sans-serif;
   font-size: 1.2rem;
-  color: rgba(255, 255, 255, 0.7);
+  color: #3a5a7a;
   max-width: 600px;
   margin: 0 auto 20px;
   letter-spacing: 3px;
   text-transform: uppercase;
+  font-weight: 500;
 }
 
 .cyber-line {
@@ -166,8 +170,15 @@ const navigateTo = (path) => {
   width: 80%;
   max-width: 600px;
   margin: 0 auto;
-  background: linear-gradient(90deg, transparent, var(--neon-blue), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--light-blue),
+    transparent
+  );
   position: relative;
+  border-top: 1px dashed var(--light-blue);
+  border-bottom: 1px dashed var(--sky-blue);
 }
 
 .cyber-line::before,
@@ -175,12 +186,13 @@ const navigateTo = (path) => {
   content: '';
   position: absolute;
   top: 50%;
-  width: 10px;
-  height: 10px;
-  background-color: var(--neon-blue);
+  width: 12px;
+  height: 12px;
+  background-color: var(--light-blue);
   border-radius: 50%;
   transform: translateY(-50%);
-  box-shadow: 0 0 10px 2px var(--neon-blue);
+  box-shadow: 0 0 10px 2px var(--light-blue);
+  border: 2px solid white;
 }
 
 .cyber-line::before {
@@ -206,12 +218,14 @@ const navigateTo = (path) => {
 
 .app-card {
   width: 340px;
-  background-color: rgba(17, 23, 41, 0.7);
-  backdrop-filter: blur(10px);
+  background: linear-gradient(
+    135deg,
+    rgba(221, 238, 255, 0.8),
+    rgba(173, 216, 230, 0.8)
+  );
   border-radius: 16px;
-  box-shadow: 
-    0 8px 32px rgba(0, 240, 255, 0.2),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(173, 216, 230, 0.3),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.3);
   padding: 30px;
   cursor: pointer;
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -220,6 +234,10 @@ const navigateTo = (path) => {
   align-items: center;
   position: relative;
   overflow: hidden;
+  border: 2px solid var(--light-gray-blue);
+  /* 轻微的浅灰色阴影 */
+  box-shadow: 0 8px 32px rgba(221, 238, 255, 0.4),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.3);
 }
 
 .card-glow {
@@ -230,7 +248,7 @@ const navigateTo = (path) => {
   height: 200%;
   background: radial-gradient(
     circle at center,
-    rgba(var(--neon-blue-rgb), 0.1) 0%,
+    rgba(173, 216, 230, 0.2) 0%,
     transparent 70%
   );
   opacity: 0;
@@ -240,9 +258,10 @@ const navigateTo = (path) => {
 
 .app-card:hover {
   transform: translateY(-15px) scale(1.03);
-  box-shadow: 
-    0 15px 50px rgba(0, 240, 255, 0.3),
-    inset 0 0 0 1px rgba(0, 240, 255, 0.5);
+  box-shadow: 0 15px 50px rgba(173, 216, 230, 0.4),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+  /* 淡蓝色微光闪烁 */
+  animation: blueGlowFlash 1s ease-in-out;
 }
 
 .app-card:hover .card-glow {
@@ -257,19 +276,23 @@ const navigateTo = (path) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
+  border-radius: 20px; /* 12-16px大圆角 */
   position: relative;
   z-index: 1;
+  /* 轻微的浅灰色阴影 */
+  box-shadow: 0 4px 8px rgba(221, 238, 255, 0.4);
 }
 
 .love-icon {
-  background: linear-gradient(135deg, #ff007a, #ff5722);
-  box-shadow: 0 0 20px rgba(255, 0, 122, 0.5);
+  background: linear-gradient(135deg, var(--light-blue), var(--sky-blue));
+  box-shadow: 0 0 20px rgba(173, 216, 230, 0.5);
+  border: 2px solid white;
 }
 
 .robot-icon {
-  background: linear-gradient(135deg, #00b2ff, #4f56ff);
-  box-shadow: 0 0 20px rgba(0, 178, 255, 0.5);
+  background: linear-gradient(135deg, var(--light-purple), var(--light-blue));
+  box-shadow: 0 0 20px rgba(224, 187, 228, 0.5);
+  border: 2px solid white;
 }
 
 .app-info {
@@ -282,19 +305,24 @@ const navigateTo = (path) => {
   font-family: 'Orbitron', sans-serif;
   font-size: 1.6rem;
   font-weight: bold;
-  color: white;
+  color: #3a5a7a;
   margin-bottom: 12px;
-  text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+  text-shadow: 0 0 10px rgba(173, 216, 230, 0.3);
+  background: linear-gradient(45deg, var(--light-blue), #3a5a7a);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .app-desc {
   font-size: 1rem;
-  color: rgba(255, 255, 255, 0.7);
+  color: #3a5a7a;
   line-height: 1.6;
+  font-weight: 500;
 }
 
 .app-button {
-  background: linear-gradient(90deg, #0088ff, #00b2ff);
+  background: linear-gradient(90deg, var(--light-blue), var(--sky-blue));
   color: white;
   padding: 12px 28px;
   border-radius: 30px;
@@ -305,7 +333,9 @@ const navigateTo = (path) => {
   align-items: center;
   position: relative;
   overflow: hidden;
-  border: 1px solid rgba(0, 240, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  /* 轻微的浅灰色阴影 */
+  box-shadow: 0 4px 8px rgba(221, 238, 255, 0.4);
 }
 
 .app-button::before {
@@ -315,13 +345,20 @@ const navigateTo = (path) => {
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
   transition: left 0.7s;
 }
 
 .app-button:hover {
-  box-shadow: 0 0 15px rgba(0, 178, 255, 0.7);
+  box-shadow: 0 0 15px rgba(173, 216, 230, 0.7);
   transform: scale(1.05);
+  /* 点击反馈为软弹动效 */
+  animation: softBounce 0.3s ease-in-out;
 }
 
 .app-button:hover::before {
@@ -364,7 +401,7 @@ const navigateTo = (path) => {
   height: 300px;
   top: -100px;
   right: -100px;
-  background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+  background: linear-gradient(135deg, var(--light-blue), var(--sky-blue));
   animation: float 15s infinite alternate;
 }
 
@@ -373,7 +410,7 @@ const navigateTo = (path) => {
   height: 500px;
   bottom: -200px;
   left: -200px;
-  background: linear-gradient(135deg, var(--neon-purple), var(--neon-pink));
+  background: linear-gradient(135deg, var(--sky-blue), var(--light-purple));
   animation: float 20s infinite alternate-reverse;
 }
 
@@ -382,7 +419,7 @@ const navigateTo = (path) => {
   height: 200px;
   top: 40%;
   right: 15%;
-  background: linear-gradient(135deg, var(--neon-pink), var(--neon-blue));
+  background: linear-gradient(135deg, var(--light-purple), var(--light-blue));
   animation: float 12s infinite alternate;
 }
 
@@ -396,58 +433,45 @@ const navigateTo = (path) => {
   }
 }
 
-@keyframes glitch {
+@keyframes blueGlow {
   0% {
-    text-shadow: 
-      0 0 5px rgba(0, 240, 255, 0.7),
-      0 0 10px rgba(0, 240, 255, 0.5);
+    text-shadow: 0 0 5px rgba(173, 216, 230, 0.7),
+      0 0 10px rgba(173, 216, 230, 0.5);
   }
   50% {
-    text-shadow: 
-      0 0 5px rgba(0, 240, 255, 0.7),
-      0 0 10px rgba(0, 240, 255, 0.5),
-      0 0 20px rgba(0, 240, 255, 0.3);
+    text-shadow: 0 0 5px rgba(173, 216, 230, 0.7),
+      0 0 10px rgba(173, 216, 230, 0.5), 0 0 20px rgba(173, 216, 230, 0.3);
   }
   100% {
-    text-shadow: 
-      0 0 5px rgba(0, 240, 255, 0.7),
-      0 0 10px rgba(0, 240, 255, 0.5);
+    text-shadow: 0 0 5px rgba(173, 216, 230, 0.7),
+      0 0 10px rgba(173, 216, 230, 0.5);
   }
 }
 
-@keyframes glitch-anim {
-  0%, 100% {
-    transform: translate(0);
+@keyframes blueGlowFlash {
+  0% {
+    box-shadow: 0 15px 50px rgba(173, 216, 230, 0.4),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.5);
   }
-  20% {
-    transform: translate(-5px, 5px);
+  50% {
+    box-shadow: 0 15px 50px rgba(173, 216, 230, 0.7),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.8);
   }
-  40% {
-    transform: translate(-5px, -5px);
-  }
-  60% {
-    transform: translate(5px, 5px);
-  }
-  80% {
-    transform: translate(5px, -5px);
+  100% {
+    box-shadow: 0 15px 50px rgba(173, 216, 230, 0.4),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.5);
   }
 }
 
-@keyframes glitch-anim-2 {
-  0%, 100% {
-    transform: translate(0);
+@keyframes softBounce {
+  0% {
+    transform: scale(1.05);
   }
-  20% {
-    transform: translate(3px, -3px);
+  50% {
+    transform: scale(0.95);
   }
-  40% {
-    transform: translate(3px, 3px);
-  }
-  60% {
-    transform: translate(-3px, -3px);
-  }
-  80% {
-    transform: translate(-3px, 3px);
+  100% {
+    transform: scale(1.05);
   }
 }
 
@@ -456,22 +480,22 @@ const navigateTo = (path) => {
   .glitch-title {
     font-size: 2.5rem;
   }
-  
+
   .subtitle {
     font-size: 1rem;
   }
-  
+
   .apps-container {
     gap: 30px;
     margin: 40px auto;
   }
-  
+
   .app-card {
     width: 100%;
     max-width: 420px;
     padding: 25px;
   }
-  
+
   .app-icon {
     font-size: 3.5rem;
     width: 80px;
@@ -483,42 +507,44 @@ const navigateTo = (path) => {
   .header {
     padding: 50px 15px 40px;
   }
-  
+
   .glitch-title {
     font-size: 2rem;
   }
-  
+
   .subtitle {
     font-size: 0.9rem;
     letter-spacing: 2px;
   }
-  
+
   .apps-container {
     margin: 30px auto;
     padding: 0 15px;
   }
-  
+
   .app-card {
     padding: 20px;
   }
-  
+
   .app-icon {
     font-size: 3rem;
     margin-bottom: 20px;
     width: 70px;
     height: 70px;
   }
-  
+
   .app-title {
     font-size: 1.4rem;
   }
-  
+
   .app-desc {
     font-size: 0.9rem;
   }
-  
-  .circle-1, .circle-2, .circle-3 {
+
+  .circle-1,
+  .circle-2,
+  .circle-3 {
     opacity: 0.1;
   }
 }
-</style> 
+</style>

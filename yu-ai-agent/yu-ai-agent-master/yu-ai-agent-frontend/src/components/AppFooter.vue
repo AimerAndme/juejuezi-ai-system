@@ -10,7 +10,7 @@
           <a href="#">《隐私政策》</a>
         </div>
       </div>
-      
+
       <div class="footer-section">
         <h4>友情链接</h4>
         <div class="footer-links">
@@ -19,7 +19,7 @@
           <a href="#" target="_blank">代码小抄</a>
         </div>
       </div>
-      
+
       <div class="footer-section">
         <h4>联系我们</h4>
         <div class="footer-links">
@@ -28,7 +28,7 @@
         </div>
       </div>
     </div>
-    
+
     <div class="footer-bottom">
       <p>© {{ currentYear }} 鱼皮AI超级智能体应用平台 - 让AI为你服务</p>
     </div>
@@ -44,14 +44,19 @@ const currentYear = computed(() => new Date().getFullYear())
 
 <style scoped>
 .app-footer {
-  background-color: #fff;
+  background: linear-gradient(
+    135deg,
+    rgba(221, 238, 255, 0.8),
+    rgba(173, 216, 230, 0.8)
+  );
   padding: 40px 0 20px;
-  color: #666;
-  border-top: 1px solid #eee;
+  color: #3a5a7a;
+  border-top: 2px dashed var(--light-gray-blue);
   width: 100%;
   margin-top: auto;
   position: relative;
   z-index: 2;
+  backdrop-filter: blur(5px);
 }
 
 .footer-content {
@@ -61,6 +66,10 @@ const currentYear = computed(() => new Date().getFullYear())
   flex-wrap: wrap;
   justify-content: space-between;
   padding: 0 20px;
+  /* 模块间用浅蓝色虚线分隔 */
+  border-top: 1px dashed var(--light-gray-blue);
+  border-bottom: 1px dashed var(--light-gray-blue);
+  padding: 20px;
 }
 
 .footer-section {
@@ -73,13 +82,23 @@ const currentYear = computed(() => new Date().getFullYear())
 .footer-logo h3 {
   font-size: 1.25rem;
   margin-bottom: 15px;
-  color: #333;
+  color: #3a5a7a;
+  background: linear-gradient(45deg, var(--light-blue), #3a5a7a);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-family: 'Orbitron', sans-serif;
 }
 
 .footer-section h4 {
   font-size: 1rem;
   margin-bottom: 15px;
-  color: #333;
+  color: #3a5a7a;
+  background: linear-gradient(45deg, var(--light-blue), #3a5a7a);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-family: 'Orbitron', sans-serif;
 }
 
 .footer-links {
@@ -89,13 +108,20 @@ const currentYear = computed(() => new Date().getFullYear())
 
 .footer-links a {
   margin-bottom: 10px;
-  color: #666;
+  color: #3a5a7a;
   text-decoration: none;
-  transition: color 0.2s;
+  transition: all 0.3s;
+  padding: 5px 10px;
+  border-radius: 12px;
+  /* 轻微的浅蓝色阴影 */
+  box-shadow: 0 2px 4px rgba(221, 238, 255, 0.4);
 }
 
 .footer-links a:hover {
-  color: #007bff;
+  color: var(--light-blue);
+  transform: scale(1.03);
+  /* 淡蓝色微光闪烁 */
+  box-shadow: 0 0 8px rgba(173, 216, 230, 0.7);
 }
 
 .qrcode {
@@ -110,13 +136,16 @@ const currentYear = computed(() => new Date().getFullYear())
 .qrcode-placeholder {
   width: 90px;
   height: 90px;
-  background-color: #f5f5f5;
+  background: linear-gradient(135deg, var(--light-bg), var(--light-blue));
   margin: 0 auto 10px;
-  border-radius: 4px;
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 2rem;
+  /* 轻微的浅蓝色阴影 */
+  box-shadow: 0 4px 8px rgba(221, 238, 255, 0.4);
+  border: 2px solid var(--light-gray-blue);
 }
 
 .qrcode-placeholder:after {
@@ -127,9 +156,10 @@ const currentYear = computed(() => new Date().getFullYear())
   text-align: center;
   padding-top: 20px;
   margin-top: 20px;
-  border-top: 1px solid #eee;
-  color: #999;
+  border-top: 1px dashed var(--light-gray-blue);
+  color: #3a5a7a;
   font-size: 0.9rem;
+  font-family: 'Orbitron', sans-serif;
 }
 
 /* 响应式设计 */
@@ -137,7 +167,7 @@ const currentYear = computed(() => new Date().getFullYear())
   .footer-content {
     flex-direction: column;
   }
-  
+
   .footer-section {
     width: 100%;
     margin-bottom: 20px;
@@ -149,18 +179,18 @@ const currentYear = computed(() => new Date().getFullYear())
   .app-footer {
     padding: 30px 0 15px;
   }
-  
+
   .footer-section h4 {
     font-size: 0.95rem;
   }
-  
+
   .footer-links a {
     font-size: 0.9rem;
   }
-  
+
   .qrcode-placeholder {
     width: 80px;
     height: 80px;
   }
 }
-</style> 
+</style>

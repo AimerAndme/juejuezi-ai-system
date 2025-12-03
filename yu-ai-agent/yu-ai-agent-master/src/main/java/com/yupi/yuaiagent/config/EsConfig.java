@@ -19,25 +19,29 @@ import org.springframework.context.annotation.Configuration;
 import javax.net.ssl.SSLContext;
 import java.security.cert.X509Certificate;
 
-
 // Elasticsearch客户端配置类
 @Configuration
 public class EsConfig {
 
-    @Value("${spring.elasticsearch.uris}")
-    private String uris;
+    @Value("${elasticsearch.host}")
+    private String host;
 
+    @Value("${elasticsearch.port}")
+    private int port;
 
-    @Value("${spring.elasticsearch.username}")
+    @Value("${elasticsearch.scheme:https}")
+    private String scheme;
+
+    @Value("${elasticsearch.username:elastic}")
     private String username;
 
-    @Value("${spring.elasticsearch.password}")
+    @Value("${elasticsearch.password:changeme}")
     private String password;
 
     @Bean
     public ElasticsearchClient elasticsearchClient() {
         // 创建低级客户端
-        RestClientBuilder builder = RestClient.builder(new HttpHost("localhost", 9200, "http"));
+        RestClientBuilder builder = RestClient.builder(new HttpHost(host, port, scheme));
 
         // 设置基本认证
         if (username != null && !username.isEmpty()) {

@@ -5,18 +5,18 @@
       <h1 class="title">AI恋爱大师</h1>
       <div class="chat-id">会话ID: {{ chatId }}</div>
     </div>
-    
+
     <div class="content-wrapper">
       <div class="chat-area">
-        <ChatRoom 
-          :messages="messages" 
+        <ChatRoom
+          :messages="messages"
           :connection-status="connectionStatus"
           ai-type="love"
           @send-message="sendMessage"
         />
       </div>
     </div>
-    
+
     <div class="footer-container">
       <AppFooter />
     </div>
@@ -37,13 +37,14 @@ useHead({
   meta: [
     {
       name: 'description',
-      content: 'AI恋爱大师是鱼皮AI超级智能体应用平台的专业情感顾问，帮你解答各种恋爱问题，提供情感建议'
+      content:
+        'AI恋爱大师是鱼皮AI超级智能体应用平台的专业情感顾问，帮你解答各种恋爱问题，提供情感建议',
     },
     {
       name: 'keywords',
-      content: 'AI恋爱大师,情感顾问,恋爱咨询,AI聊天,情感问题,鱼皮,AI智能体'
-    }
-  ]
+      content: 'AI恋爱大师,情感顾问,恋爱咨询,AI聊天,情感问题,鱼皮,AI智能体',
+    },
+  ],
 })
 
 const router = useRouter()
@@ -62,26 +63,26 @@ const addMessage = (content, isUser) => {
   messages.value.push({
     content,
     isUser,
-    time: new Date().getTime()
+    time: new Date().getTime(),
   })
 }
 
 // 发送消息
 const sendMessage = (message) => {
   addMessage(message, true)
-  
+
   // 连接SSE
   if (eventSource) {
     eventSource.close()
   }
-  
+
   // 创建一个空的AI回复消息
   const aiMessageIndex = messages.value.length
   addMessage('', false)
-  
+
   connectionStatus.value = 'connecting'
   eventSource = chatWithLoveApp(message, chatId.value)
-  
+
   // 监听SSE消息
   eventSource.onmessage = (event) => {
     const data = event.data
@@ -91,13 +92,13 @@ const sendMessage = (message) => {
         messages.value[aiMessageIndex].content += data
       }
     }
-    
+
     if (data === '[DONE]') {
       connectionStatus.value = 'disconnected'
       eventSource.close()
     }
   }
-  
+
   // 监听SSE错误
   eventSource.onerror = (error) => {
     console.error('SSE Error:', error)
@@ -115,9 +116,12 @@ const goBack = () => {
 onMounted(() => {
   // 生成聊天ID
   chatId.value = generateChatId()
-  
+
   // 添加欢迎消息
-  addMessage('欢迎来到AI恋爱大师，请告诉我你的恋爱问题，我会尽力给予帮助和建议。', false)
+  addMessage(
+    '欢迎来到AI恋爱大师，请告诉我你的恋爱问题，我会尽力给予帮助和建议。',
+    false
+  )
 })
 
 // 组件销毁前关闭SSE连接
@@ -133,7 +137,9 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background-color: #fff9f9;
+  background: linear-gradient(135deg, var(--light-blue), var(--sky-blue));
+  position: relative;
+  overflow: hidden;
 }
 
 .header {
@@ -141,12 +147,13 @@ onBeforeUnmount(() => {
   justify-content: space-between;
   align-items: center;
   padding: 16px 24px;
-  background-color: #ff6b8b;
+  background: linear-gradient(90deg, var(--light-blue), var(--sky-blue));
   color: white;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   position: sticky;
   top: 0;
   z-index: 10;
+  border-bottom: 2px dashed var(--light-gray-blue);
 }
 
 .back-button {
@@ -154,11 +161,21 @@ onBeforeUnmount(() => {
   cursor: pointer;
   display: flex;
   align-items: center;
-  transition: opacity 0.2s;
+  transition: all 0.3s;
+  padding: 8px 16px;
+  border-radius: 20px;
+  background-color: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  /* 轻微的浅灰色阴影 */
+  box-shadow: 0 2px 4px rgba(221, 238, 255, 0.4);
 }
 
 .back-button:hover {
   opacity: 0.8;
+  transform: scale(1.03);
+  box-shadow: 0 0 10px rgba(173, 216, 230, 0.7);
+  /* 淡蓝色微光闪烁 */
+  animation: blueGlowFlash 0.5s ease-in-out;
 }
 
 .back-button:before {
@@ -170,11 +187,21 @@ onBeforeUnmount(() => {
   font-size: 20px;
   font-weight: bold;
   margin: 0;
+  background: linear-gradient(45deg, var(--light-blue), #3a5a7a);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-family: 'Orbitron', sans-serif;
 }
 
 .chat-id {
   font-size: 14px;
   opacity: 0.8;
+  background: linear-gradient(45deg, var(--light-blue), #3a5a7a);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 500;
 }
 
 .content-wrapper {
@@ -191,6 +218,11 @@ onBeforeUnmount(() => {
   /* 设置最小高度确保内容显示正常 */
   min-height: calc(100vh - 56px - 180px); /* 100vh减去头部高度和页脚高度 */
   margin-bottom: 16px; /* 为页脚留出空间 */
+  background: rgba(221, 238, 255, 0.3);
+  border-radius: 16px;
+  margin: 16px;
+  border: 2px dashed var(--light-gray-blue);
+  backdrop-filter: blur(5px);
 }
 
 .footer-container {
@@ -202,19 +234,31 @@ onBeforeUnmount(() => {
   .header {
     padding: 12px 16px;
   }
-  
+
   .title {
     font-size: 18px;
   }
-  
+
   .chat-id {
     font-size: 12px;
   }
-  
+
   .chat-area {
     padding: 12px;
     min-height: calc(100vh - 48px - 160px); /* 调整计算值 */
     margin-bottom: 12px;
+  }
+}
+
+@keyframes blueGlowFlash {
+  0% {
+    box-shadow: 0 0 10px rgba(173, 216, 230, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(173, 216, 230, 0.9);
+  }
+  100% {
+    box-shadow: 0 0 10px rgba(173, 216, 230, 0.7);
   }
 }
 
@@ -241,4 +285,4 @@ onBeforeUnmount(() => {
     margin-bottom: 8px;
   }
 }
-</style> 
+</style>

@@ -4,7 +4,6 @@ import com.yupi.yuaiagent.agent.YuManus;
 import com.yupi.yuaiagent.app.LoveApp;
 import com.yupi.yuaiagent.app.RedisChatApp;
 import jakarta.annotation.Resource;
-import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.tool.ToolCallback;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,9 +51,9 @@ public class AiController {
      * @param chatId
      * @return
      */
-    @GetMapping(value = "/love_app/chat/sse", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<String> doChatWithLoveAppSSE(String message, String chatId) {
-        return loveApp.doChatByStream(message, chatId);
+    @GetMapping(value = "/love_app/chat/sse")
+    public String doChatWithLoveAppSSE(String message, String chatId) {
+        return loveApp.doChatWithRag(message, chatId);
     }
 
     /**

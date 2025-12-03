@@ -174,7 +174,6 @@ public abstract class BaseAgent {
         });
         return sseEmitter;
     }
-
     /**
      * 定义单个步骤
      *

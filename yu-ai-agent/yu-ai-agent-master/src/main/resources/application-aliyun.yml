@@ -9,12 +9,16 @@ spring:
       password: redis123 # 密码（无密码可省略）
       database: 1      # 数据库编号（默认0）
       timeout: 2000ms  # 连接超时时间
-
-# 临时注释掉，便于大家开发调试和部署（实际填写 PgVector 数据库信息）
-#  datasource:
-#    url: xxx
-#    username: root
-#    password: 123456
+  # Elasticsearch 配置
+  elasticsearch:
+    uris: http://8.137.79.174:9200  # ES地址
+    username: elastic            # 用户名（默认）
+    password: es123456   # 密码（ES启动时生成）
+  # 临时注释掉，便于大家开发调试和部署（实际填写 PgVector 数据库信息）
+  #  datasource:
+  #    url: xxx
+  #    username: root
+  #    password: 123456
   ai:
     dashscope:
       # 需要替换为你自己的 key
@@ -26,13 +30,13 @@ spring:
       base-url: http://localhost:11434
       chat:
         model: deepseek-r1:1.5b
-# 临时注释掉，便于大家开发调试和部署（实际需要启动 MCP 服务）
+    # 临时注释掉，便于大家开发调试和部署（实际需要启动 MCP 服务）
     mcp:
       client:
-#        sse:
-#          connections:
-#            server1:
-#              url: http://localhost:8127
+        #        sse:
+        #          connections:
+        #            server1:
+        #              url: http://localhost:8127
         stdio:
           servers-configuration: classpath:mcp-servers.json
 # 临时注释掉，便于大家开发调试和部署（实际需要启动 PgVector 数据库）
@@ -42,13 +46,6 @@ spring:
 #        dimensions: 1536
 #        distance-type: COSINE_DISTANCE
 #        max-document-batch-size: 10000 # Optional: Maximum number of documents per batch
-  # Elasticsearch 配置
-elasticsearch:
-  host: localhost       # Elasticsearch主机地址
-  port: 9200            # Elasticsearch端口号
-  scheme: http         # 协议（http/https）
-  username: elastic     # 安装后生成的默认用户
-  password: es123456 # 密码（ES启动时生成）
 server:
   port: 8123
   servlet:

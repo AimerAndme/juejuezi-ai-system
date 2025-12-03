@@ -2,23 +2,32 @@
   <div class="chat-container">
     <!-- 聊天记录区域 -->
     <div class="chat-messages" ref="messagesContainer">
-      <div v-for="(msg, index) in messages" :key="index" class="message-wrapper">
+      <div
+        v-for="(msg, index) in messages"
+        :key="index"
+        class="message-wrapper"
+      >
         <!-- AI消息 -->
-        <div v-if="!msg.isUser" 
-             class="message ai-message" 
-             :class="[msg.type]">
+        <div v-if="!msg.isUser" class="message ai-message" :class="[msg.type]">
           <div class="avatar ai-avatar">
             <AiAvatarFallback :type="aiType" />
           </div>
           <div class="message-bubble">
             <div class="message-content">
               {{ msg.content }}
-              <span v-if="connectionStatus === 'connecting' && index === messages.length - 1" class="typing-indicator">▋</span>
+              <span
+                v-if="
+                  connectionStatus === 'connecting' &&
+                  index === messages.length - 1
+                "
+                class="typing-indicator"
+                >▋</span
+              >
             </div>
             <div class="message-time">{{ formatTime(msg.time) }}</div>
           </div>
         </div>
-        
+
         <!-- 用户消息 -->
         <div v-else class="message user-message" :class="[msg.type]">
           <div class="message-bubble">
@@ -35,18 +44,20 @@
     <!-- 输入区域 -->
     <div class="chat-input-container">
       <div class="chat-input">
-        <textarea 
-          v-model="inputMessage" 
+        <textarea
+          v-model="inputMessage"
           @keydown.enter.prevent="sendMessage"
-          placeholder="请输入消息..." 
+          placeholder="请输入消息..."
           class="input-box"
           :disabled="connectionStatus === 'connecting'"
         ></textarea>
-        <button 
-          @click="sendMessage" 
+        <button
+          @click="sendMessage"
           class="send-button"
           :disabled="connectionStatus === 'connecting' || !inputMessage.trim()"
-        >发送</button>
+        >
+          发送
+        </button>
       </div>
     </div>
   </div>
@@ -59,16 +70,16 @@ import AiAvatarFallback from './AiAvatarFallback.vue'
 const props = defineProps({
   messages: {
     type: Array,
-    default: () => []
+    default: () => [],
   },
   connectionStatus: {
     type: String,
-    default: 'disconnected'
+    default: 'disconnected',
   },
   aiType: {
     type: String,
-    default: 'default'  // 'love' 或 'super'
-  }
+    default: 'default', // 'love' 或 'super'
+  },
 })
 
 const emit = defineEmits(['send-message'])
@@ -78,15 +89,15 @@ const messagesContainer = ref(null)
 
 // 根据AI类型选择不同头像
 const aiAvatar = computed(() => {
-  return props.aiType === 'love' 
-    ? '/ai-love-avatar.png'  // 恋爱大师头像
+  return props.aiType === 'love'
+    ? '/ai-love-avatar.png' // 恋爱大师头像
     : '/ai-super-avatar.png' // 超级智能体头像
 })
 
 // 发送消息
 const sendMessage = () => {
   if (!inputMessage.value.trim()) return
-  
+
   emit('send-message', inputMessage.value)
   inputMessage.value = ''
 }
@@ -94,7 +105,10 @@ const sendMessage = () => {
 // 格式化时间
 const formatTime = (timestamp) => {
   const date = new Date(timestamp)
-  return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+  return date.toLocaleTimeString('zh-CN', {
+    hour: '2-digit',
+    minute: '2-digit',
+  })
 }
 
 // 自动滚动到底部
@@ -106,13 +120,19 @@ const scrollToBottom = async () => {
 }
 
 // 监听消息变化与内容变化，自动滚动
-watch(() => props.messages.length, () => {
-  scrollToBottom()
-})
+watch(
+  () => props.messages.length,
+  () => {
+    scrollToBottom()
+  }
+)
 
-watch(() => props.messages.map(m => m.content).join(''), () => {
-  scrollToBottom()
-})
+watch(
+  () => props.messages.map((m) => m.content).join(''),
+  () => {
+    scrollToBottom()
+  }
+)
 
 onMounted(() => {
   scrollToBottom()
@@ -125,10 +145,16 @@ onMounted(() => {
   flex-direction: column;
   height: 70vh;
   min-height: 600px;
-  background-color: #f5f5f5;
-  border-radius: 8px;
+  background: linear-gradient(
+    135deg,
+    rgba(221, 238, 255, 0.8),
+    rgba(173, 216, 230, 0.8)
+  );
+  border-radius: 16px;
   overflow: hidden;
   position: relative;
+  border: 2px solid var(--light-gray-blue);
+  box-shadow: 0 8px 32px rgba(173, 216, 230, 0.3);
 }
 
 .chat-messages {
@@ -143,6 +169,29 @@ onMounted(() => {
   left: 0;
   right: 0;
   bottom: 72px; /* 与输入框高度相匹配 */
+  /* 波浪线分隔效果 */
+  background-image: radial-gradient(
+      circle at 100% 150%,
+      rgba(221, 238, 255, 0.2) 25%,
+      transparent 26%
+    ),
+    radial-gradient(
+      circle at 0 150%,
+      rgba(221, 238, 255, 0.2) 25%,
+      transparent 26%
+    ),
+    radial-gradient(
+      circle at 100% 0,
+      rgba(221, 238, 255, 0.2) 25%,
+      transparent 26%
+    ),
+    radial-gradient(
+      circle at 0 0,
+      rgba(221, 238, 255, 0.2) 25%,
+      transparent 26%
+    );
+  background-size: 20px 20px;
+  background-position: 0 0, 10px 0, 10px -10px, 0px 10px;
 }
 
 .message-wrapper {
@@ -150,6 +199,9 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   width: 100%;
+  /* 连续消息之间添加虚线分隔 */
+  border-bottom: 1px dashed var(--light-gray-blue);
+  padding-bottom: 16px;
 }
 
 .message {
@@ -193,7 +245,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #007bff;
+  background-color: var(--light-blue);
   color: white;
   font-weight: bold;
 }
@@ -204,26 +256,35 @@ onMounted(() => {
   position: relative;
   word-wrap: break-word;
   min-width: 100px; /* 最小宽度 */
+  /* 布丁质感 */
+  background-color: var(--light-bg);
+  border: 1px solid var(--light-gray-blue);
+  box-shadow: 0 4px 8px rgba(221, 238, 255, 0.4);
 }
 
 .user-message .message-bubble {
-  background-color: #007bff;
+  background: linear-gradient(135deg, var(--light-blue), var(--sky-blue));
   color: white;
   border-bottom-right-radius: 4px;
   text-align: left;
+  /* 轻微的浅蓝色阴影 */
+  box-shadow: 0 4px 8px rgba(221, 238, 255, 0.4);
 }
 
 .ai-message .message-bubble {
-  background-color: #e9e9eb;
-  color: #333;
+  background: linear-gradient(135deg, var(--light-purple), var(--light-bg));
+  color: #3a5a7a;
   border-bottom-left-radius: 4px;
   text-align: left;
+  /* 轻微的浅蓝色阴影 */
+  box-shadow: 0 4px 8px rgba(221, 238, 255, 0.4);
 }
 
 .message-content {
   font-size: 16px;
   line-height: 1.5;
   white-space: pre-wrap;
+  font-family: 'Orbitron', sans-serif;
 }
 
 .message-time {
@@ -238,11 +299,11 @@ onMounted(() => {
   bottom: 0;
   left: 0;
   right: 0;
-  background-color: white;
-  border-top: 1px solid #e0e0e0;
+  background: linear-gradient(to right, var(--light-bg), var(--light-blue));
+  border-top: 2px dashed var(--light-gray-blue);
   z-index: 100;
   height: 72px; /* 固定高度 */
-  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 -2px 10px rgba(173, 216, 230, 0.2);
 }
 
 .chat-input {
@@ -255,7 +316,7 @@ onMounted(() => {
 
 .input-box {
   flex-grow: 1;
-  border: 1px solid #ddd;
+  border: 2px solid var(--light-gray-blue);
   border-radius: 20px;
   padding: 10px 16px;
   font-size: 16px;
@@ -263,10 +324,14 @@ onMounted(() => {
   min-height: 20px;
   max-height: 40px; /* 限制高度 */
   outline: none;
-  transition: border-color 0.3s;
+  transition: all 0.3s;
   overflow-y: auto;
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE & Edge */
+  /* 浅灰蓝底色 */
+  background-color: var(--light-bg);
+  color: #3a5a7a;
+  font-family: 'Orbitron', sans-serif;
 }
 
 /* 隐藏Webkit浏览器的滚动条 */
@@ -275,25 +340,34 @@ onMounted(() => {
 }
 
 .input-box:focus {
-  border-color: #007bff;
+  border-color: var(--light-blue);
+  box-shadow: 0 0 10px rgba(173, 216, 230, 0.5);
 }
 
 .send-button {
   margin-left: 12px;
-  background-color: #007bff;
+  background: linear-gradient(90deg, var(--light-blue), var(--sky-blue));
   color: white;
   border: none;
   border-radius: 20px;
   padding: 0 20px;
   font-size: 16px;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: all 0.3s;
   height: 40px;
   align-self: center;
+  /* 轻微的浅灰色阴影 */
+  box-shadow: 0 4px 8px rgba(221, 238, 255, 0.4);
+  font-family: 'Orbitron', sans-serif;
 }
 
 .send-button:hover:not(:disabled) {
-  background-color: #0069d9;
+  background: linear-gradient(90deg, var(--sky-blue), var(--light-blue));
+  transform: scale(1.03);
+  /* 淡蓝色微光闪烁 */
+  box-shadow: 0 0 15px rgba(173, 216, 230, 0.7);
+  /* 软弹动效 */
+  animation: softBounce 0.3s ease-in-out;
 }
 
 .typing-indicator {
@@ -303,12 +377,31 @@ onMounted(() => {
 }
 
 @keyframes blink {
-  0% { opacity: 0; }
-  50% { opacity: 1; }
-  100% { opacity: 0; }
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
 }
 
-.input-box:disabled, .send-button:disabled {
+@keyframes softBounce {
+  0% {
+    transform: scale(1.03);
+  }
+  50% {
+    transform: scale(0.98);
+  }
+  100% {
+    transform: scale(1.03);
+  }
+}
+
+.input-box:disabled,
+.send-button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
@@ -318,19 +411,19 @@ onMounted(() => {
   .message {
     max-width: 95%;
   }
-  
+
   .message-content {
     font-size: 15px;
   }
-  
+
   .chat-input {
     padding: 12px;
   }
-  
+
   .input-box {
     padding: 8px 12px;
   }
-  
+
   .send-button {
     padding: 0 15px;
     font-size: 14px;
@@ -342,19 +435,19 @@ onMounted(() => {
     width: 32px;
     height: 32px;
   }
-  
+
   .message-bubble {
     padding: 10px;
   }
-  
+
   .message-content {
     font-size: 14px;
   }
-  
+
   .chat-input-container {
     height: 64px;
   }
-  
+
   .chat-messages {
     bottom: 64px;
   }
@@ -389,4 +482,4 @@ onMounted(() => {
 .ai-message + .ai-message .message-bubble {
   border-top-left-radius: 10px;
 }
-</style> 
+</style>
