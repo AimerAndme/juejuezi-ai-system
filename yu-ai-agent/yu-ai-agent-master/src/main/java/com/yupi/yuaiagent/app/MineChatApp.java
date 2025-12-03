@@ -1,6 +1,6 @@
 package com.yupi.yuaiagent.app;
 
-import com.alibaba.cloud.ai.graph.agent.ReactAgent;
+
 import com.yupi.yuaiagent.advisor.MyLoggerAdvisor;
 import com.yupi.yuaiagent.chatmemory.RedisChatMemory;
 import com.yupi.yuaiagent.rag.QueryRewriter;

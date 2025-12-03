@@ -3,7 +3,6 @@ package com.yupi.yuaiagent.app;
 import com.yupi.yuaiagent.advisor.MyLoggerAdvisor;
 import com.yupi.yuaiagent.chatmemory.RedisChatMemory;
 import com.yupi.yuaiagent.rag.QueryRewriter;
-import dev.langchain4j.retriever.Retriever;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RedissonClient;
@@ -64,7 +63,7 @@ public class LoveApp {
      * @param dashscopeChatModel
      */
     @Autowired
-    public LoveApp(ChatModel dashscopeChatModel, StringRedisTemplate stringRedisTemplate,RedisChatMemory redisChatMemory) {
+    public LoveApp(ChatModel dashscopeChatModel, StringRedisTemplate stringRedisTemplate, RedisChatMemory redisChatMemory) {
         this.stringRedisTemplate = stringRedisTemplate;
 
 //        // 初始化基于文件的对话记忆
@@ -88,8 +87,8 @@ public class LoveApp {
                         MessageChatMemoryAdvisor.builder(redisChatMemory).build(),
                         // 自定义日志 Advisor，可按需开启
                         new MyLoggerAdvisor()
-                //                        // 自定义推理增强 Advisor，可按需开启
-                //, new ReReadingAdvisor()
+                        //                        // 自定义推理增强 Advisor，可按需开启
+                        //, new ReReadingAdvisor()
                 )
                 .build();
     }
@@ -157,16 +156,17 @@ public class LoveApp {
      * @param chatId
      * @return
      */
-    public String doChatWithRag(String message, String chatId) {
+    public Flux<String> doChatWithRag(String message, String chatId) {
         // 查询重写
         String rewrittenMessage = queryRewriter.doQueryRewrite(message);
-        ChatResponse chatResponse = chatClient
+        log.info("rewrittenMessage: {}", rewrittenMessage);
+        Flux<String> content = chatClient
                 .prompt()
                 // 使用改写后的查询
                 .user(rewrittenMessage)
                 .advisors(spec -> spec.param(ChatMemory.CONVERSATION_ID, chatId))
                 // 开启日志，便于观察效果
-                .advisors(new MyLoggerAdvisor())
+                .advisors()
                 // 应用 RAG 知识库问答
                 .advisors(new QuestionAnswerAdvisor(loveAppVectorStore))
                 // 应用 RAG 检索增强服务（基于云知识库服务）
@@ -179,9 +179,7 @@ public class LoveApp {
                 //                                loveAppVectorStore, "单身"
                 //                        )
                 //                )
-                .call()
-                .chatResponse();
-        String content = chatResponse.getResult().getOutput().getText();
+                .stream().content();
         log.info("content: {}", content);
         return content;
     }
@@ -209,6 +207,7 @@ public class LoveApp {
     }
 
     // AI 调用 MCP 服务
+
     /**
      * AI 恋爱报告功能（调用 MCP 服务）
      *

@@ -51,8 +51,8 @@ public class AiController {
      * @param chatId
      * @return
      */
-    @GetMapping(value = "/love_app/chat/sse")
-    public String doChatWithLoveAppSSE(String message, String chatId) {
+    @GetMapping(value = "/love_app/chat/sse", produces = "text/event-stream; charset=UTF-8")
+    public Flux<String> doChatWithLoveAppSSE(String message, String chatId) {
         return loveApp.doChatWithRag(message, chatId);
     }
 
