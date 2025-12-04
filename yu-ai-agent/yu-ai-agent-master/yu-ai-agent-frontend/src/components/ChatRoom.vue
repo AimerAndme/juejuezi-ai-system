@@ -8,8 +8,8 @@
         class="message-wrapper"
       >
         <!-- AI消息 -->
-        <div v-if="!msg.isUser" class="message ai-message" :class="[msg.type]">
-          <div class="avatar ai-avatar">
+        <div v-if="!msg.isUser" class="message ai-message" :class="[msg.type, aiType]">
+          <div class="avatar ai-avatar" :class="aiType">
             <AiAvatarFallback :type="aiType" />
           </div>
           <div class="message-bubble">
@@ -231,6 +231,15 @@ onMounted(() => {
   justify-content: center;
 }
 
+/* 矿山智能体头像样式 */
+.ai-avatar.mine {
+  background: linear-gradient(135deg, var(--light-orange), var(--orange));
+  color: white;
+  font-weight: bold;
+  border: 2px solid white;
+  box-shadow: 0 0 10px rgba(255, 165, 0, 0.5);
+}
+
 .user-avatar {
   margin-left: 8px; /* 用户头像在右侧，左边距 */
 }
@@ -273,11 +282,20 @@ onMounted(() => {
 
 .ai-message .message-bubble {
   background: linear-gradient(135deg, var(--light-purple), var(--light-bg));
-  color: #3a5a7a;
+  color: #1a2a3a; /* 加深AI消息的字体颜色，提高可读性 */
   border-bottom-left-radius: 4px;
   text-align: left;
   /* 轻微的浅蓝色阴影 */
   box-shadow: 0 4px 8px rgba(221, 238, 255, 0.4);
+}
+
+/* 矿山智能体消息样式 */
+.ai-message.mine .message-bubble {
+  background: linear-gradient(135deg, var(--light-orange), var(--light-bg));
+  color: #1a2a3a;
+  border-bottom-left-radius: 4px;
+  text-align: left;
+  box-shadow: 0 4px 8px rgba(255, 165, 0, 0.4);
 }
 
 .message-content {
@@ -285,6 +303,8 @@ onMounted(() => {
   line-height: 1.5;
   white-space: pre-wrap;
   font-family: 'Orbitron', sans-serif;
+  /* 增加文本阴影以提高在浅色背景上的可读性 */
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
 }
 
 .message-time {

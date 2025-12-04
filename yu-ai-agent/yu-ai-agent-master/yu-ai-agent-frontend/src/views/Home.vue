@@ -22,6 +22,19 @@
         </div>
       </div>
 
+      <div class="app-card" @click="navigateTo('/mine-agent')">
+        <div class="card-glow"></div>
+        <div class="app-icon mine-icon">⛏️</div>
+        <div class="app-info">
+          <div class="app-title">AI矿山专家</div>
+          <div class="app-desc">专业的矿山技术顾问，提供矿业相关问题解答</div>
+        </div>
+        <div class="app-button">
+          <span class="btn-text">立即体验</span>
+          <span class="btn-icon">→</span>
+        </div>
+      </div>
+
       <div class="app-card" @click="navigateTo('/super-agent')">
         <div class="card-glow"></div>
         <div class="app-icon robot-icon">🤖</div>
@@ -58,12 +71,12 @@ useHead({
     {
       name: 'description',
       content:
-        '鱼皮AI超级智能体应用平台提供AI恋爱大师和AI超级智能体服务，满足您的各种AI对话需求',
+        '鱼皮AI超级智能体应用平台提供AI恋爱大师、AI矿山专家和AI超级智能体服务，满足您的各种AI对话需求',
     },
     {
       name: 'keywords',
       content:
-        'AI智能体,AI应用,AI恋爱大师,AI助手,智能对话,鱼皮,AI超级智能体,首页',
+        'AI智能体,AI应用,AI恋爱大师,AI矿山专家,AI助手,智能对话,鱼皮,AI超级智能体,首页',
     },
   ],
 })
@@ -87,6 +100,8 @@ const navigateTo = (path) => {
   --cyber-dark: #111122;
   --cyber-light: #edf7ff;
   --light-bg: #f5faff;
+  --light-orange: #ffd580; /* 添加浅橙色 */
+  --orange: #ffa500; /* 添加橙色 */
 }
 
 .home-container {
@@ -157,12 +172,14 @@ const navigateTo = (path) => {
 .subtitle {
   font-family: 'Orbitron', sans-serif;
   font-size: 1.2rem;
-  color: #3a5a7a;
+  color: #1a2a3a; /* 加深副标题颜色，提高可读性 */
   max-width: 600px;
   margin: 0 auto 20px;
   letter-spacing: 3px;
   text-transform: uppercase;
   font-weight: 500;
+  /* 添加文本阴影以提高在浅色背景上的可读性 */
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.7);
 }
 
 .cyber-line {
@@ -289,6 +306,12 @@ const navigateTo = (path) => {
   border: 2px solid white;
 }
 
+.mine-icon {
+  background: linear-gradient(135deg, var(--light-orange), var(--orange)); /* 使用橙色系表示矿山 */
+  box-shadow: 0 0 20px rgba(255, 165, 0, 0.5);
+  border: 2px solid white;
+}
+
 .robot-icon {
   background: linear-gradient(135deg, var(--light-purple), var(--light-blue));
   box-shadow: 0 0 20px rgba(224, 187, 228, 0.5);
@@ -316,9 +339,11 @@ const navigateTo = (path) => {
 
 .app-desc {
   font-size: 1rem;
-  color: #3a5a7a;
+  color: #1a2a3a; /* 加深描述文字颜色，提高可读性 */
   line-height: 1.6;
   font-weight: 500;
+  /* 添加文本阴影以提高在浅色背景上的可读性 */
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
 }
 
 .app-button {

@@ -1,8 +1,7 @@
 spring:
   application:
     name: yu-ai-agent
-  profiles:
-    active: gs
+
   data:
     redis:
       host: 8.137.79.174  # Redis服务器地址
@@ -46,13 +45,13 @@ spring:
   #        max-document-batch-size: 10000 # Optional: Maximum number of documents per batch
   # Elasticsearch 配置
 elasticsearch:
-  # host: localhost       # Elasticsearch主机地址
-  host: 192.168.152.129
+  host: localhost       # Elasticsearch主机地址
+  #host: 192.168.152.129
   port: 9200            # Elasticsearch端口号
   scheme: http         # 协议（http/https）
   username: elastic     # 安装后生成的默认用户
-  # password: es123456 # 密码（ES启动时生成）
-  password: PaiSmart2025   # 密码（ES启动时生成）
+  password: es123456 # 密码（ES启动时生成）
+  #password: PaiSmart2025   # 密码（ES启动时生成）
   ssl:
     verification-mode: none   # 开发环境可关闭SSL验证（生产需配置证书）
 server:

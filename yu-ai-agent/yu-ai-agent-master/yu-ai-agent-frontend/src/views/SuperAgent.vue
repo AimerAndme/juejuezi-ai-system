@@ -238,11 +238,13 @@ onBeforeUnmount(() => {
   margin: 0;
   text-align: center;
   justify-self: center;
-  background: linear-gradient(45deg, var(--light-blue), #3a5a7a);
+  background: linear-gradient(45deg, var(--light-blue), #1a2a3a);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   font-family: 'Orbitron', sans-serif;
+  /* 添加文本阴影以提高可读性 */
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
 }
 
 .placeholder {
@@ -308,15 +310,15 @@ onBeforeUnmount(() => {
   .header {
     padding: 10px 12px;
   }
-  
+
   .back-button {
     font-size: 14px;
   }
-  
+
   .title {
     font-size: 16px;
   }
-  
+
   .chat-area {
     padding: 8px;
     min-height: calc(100vh - 42px - 150px); /* 再次调整计算值 */

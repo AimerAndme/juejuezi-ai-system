@@ -7,7 +7,7 @@ const routes = [
     component: () => import('../views/Home.vue'),
     meta: {
       title: '首页 - 鱼皮AI超级智能体应用平台',
-      description: '鱼皮AI超级智能体应用平台提供AI恋爱大师和AI超级智能体服务，满足您的各种AI对话需求'
+      description: '鱼皮AI超级智能体应用平台提供AI恋爱大师、AI矿山专家和AI超级智能体服务，满足您的各种AI对话需求'
     }
   },
   {
@@ -17,6 +17,15 @@ const routes = [
     meta: {
       title: 'AI恋爱大师 - 鱼皮AI超级智能体应用平台',
       description: 'AI恋爱大师是鱼皮AI超级智能体应用平台的专业情感顾问，帮你解答各种恋爱问题，提供情感建议'
+    }
+  },
+  {
+    path: '/mine-agent',
+    name: 'MineAgent',
+    component: () => import('../views/MineAgent.vue'),
+    meta: {
+      title: 'AI矿山专家 - 鱼皮AI超级智能体应用平台',
+      description: 'AI矿山专家是鱼皮AI超级智能体应用平台的专业矿业顾问，帮您解答各种矿山技术问题，提供专业建议'
     }
   },
   {
@@ -44,4 +53,4 @@ router.beforeEach((to, from, next) => {
   next()
 })
 
-export default router 
+export default router

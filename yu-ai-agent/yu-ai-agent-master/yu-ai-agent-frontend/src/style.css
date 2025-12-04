@@ -4,13 +4,17 @@
   font-weight: 400;
 
   color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
+  color: #213547; /* 加深默认字体颜色，提高辨识度 */
   background-color: #242424;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  
+  /* 添加橙色系变量用于矿山主题 */
+  --light-orange: #ffd580;
+  --orange: #ffa500;
 }
 
 a {
@@ -66,7 +70,7 @@ button:focus-visible {
 
 @media (prefers-color-scheme: light) {
   :root {
-    color: #213547;
+    color: #1a2a3a; /* 在浅色模式下使用更深的颜色 */
     background-color: #ffffff;
   }
   a:hover {

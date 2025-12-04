@@ -49,6 +49,11 @@ export const chatWithLoveApp = (message, chatId) => {
   return connectSSE('/ai/love_app/chat/sse', { message, chatId })
 }
 
+// AI矿山专家聊天
+export const chatWithMineAgent = (message) => {
+  return connectSSE('/ai/mine_agent/chat', { message })
+}
+
 // AI超级智能体聊天
 export const chatWithManus = (message) => {
   return connectSSE('/ai/manus/chat', { message })
@@ -56,5 +61,6 @@ export const chatWithManus = (message) => {
 
 export default {
   chatWithLoveApp,
+  chatWithMineAgent,
   chatWithManus
-} 
+}
