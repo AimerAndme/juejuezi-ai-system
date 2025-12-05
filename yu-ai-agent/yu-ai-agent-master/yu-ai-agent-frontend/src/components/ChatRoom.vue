@@ -8,7 +8,11 @@
         class="message-wrapper"
       >
         <!-- AI消息 -->
-        <div v-if="!msg.isUser" class="message ai-message" :class="[msg.type, aiType]">
+        <div
+          v-if="!msg.isUser"
+          class="message ai-message"
+          :class="[msg.type, aiType]"
+        >
           <div class="avatar ai-avatar" :class="aiType">
             <AiAvatarFallback :type="aiType" />
           </div>

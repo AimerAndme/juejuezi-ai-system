@@ -23,4 +23,9 @@ public class MineController {
     public String intentRecognize(@RequestParam String query) throws GraphStateException {
         return mineService.intentRecognize(query);
     }
+
+    @GetMapping(value = "/chat")
+    public String chat(@RequestParam String query) throws GraphStateException {
+        return mineService.chat(query);
+    }
 }

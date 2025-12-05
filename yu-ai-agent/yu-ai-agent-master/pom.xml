@@ -9,7 +9,7 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.yupi</groupId>
-    <artifactId>yu-ai-agent</artifactId>
+    <artifactId>lv-ai-agent</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>yu-ai-agent</name>
     <description>yu-ai-agent</description>
@@ -73,6 +73,19 @@
         <dependency>
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-starter-model-ollama</artifactId>
+        </dependency>
+        <!-- MyBatis 核心 Starter（Spring Boot 3.x 对应版本 ≥3.0.0） -->
+        <dependency>
+            <groupId>org.mybatis.spring.boot</groupId>
+            <artifactId>mybatis-spring-boot-starter</artifactId>
+            <version>3.0.3</version>
+        </dependency>
+        <!-- MyBatis Generator 核心依赖 -->
+        <dependency>
+            <groupId>org.mybatis.generator</groupId>
+            <artifactId>mybatis-generator-core</artifactId>
+            <version>1.4.2</version>
+            <scope>provided</scope> <!-- 仅编译时使用，不打包到项目 -->
         </dependency>
         <dependency>
             <groupId>org.springframework.ai</groupId>
@@ -223,6 +236,25 @@
                         </exclude>
                     </excludes>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.mybatis.generator</groupId>
+                <artifactId>mybatis-generator-maven-plugin</artifactId>
+                <version>1.4.2</version>
+                <configuration>
+                    <!-- MBG 配置文件路径（后续创建） -->
+                    <configurationFile>src/main/resources/generatorConfig.xml</configurationFile>
+                    <overwrite>true</overwrite> <!-- 允许覆盖已有文件（谨慎：会覆盖手动修改的代码） -->
+                    <verbose>true</verbose> <!-- 生成时打印日志 -->
+                </configuration>
+                <dependencies>
+                    <!-- 引入 PostgreSQL 驱动，让 MBG 能连接数据库 -->
+                    <dependency>
+                        <groupId>org.postgresql</groupId>
+                        <artifactId>postgresql</artifactId>
+                        <version>42.7.5</version> <!-- 与项目驱动版本一致 -->
+                    </dependency>
+                </dependencies>
             </plugin>
         </plugins>
     </build>

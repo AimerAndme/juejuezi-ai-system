@@ -10,8 +10,8 @@
 defineProps({
   type: {
     type: String,
-    default: 'default'
-  }
+    default: 'default',
+  },
 })
 </script>
 
@@ -34,7 +34,8 @@ defineProps({
   background: linear-gradient(45deg, #ffa500, #ffd580);
 }
 
-.default, .super {
+.default,
+.super {
   background: linear-gradient(45deg, #3f51b5, #5677fc);
 }
 </style>

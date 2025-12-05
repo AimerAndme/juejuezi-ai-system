@@ -18,10 +18,10 @@ import java.util.concurrent.TimeUnit;
 public class IntentRecognitionNode implements NodeAction {
     private static final int RETRY_TIME = 3;
     private static final long RETRY_INTERVAL_MS = 200;
-    private final ChatClient basicsChatClient;
+    private final ChatClient chatClient;
 
-    public IntentRecognitionNode(ChatClient basicsChatClient) {
-        this.basicsChatClient = basicsChatClient;
+    public IntentRecognitionNode(ChatClient chatClient) {
+        this.chatClient = chatClient;
     }
 
     @Override
@@ -55,7 +55,7 @@ public class IntentRecognitionNode implements NodeAction {
         int time = 1;
         while (time <= RETRY_TIME) {
             try {
-                String content = basicsChatClient.prompt(render).call().content();
+                String content = chatClient.prompt(render).call().content();
                 if (content != null && !content.isBlank()) {
                     return content;
                 }

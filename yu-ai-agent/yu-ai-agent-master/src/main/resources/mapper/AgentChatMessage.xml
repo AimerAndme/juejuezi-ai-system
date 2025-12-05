@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace 必须和 Mapper 接口全类名一致 -->
+<mapper namespace="com.yupi.yuaiagent.mapper.AgentChatMessageMapper">
+
+    <!-- 结果映射：表字段 → 实体类属性（驼峰转换已开启，可简化但建议保留，清晰） -->
+    <resultMap id="AgentChatMessageMap" type="com.yupi.yuaiagent.domin.entity.AgentChatMessage">
+        <id column="id" property="id"/>
+        <result column="session_id" property="sessionId"/>
+        <result column="message_type" property="messageType"/>
+        <result column="content" property="content"/>
+        <result column="encrypt_content" property="encryptContent"/>
+        <result column="message_status" property="messageStatus"/>
+        <result column="request_id" property="requestId"/>
+        <result column="create_time" property="createTime"/>
+    </resultMap>
+
+    <!-- 1. 新增消息（写入主表，触发器自动路由分表） -->
+    <insert id="insert" parameterType="com.yupi.yuaiagent.domin.entity.AgentChatMessage">
+        INSERT INTO t_agent_chat_message (session_id,
+                                          message_type,
+                                          content,
+                                          encrypt_content,
+                                          message_status,
+                                          request_id
+            -- create_time 由PG自动填充，无需手动传入
+        )
+        VALUES (#{sessionId},
+                #{messageType},
+                #{content},
+                #{encryptContent},
+                #{messageStatus},
+                #{requestId})
+    </insert>
+
+    <!-- 2. 根据ID删除消息（物理删除，煤矿场景建议慎用，优先逻辑删除） -->
+    <delete id="deleteById" parameterType="java.lang.Long">
+        DELETE
+        FROM t_agent_chat_message
+        WHERE id = #{id}
+    </delete>
+
+    <!-- 3. 更新消息状态（如撤回：messageStatus=3） -->
+    <update id="updateStatusById">
+        UPDATE t_agent_chat_message
+        SET message_status = #{messageStatus},
+            -- 可选：新增更新时间字段后，可添加 update_time = CURRENT_TIMESTAMP
+            create_time    = create_time -- 占位，避免语法错误（PG不允许SET无有效字段）
+        WHERE id = #{id}
+    </update>
+
+    <!-- 4. 根据ID查询消息 -->
+    <select id="selectById" parameterType="java.lang.Long" resultMap="AgentChatMessageMap">
+        SELECT *
+        FROM t_agent_chat_message
+        WHERE id = #{id}
+    </select>
+
+    <!-- 5. 根据会话ID查询消息列表（会话回溯，按时间升序） -->
+    <select id="selectBySessionId" parameterType="java.lang.String" resultMap="AgentChatMessageMap">
+        SELECT *
+        FROM t_agent_chat_message
+        WHERE session_id = #{sessionId}
+          AND message_status != 3 -- 排除已撤回消息
+        ORDER BY create_time ASC
+    </select>
+
+    <!-- 6. 会话ID+消息类型查询 -->
+    <select id="selectBySessionIdAndType" resultMap="AgentChatMessageMap">
+        SELECT *
+        FROM t_agent_chat_message
+        WHERE session_id = #{sessionId}
+          AND message_type = #{messageType}
+          AND message_status != 3
+        ORDER BY create_time ASC
+    </select>
+
+    <!-- 7. 时间范围查询（审计场景） -->
+    <select id="selectByTimeRange" resultMap="AgentChatMessageMap">
+        SELECT * FROM t_agent_chat_message
+        WHERE create_time BETWEEN #{startTime} AND #{endTime}
+        <if test="messageStatus != null">
+            AND message_status = #{messageStatus}
+        </if>
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 8. 按用户ID查询消息（关联会话表 t_agent_chat_session） -->
+        <select id="selectByUserId" resultMap="AgentChatMessageMap">
+            SELECT m.*
+            FROM t_agent_chat_message m
+                     JOIN t_agent_chat_session s ON m.session_id = s.session_id
+            WHERE s.user_id = #{userId}
+              AND m.message_status != 3
+            ORDER BY m.create_time DESC
+                LIMIT #{limit}
+        </select>
+
+</mapper>

@@ -9,7 +9,7 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.yupi</groupId>
-    <artifactId>yu-image-search-mcp-server</artifactId>
+    <artifactId>lv-image-search-mcp-server</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>yu-image-search-mcp-server</name>
     <description>yu-image-search-mcp-server</description>
@@ -34,7 +34,7 @@
             <dependency>
                 <groupId>org.springframework.ai</groupId>
                 <artifactId>spring-ai-bom</artifactId>
-                <version>1.0.0</version>
+                <version>1.0.2</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>

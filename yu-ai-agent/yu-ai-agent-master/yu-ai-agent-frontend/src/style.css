@@ -11,7 +11,7 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  
+
   /* 添加橙色系变量用于矿山主题 */
   --light-orange: #ffd580;
   --orange: #ffa500;

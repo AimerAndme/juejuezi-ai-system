@@ -20,7 +20,7 @@ public class MineService implements com.yupi.yuaiagent.service.IMineService {
 
     @Override
     public String intentRecognize(String query) throws GraphStateException {
-        CompiledGraph graph = preProcessingGraphFactory.getInstance();
+        CompiledGraph graph = preProcessingGraphFactory.getIntentRecognizeInstance();
         Optional<OverAllState> call = graph.call(Map.of("query", query));
         Map<String, Object> stringObjectMap = call.map(OverAllState::data).orElse(Map.of());
         return Optional.ofNullable(stringObjectMap.get("recognizeResult"))
@@ -36,5 +36,13 @@ public class MineService implements com.yupi.yuaiagent.service.IMineService {
                 .map(obj -> (String) obj)
                 // 没有的话给默认值（比如空字符串）
                 .orElse("");
+    }
+
+    @Override
+    public String chat(String query) throws GraphStateException {
+        CompiledGraph graph = preProcessingGraphFactory.getChatInstance();
+        Optional<OverAllState> call = graph.call(Map.of("query", query));
+        return (String) call.map(OverAllState::data).orElse(Map.of()).get("chatResult");
+
     }
 }

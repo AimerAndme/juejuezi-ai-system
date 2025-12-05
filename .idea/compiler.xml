@@ -3,31 +3,32 @@
   <component name="CompilerConfiguration">
     <annotationProcessing>
       <profile default="true" name="Default" enabled="true" />
+      <profile name="Annotation profile for yu-image-search-mcp-server" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="D:/java/apache-maven-3.8.8-bin/apache-maven-3.8.8/mvn_repo/org/projectlombok/lombok/unknown/lombok-unknown.jar" />
+        </processorPath>
+        <module name="lv-image-search-mcp-server" />
+      </profile>
       <profile name="Annotation profile for yu-ai-agent" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
           <entry name="D:/java/apache-maven-3.8.8-bin/apache-maven-3.8.8/mvn_repo/org/projectlombok/lombok/1.18.36/lombok-1.18.36.jar" />
+          <entry name="D:/java/apache-maven-3.8.8-bin/apache-maven-3.8.8/mvn_repo/org/projectlombok/lombok/1.18.36/lombok-1.18.36.jar" />
         </processorPath>
-        <module name="yu-ai-agent" />
-      </profile>
-      <profile name="Annotation profile for yu-image-search-mcp-server" enabled="true">
-        <sourceOutputDir name="target/generated-sources/annotations" />
-        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
-        <outputRelativeToContentRoot value="true" />
-        <processorPath useClasspath="false">
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/unknown/lombok-unknown.jar" />
-        </processorPath>
-        <module name="yu-image-search-mcp-server" />
+        <module name="lv-ai-agent" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel target="17" />
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
-      <module name="yu-ai-agent" options="-parameters" />
-      <module name="yu-image-search-mcp-server" options="-parameters" />
+      <module name="lv-ai-agent" options="-parameters" />
+      <module name="lv-image-search-mcp-server" options="-parameters" />
     </option>
   </component>
 </project>

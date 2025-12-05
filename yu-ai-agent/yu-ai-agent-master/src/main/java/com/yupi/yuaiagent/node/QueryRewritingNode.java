@@ -12,10 +12,10 @@ import java.util.Map;
 @Slf4j
 @Component
 public class QueryRewritingNode implements NodeAction {
-    private final ChatClient basicsChatClient;
+    private final ChatClient chatClient;
 
-    public QueryRewritingNode(ChatClient basicsChatClient) {
-        this.basicsChatClient = basicsChatClient;
+    public QueryRewritingNode(ChatClient chatClient) {
+        this.chatClient = chatClient;
     }
 
     @Override
@@ -49,7 +49,7 @@ public class QueryRewritingNode implements NodeAction {
                 """);
         promptTemplate.add("query", query);
         log.info("开始查询重写，原始query为：{}", query);
-        String content = basicsChatClient.prompt(promptTemplate.render()).call().content();
+        String content = chatClient.prompt(promptTemplate.render()).call().content();
         if (content != null) {
             log.info("查询重写完成，结果query为：{}", content);
             query = content;

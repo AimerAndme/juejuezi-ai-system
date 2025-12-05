@@ -307,7 +307,11 @@ const navigateTo = (path) => {
 }
 
 .mine-icon {
-  background: linear-gradient(135deg, var(--light-orange), var(--orange)); /* 使用橙色系表示矿山 */
+  background: linear-gradient(
+    135deg,
+    var(--light-orange),
+    var(--orange)
+  ); /* 使用橙色系表示矿山 */
   box-shadow: 0 0 20px rgba(255, 165, 0, 0.5);
   border: 2px solid white;
 }

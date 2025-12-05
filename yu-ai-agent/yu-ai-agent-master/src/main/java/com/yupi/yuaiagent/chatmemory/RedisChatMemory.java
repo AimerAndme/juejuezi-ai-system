@@ -1,5 +1,6 @@
 package com.yupi.yuaiagent.chatmemory;
 
+import com.yupi.yuaiagent.service.AgentChatMessageService;
 import com.yupi.yuaiagent.utils.MessageSerializer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.memory.ChatMemory;
@@ -21,12 +22,11 @@ public class RedisChatMemory implements ChatMemory {
     // Redis 键前缀，避免键冲突
     private static final String KEY_PREFIX = "chat:memory:";
     private final RedisTemplate<String, Object> redisTemplate;
+    private final AgentChatMessageService agentChatMessageService;
 
-//    @Resource
-//    private MySQLChatMemoryStore mySQLChatMemoryStore;
-
-    public RedisChatMemory(RedisTemplate<String, Object> redisTemplate) {
+    public RedisChatMemory(RedisTemplate<String, Object> redisTemplate, AgentChatMessageService agentChatMessageService) {
         this.redisTemplate = redisTemplate;
+        this.agentChatMessageService = agentChatMessageService;
     }
 
     /**
@@ -57,7 +57,7 @@ public class RedisChatMemory implements ChatMemory {
 
         // 异步存储到MySQL数据库(若自己实现了可以使用)
 //        mySQLChatMemoryStore.storeMessages(conversationId, messages);
-
+        agentChatMessageService.
         // 检查消息数量，如果超过20条则删除多余部分，只保留最新的20条
         if (existingMessages.size() > 20) {
             trimConversation(conversationId);

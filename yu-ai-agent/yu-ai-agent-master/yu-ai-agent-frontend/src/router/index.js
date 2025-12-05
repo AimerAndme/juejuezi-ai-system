@@ -7,8 +7,9 @@ const routes = [
     component: () => import('../views/Home.vue'),
     meta: {
       title: '首页 - 鱼皮AI超级智能体应用平台',
-      description: '鱼皮AI超级智能体应用平台提供AI恋爱大师、AI矿山专家和AI超级智能体服务，满足您的各种AI对话需求'
-    }
+      description:
+        '鱼皮AI超级智能体应用平台提供AI恋爱大师、AI矿山专家和AI超级智能体服务，满足您的各种AI对话需求',
+    },
   },
   {
     path: '/love-master',
@@ -16,8 +17,9 @@ const routes = [
     component: () => import('../views/LoveMaster.vue'),
     meta: {
       title: 'AI恋爱大师 - 鱼皮AI超级智能体应用平台',
-      description: 'AI恋爱大师是鱼皮AI超级智能体应用平台的专业情感顾问，帮你解答各种恋爱问题，提供情感建议'
-    }
+      description:
+        'AI恋爱大师是鱼皮AI超级智能体应用平台的专业情感顾问，帮你解答各种恋爱问题，提供情感建议',
+    },
   },
   {
     path: '/mine-agent',
@@ -25,8 +27,9 @@ const routes = [
     component: () => import('../views/MineAgent.vue'),
     meta: {
       title: 'AI矿山专家 - 鱼皮AI超级智能体应用平台',
-      description: 'AI矿山专家是鱼皮AI超级智能体应用平台的专业矿业顾问，帮您解答各种矿山技术问题，提供专业建议'
-    }
+      description:
+        'AI矿山专家是鱼皮AI超级智能体应用平台的专业矿业顾问，帮您解答各种矿山技术问题，提供专业建议',
+    },
   },
   {
     path: '/super-agent',
@@ -34,14 +37,15 @@ const routes = [
     component: () => import('../views/SuperAgent.vue'),
     meta: {
       title: 'AI超级智能体 - 鱼皮AI超级智能体应用平台',
-      description: 'AI超级智能体是鱼皮AI超级智能体应用平台的全能助手，能解答各类专业问题，提供精准建议和解决方案'
-    }
-  }
+      description:
+        'AI超级智能体是鱼皮AI超级智能体应用平台的全能助手，能解答各类专业问题，提供精准建议和解决方案',
+    },
+  },
 ]
 
 const router = createRouter({
   history: createWebHistory(),
-  routes
+  routes,
 })
 
 // 全局导航守卫，设置文档标题
