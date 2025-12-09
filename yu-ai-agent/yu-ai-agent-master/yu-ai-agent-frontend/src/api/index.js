@@ -53,8 +53,14 @@ export const chatWithLoveApp = (message, chatId) => {
 }
 
 // AI矿山专家聊天
-export const chatWithMineAgent = (message) => {
-  return connectSSE('/ai/mine/chat', { message })
+export const chatWithMineAgent = (query, userId, conversationId) => {
+  return request.get('/mine/chat', {
+    params: {
+      query,
+      userId,
+      conversationId,
+    },
+  })
 }
 
 // AI超级智能体聊天
@@ -62,8 +68,60 @@ export const chatWithManus = (message) => {
   return connectSSE('/ai/manus/chat', { message })
 }
 
+// 注册
+export const register = (account, password, userName, userRole) => {
+  return request.post('/auth/register', null, {
+    params: { account, password, userName, userRole },
+  })
+}
+
+// 登录
+export const login = (account, password) => {
+  return request.post('/auth/login', null, {
+    params: { account, password },
+  })
+}
+
+// 登出
+export const logout = (userId) => {
+  return request.post('/auth/logout', null, {
+    headers: { 'X-User-Id': userId },
+  })
+}
+
+// 获取当前用户信息
+export const getCurrentUser = (userId) => {
+  return request.get('/auth/test', {
+    headers: { 'X-User-Id': userId },
+  })
+}
+
+// 获取用户最新对话和消息
+export const getLatestConversationWithMessages = (userId) => {
+  return request.get(`/conversation/latest/${userId}`)
+}
+
+// 获取对话消息列表
+export const getConversationMessages = (conversationId) => {
+  return request.get(`/conversation/messages/${conversationId}`)
+}
+
+// 创建新对话
+export const createConversation = (userId) => {
+  return request.post('/conversation/create', null, {
+    params: { userId },
+  })
+}
+
 export default {
   chatWithLoveApp,
   chatWithMineAgent,
   chatWithManus,
+  register,
+  login,
+  logout,
+  getCurrentUser,
+  getLatestConversationWithMessages,
+  getConversationMessages,
+  createConversation,
 }

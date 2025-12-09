@@ -1,10 +1,19 @@
 package com.yupi.yuaiagent.chatmemory;
 
-import com.yupi.yuaiagent.service.AgentChatMessageService;
+import com.yupi.yuaiagent.domin.entity.MemoryFragment;
+import com.yupi.yuaiagent.domin.entity.MiningAgentConversation;
+import com.yupi.yuaiagent.domin.entity.MiningAgentConversationMsg;
+import com.yupi.yuaiagent.domin.enums.ChatMessageEnum;
+import com.yupi.yuaiagent.mapper.MiningAgentConversationMapper;
+import com.yupi.yuaiagent.mapper.MiningAgentConversationMsgMapper;
+import com.yupi.yuaiagent.service.MemoryAsyncProducer;
+import com.yupi.yuaiagent.util.UniqueIdGenerator;
 import com.yupi.yuaiagent.utils.MessageSerializer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.messages.Message;
+import org.springframework.ai.chat.messages.UserMessage;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -21,23 +30,28 @@ import java.util.concurrent.TimeUnit;
 public class RedisChatMemory implements ChatMemory {
     // Redis 键前缀，避免键冲突
     private static final String KEY_PREFIX = "chat:memory:";
+    private static final Integer LIMIT_MESSAGES = 20;
     private final RedisTemplate<String, Object> redisTemplate;
-    private final AgentChatMessageService agentChatMessageService;
+    @Autowired
+    MemoryAsyncProducer memoryAsyncProducer;
+    @Autowired
+    MiningAgentConversationMapper miningAgentConversationMapper;
+    @Autowired
+    MiningAgentConversationMsgMapper miningAgentConversationMsgMapper;
 
-    public RedisChatMemory(RedisTemplate<String, Object> redisTemplate, AgentChatMessageService agentChatMessageService) {
+    public RedisChatMemory(RedisTemplate<String, Object> redisTemplate) {
         this.redisTemplate = redisTemplate;
-        this.agentChatMessageService = agentChatMessageService;
     }
 
     /**
      * 添加单条消息到对话历史
      *
-     * @param conversationId 对话 ID
-     * @param message        消息对象
+     * @param userID  对话 ID
+     * @param message 消息对象
      */
     @Override
-    public void add(String conversationId, Message message) {
-        add(conversationId, List.of(message));
+    public void add(String userID, Message message) {
+        add(userID, List.of(message));
     }
 
     /**
@@ -54,15 +68,28 @@ public class RedisChatMemory implements ChatMemory {
         existingMessages.addAll(messages);
         // 保存更新后的消息列表
         setToRedis(conversationId, existingMessages);
-
-        // 异步存储到MySQL数据库(若自己实现了可以使用)
-//        mySQLChatMemoryStore.storeMessages(conversationId, messages);
-        agentChatMessageService.
-        // 检查消息数量，如果超过20条则删除多余部分，只保留最新的20条
-        if (existingMessages.size() > 20) {
+        // MQ异步存储到数据库
+        MiningAgentConversation conversation = miningAgentConversationMapper.selectById(conversationId);
+        if (conversation == null) {
+            log.error("会话id：{}，当前会话不存在！", conversationId);
+        }
+        for (Message message : messages) {
+            MemoryFragment memoryFragment = new MemoryFragment();
+            String memoryId = UniqueIdGenerator.generateMemoryId(conversationId);
+            memoryFragment.setMemoryId(memoryId);
+            memoryFragment.setSessionId(conversationId);
+            memoryFragment.setUserId(conversation.getUserId());
+            memoryFragment.setExtraMeta(message.getMetadata());
+            String serialize = MessageSerializer.serialize(message);
+            memoryFragment.setContent(serialize);
+            int codeByBizKey = ChatMessageEnum.getCodeByBizKey(message.getMessageType().name());
+            memoryFragment.setMessageType(codeByBizKey);//参入当前消息的类型
+            memoryAsyncProducer.sendMemoryFragment(memoryFragment);
+        }
+        // 检查消息数量，如果超过limit条则删除多余部分，只保留最新的limit条
+        if (existingMessages.size() > LIMIT_MESSAGES) {
             trimConversation(conversationId);
         }
-
         log.debug("已向对话 [{}] 添加 {} 条消息，当前总消息数: {}",
                 conversationId, messages.size(), Math.min(existingMessages.size(), 20));
     }
@@ -99,11 +126,10 @@ public class RedisChatMemory implements ChatMemory {
      */
     public void trimConversation(String conversationId) {
         List<Message> allMessages = getFromRedis(conversationId);
-        if (allMessages.size() > 20) {
-            // 只保留最新的20条消息
-            List<Message> recentMessages = allMessages.subList(allMessages.size() - 20, allMessages.size());
+        if (allMessages.size() > LIMIT_MESSAGES) {
+            List<Message> recentMessages = allMessages.subList(allMessages.size() - LIMIT_MESSAGES, allMessages.size());
             setToRedis(conversationId, recentMessages);
-            log.debug("已清理对话 [{}] 的历史消息，从 {} 条减少到 20 条", conversationId, allMessages.size());
+            log.debug("已清理对话 [{}] 的历史消息，从 {} 条减少到 {} 条", conversationId, allMessages.size(), LIMIT_MESSAGES);
         }
     }
 
@@ -134,7 +160,24 @@ public class RedisChatMemory implements ChatMemory {
         Object value = redisTemplate.opsForValue().get(key);
         // 处理空值或类型不匹配的情况
         if (value == null) {
-            return new ArrayList<>();
+            //如果redis为空
+            //1、数据库拉取数据进行重建
+            List<MiningAgentConversationMsg> msgList = miningAgentConversationMsgMapper.selectByConversationIdOnLimit(conversationId, LIMIT_MESSAGES);
+            if (msgList == null || msgList.isEmpty()) {
+                //2、若数据库也为空，直接返回空数组
+                return new ArrayList<>();
+            }
+            //组装消息
+            //TODO待测试！！！
+            List<Message> list = new ArrayList<>();
+            for (MiningAgentConversationMsg conversationMsg : msgList) {
+                UserMessage userMessage = UserMessage.builder()
+                        .media(new ArrayList<>())
+                        .text(conversationMsg.getMsgContent())
+                        .metadata(conversationMsg.getFileMeta()).build();
+                list.add(userMessage);
+            }
+            return list;
         }
         if (!(value instanceof List)) {
             log.error("对话 [{}] 的消息存储格式不正确，预期为 List，实际为: {}",

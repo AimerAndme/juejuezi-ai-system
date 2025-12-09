@@ -2,11 +2,10 @@ spring:
   application:
     name: yu-ai-agent
 
-
   # 临时注释掉，便于大家开发调试和部署（实际填写 PgVector 数据库信息）
   datasource:
     # 连接 URL：格式 jdbc:postgresql://主机:端口/数据库名?参数
-    url: jdbc:postgresql://8.137.79.174:5432/sd_agent?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf8
+    url: jdbc:postgresql://localhost:5432/sdagent?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf8
     username: postgres  # PG 用户名（替换为你的实际账号）
     password: postgres    # PG 密码（替换为你的实际密码）
 
@@ -48,6 +47,21 @@ spring:
               url: http://localhost:8127
         stdio:
           servers-configuration: classpath:mcp-servers.json
+  rabbitmq:
+    host: 127.0.0.1 # 你的 RabbitMQ 地址
+    port: 5672
+    username: zsr # 用户名（生产环境建议修改）
+    password: 123456 # 密码
+    virtual-host: /agent
+    publisher-confirm-type: correlated # 开启发布确认（确保消息发送到队列）
+    publisher-returns: true # 开启发布返回（消息路由失败回调）
+    listener:
+      simple:
+        retry:
+          enabled: true # 开启消费重试
+          max-attempts: 3 # 最大重试次数：3次
+          initial-interval: 1000 # 初始重试间隔：1秒
+          multiplier: 2 # 重试间隔倍数：每次翻倍（1s→2s→4s）
   # 临时注释掉，便于大家开发调试和部署（实际需要启动 PgVector 数据库）
   #    vectorstore:
   #      pgvector:
@@ -59,6 +73,8 @@ spring:
 mybatis:
   mapper-locations: classpath:mapper/*.xml  # Mapper XML 文件路径
   type-aliases-package: com.yupi.yuaiagent.domin.entity  # 实体类包路径（简化 XML 中类名）
+  # 扫描 TypeHandler 所在包（需包含包路径，如 com.agent.memory.handler）
+  type-handlers-package: com.yupi.yuaiagent.handler
   configuration:
     map-underscore-to-camel-case: true  # 下划线转驼峰命名（适配 PG 表字段）
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl  # 显示 MyBatis SQL（开发用）

@@ -80,13 +80,29 @@
             <artifactId>mybatis-spring-boot-starter</artifactId>
             <version>3.0.3</version>
         </dependency>
-        <!-- MyBatis Generator 核心依赖 -->
         <dependency>
-            <groupId>org.mybatis.generator</groupId>
-            <artifactId>mybatis-generator-core</artifactId>
-            <version>1.4.2</version>
-            <scope>provided</scope> <!-- 仅编译时使用，不打包到项目 -->
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <!-- 有人说optional一定要配置成true才有效, 但我调试完感觉不加optional也有效 -->
+            <optional>true</optional>
         </dependency>
+        <!-- RabbitMQ 核心依赖 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-amqp</artifactId>
+        </dependency>
+        <!-- Spring 事务（确保 PG+Milvus 原子写入） -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-tx</artifactId>
+        </dependency>
+        <!--        &lt;!&ndash; MyBatis Generator 核心依赖 &ndash;&gt;-->
+        <!--        <dependency>-->
+        <!--            <groupId>org.mybatis.generator</groupId>-->
+        <!--            <artifactId>mybatis-generator-core</artifactId>-->
+        <!--            <version>1.4.2</version>-->
+        <!--            <scope>provided</scope> &lt;!&ndash; 仅编译时使用，不打包到项目 &ndash;&gt;-->
+        <!--        </dependency>-->
         <dependency>
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-markdown-document-reader</artifactId>
@@ -237,25 +253,25 @@
                     </excludes>
                 </configuration>
             </plugin>
-            <plugin>
-                <groupId>org.mybatis.generator</groupId>
-                <artifactId>mybatis-generator-maven-plugin</artifactId>
-                <version>1.4.2</version>
-                <configuration>
-                    <!-- MBG 配置文件路径（后续创建） -->
-                    <configurationFile>src/main/resources/generatorConfig.xml</configurationFile>
-                    <overwrite>true</overwrite> <!-- 允许覆盖已有文件（谨慎：会覆盖手动修改的代码） -->
-                    <verbose>true</verbose> <!-- 生成时打印日志 -->
-                </configuration>
-                <dependencies>
-                    <!-- 引入 PostgreSQL 驱动，让 MBG 能连接数据库 -->
-                    <dependency>
-                        <groupId>org.postgresql</groupId>
-                        <artifactId>postgresql</artifactId>
-                        <version>42.7.5</version> <!-- 与项目驱动版本一致 -->
-                    </dependency>
-                </dependencies>
-            </plugin>
+            <!--            <plugin>-->
+            <!--                <groupId>org.mybatis.generator</groupId>-->
+            <!--                <artifactId>mybatis-generator-maven-plugin</artifactId>-->
+            <!--                <version>1.4.2</version>-->
+            <!--                <configuration>-->
+            <!--                    &lt;!&ndash; MBG 配置文件路径（后续创建） &ndash;&gt;-->
+            <!--                    <configurationFile>src/main/resources/generatorConfig.xml</configurationFile>-->
+            <!--                    <overwrite>true</overwrite> &lt;!&ndash; 允许覆盖已有文件（谨慎：会覆盖手动修改的代码） &ndash;&gt;-->
+            <!--                    <verbose>true</verbose> &lt;!&ndash; 生成时打印日志 &ndash;&gt;-->
+            <!--                </configuration>-->
+            <!--                <dependencies>-->
+            <!--                    &lt;!&ndash; 引入 PostgreSQL 驱动，让 MBG 能连接数据库 &ndash;&gt;-->
+            <!--                    <dependency>-->
+            <!--                        <groupId>org.postgresql</groupId>-->
+            <!--                        <artifactId>postgresql</artifactId>-->
+            <!--                        <scope>runtime</scope>-->
+            <!--                    </dependency>-->
+            <!--                </dependencies>-->
+            <!--            </plugin>-->
         </plugins>
     </build>
 

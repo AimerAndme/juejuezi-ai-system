@@ -46,8 +46,9 @@ public class PreProcessingGraphFactory {
             @Override
             public Map<String, KeyStrategy> apply() {
                 return Map.of(
-                        "query", new ReplaceStrategy(),
-                        "recognizeResult", new AppendStrategy());
+                        "queryInfo", new ReplaceStrategy(),//查询信息USerVo
+                        "reWriteQuery", new ReplaceStrategy(),//查询重写结果
+                        "recognizeResult", new AppendStrategy());//查询结果
             }
         };
         StateGraph stateGraph = new StateGraph("PreProcessingGraph", keyStrategyFactory);

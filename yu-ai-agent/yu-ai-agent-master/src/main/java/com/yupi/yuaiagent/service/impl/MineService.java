@@ -3,7 +3,10 @@ package com.yupi.yuaiagent.service.impl;
 import com.alibaba.cloud.ai.graph.CompiledGraph;
 import com.alibaba.cloud.ai.graph.OverAllState;
 import com.alibaba.cloud.ai.graph.exception.GraphStateException;
+import com.yupi.yuaiagent.domin.entity.MiningAgentConversation;
+import com.yupi.yuaiagent.domin.vo.UserChatVO;
 import com.yupi.yuaiagent.graph.PreProcessingGraphFactory;
+import com.yupi.yuaiagent.mapper.MiningAgentConversationMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,9 +16,11 @@ import java.util.Optional;
 @Service
 public class MineService implements com.yupi.yuaiagent.service.IMineService {
     private final PreProcessingGraphFactory preProcessingGraphFactory;
+    private final MiningAgentConversationMapper miningAgentConversationMapper;
 
-    public MineService(PreProcessingGraphFactory preProcessingGraphFactory) {
+    public MineService(PreProcessingGraphFactory preProcessingGraphFactory, MiningAgentConversationMapper miningAgentConversationMapper) {
         this.preProcessingGraphFactory = preProcessingGraphFactory;
+        this.miningAgentConversationMapper = miningAgentConversationMapper;
     }
 
     @Override
@@ -39,10 +44,15 @@ public class MineService implements com.yupi.yuaiagent.service.IMineService {
     }
 
     @Override
-    public String chat(String query) throws GraphStateException {
+    public String chat(UserChatVO userChatVO) throws GraphStateException {
+        String userId = userChatVO.getUserId();
+        String conversationId = userChatVO.getConversationId();
+        List<MiningAgentConversation> conversations = miningAgentConversationMapper.selectByUserId(userId);
+        if (conversations == null || conversations.isEmpty()) {
+            throw new RuntimeException("当前用户不存在对话！！");
+        }
         CompiledGraph graph = preProcessingGraphFactory.getChatInstance();
-        Optional<OverAllState> call = graph.call(Map.of("query", query));
+        Optional<OverAllState> call = graph.call(Map.of("queryInfo", userChatVO));
         return (String) call.map(OverAllState::data).orElse(Map.of()).get("chatResult");
-
     }
 }

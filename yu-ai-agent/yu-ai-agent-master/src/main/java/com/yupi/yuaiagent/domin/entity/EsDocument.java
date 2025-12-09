@@ -1,4 +1,4 @@
-package com.yupi.yuaiagent.entity;
+package com.yupi.yuaiagent.domin.entity;
 
 
 import lombok.Data;

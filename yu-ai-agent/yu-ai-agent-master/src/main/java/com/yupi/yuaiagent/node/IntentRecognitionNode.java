@@ -2,6 +2,7 @@ package com.yupi.yuaiagent.node;
 
 import com.alibaba.cloud.ai.graph.OverAllState;
 import com.alibaba.cloud.ai.graph.action.NodeAction;
+import com.yupi.yuaiagent.domin.vo.UserChatVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.prompt.PromptTemplate;
@@ -26,11 +27,13 @@ public class IntentRecognitionNode implements NodeAction {
 
     @Override
     public Map<String, Object> apply(OverAllState state) throws Exception {
-        if (state.value("query").isEmpty()) {
+        if (state.value("queryInfo").isEmpty()) {
             log.error("无法获取用户输入内容");
         }
 
-        String query = (String) state.value("query").get();
+        UserChatVO userChatVO = (UserChatVO) state.value("queryInfo").get();
+        Object reWriteQuery = state.value("reWriteQuery").get();
+        String query = userChatVO.getQuery();
         PromptTemplate promptTemplate = new PromptTemplate("""
                 请分析用户输入内容的意图，从以下场景中精准匹配：
                 1. 闲聊：日常无业务关联的对话（如问候、闲聊家常、无关话题调侃等）
@@ -41,11 +44,11 @@ public class IntentRecognitionNode implements NodeAction {
                 要求：仅返回匹配场景的对应单词，注意：可能存在多场景的情况，多场景返回所有涉及场景，可选结果为：闲聊、矿山专业问答、公司制度问答、业务数据问答
                 用户输入内容为：{query}
                 """);
-        promptTemplate.add("query", query);
+        promptTemplate.add("query", reWriteQuery);
         String result = recognizeContent(promptTemplate.render());
         if (result == null || result.isBlank()) {
             log.error("最终意图识别失败！返回原始查询query");
-            return Map.of("recognizeResult", query);
+            return Map.of("recognizeResult", reWriteQuery);
 
         }
         return Map.of("recognizeResult", result.trim());

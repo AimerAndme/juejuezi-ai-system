@@ -2,13 +2,29 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 const routes = [
   {
+    path: '/login',
+    name: 'Login',
+    component: () => import('../views/Login.vue'),
+    meta: {
+      title: '登录 - 鱼皑AI超级智能体应用平台',
+    },
+  },
+  {
+    path: '/register',
+    name: 'Register',
+    component: () => import('../views/Register.vue'),
+    meta: {
+      title: '注册 - 鱼皑AI超级智能体应用平台',
+    },
+  },
+  {
     path: '/',
     name: 'Home',
     component: () => import('../views/Home.vue'),
     meta: {
-      title: '首页 - 鱼皮AI超级智能体应用平台',
+      title: '首页 - 鱼皑AI超级智能体应用平台',
       description:
-        '鱼皮AI超级智能体应用平台提供AI恋爱大师、AI矿山专家和AI超级智能体服务，满足您的各种AI对话需求',
+        '鱼皑AI超级智能体应用平台提供AI恋爱大师、AI矿山专家和AI超级智能体服务，满足您的各种AI对话需求',
     },
   },
   {

@@ -2,6 +2,7 @@ package com.yupi.yuaiagent.node;
 
 import com.alibaba.cloud.ai.graph.OverAllState;
 import com.alibaba.cloud.ai.graph.action.NodeAction;
+import com.yupi.yuaiagent.domin.vo.UserChatVO;
 import com.yupi.yuaiagent.utils.TxtReader;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
@@ -24,13 +25,19 @@ public class NormalChatNode implements NodeAction {
 
     @Override
     public Map<String, Object> apply(OverAllState state) throws Exception {
-        if (state.value("query").isEmpty()) {
+        if (state.value("queryInfo").isEmpty() || state.value("reWriteQuery").isEmpty()) {
             log.error("无法获取用户query");
         }
-        Object query = state.value("query").get();
+        UserChatVO queryInfo = (UserChatVO) state.value("queryInfo").get();
+        String query = (String) state.value("reWriteQuery").get();
         PromptTemplate promptTemplate = new PromptTemplate(PROMPT_STRING + "  用户输入的闲聊内容：{query}");
         promptTemplate.add("query", query);
-        String content = memoryChatClient.prompt(promptTemplate.render()).call().content();
+        String content = memoryChatClient
+                .prompt(promptTemplate.render())
+                .user(query)
+                .advisors(spec -> spec.param("chat_memory_conversation_id", queryInfo.getConversationId()))
+                .call()
+                .content();
         return Map.of("chatResult", content);
     }
 

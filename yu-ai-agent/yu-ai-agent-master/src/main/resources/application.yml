@@ -3,13 +3,26 @@ spring:
     name: yu-ai-agent
   profiles:
     active: gs
+  datasource:
+    # 连接 URL：格式 jdbc:postgresql://主机:端口/数据库名?参数
+    url: jdbc:postgresql://localhost:5432/sdagent?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf8
+    username: postgres # PG 用户名（替换为你的实际账号）
+    password: postgres # PG 密码（替换为你的实际密码）
+
+    hikari:
+      maximum-pool-size: 10 # 最大连接数（根据数据库配置调整，不要超过 PG 最大连接数）
+      minimum-idle: 2 # 最小空闲连接数
+      connection-timeout: 30000 # 连接超时时间（ms）
+      idle-timeout: 600000 # 空闲连接超时时间（ms）
+      max-lifetime: 1800000 # 连接最大存活时间（ms）
+      connection-test-query: SELECT 1 # PG 心跳检测 SQL（HikariCP 会自动适配，可选）
   data:
     redis:
-      host: 8.137.79.174  # Redis服务器地址
-      port: 6379       # 端口
+      host: 8.137.79.174 # Redis服务器地址
+      port: 6379 # 端口
       password: redis123 # 密码（无密码可省略）
-      database: 1      # 数据库编号（默认0）
-      timeout: 2000ms  # 连接超时时间
+      database: 1 # 数据库编号（默认0）
+      timeout: 2000ms # 连接超时时间
 
   # 临时注释掉，便于大家开发调试和部署（实际填写 PgVector 数据库信息）
   #  datasource:
@@ -45,16 +58,39 @@ spring:
   #        distance-type: COSINE_DISTANCE
   #        max-document-batch-size: 10000 # Optional: Maximum number of documents per batch
   # Elasticsearch 配置
+  # MyBatis 配置（单独配置）
+  rabbitmq:
+    host: 127.0.0.1 # 你的 RabbitMQ 地址
+    port: 5672
+    username: zsr # 用户名（生产环境建议修改）
+    password: 123456 # 密码
+    virtual-host: /
+    publisher-confirm-type: correlated # 开启发布确认（确保消息发送到队列）
+    publisher-returns: true # 开启发布返回（消息路由失败回调）
+    listener:
+      simple:
+        retry:
+          enabled: true # 开启消费重试
+          max-attempts: 3 # 最大重试次数：3次
+          initial-interval: 1000 # 初始重试间隔：1秒
+          multiplier: 2 # 重试间隔倍数：每次翻倍（1s→2s→4s）
+mybatis:
+  mapper-locations: classpath:mapper/MiningAgentUserMapper.xml,classpath:mapper/MiningAgentConversationMapper.xml # 暂时排除有语法错误的MiningAgentConversationMsgMapper.xml
+  type-aliases-package: com.yupi.yuaiagent.domin.entity # 实体类包路径（简化 XML 中类名）
+  configuration:
+    map-underscore-to-camel-case: true # 下划线转驼峰命名（适配 PG 表字段）
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl # 显示 MyBatis SQL（开发用）
+
 elasticsearch:
   # host: localhost       # Elasticsearch主机地址
   host: 192.168.152.129
-  port: 9200            # Elasticsearch端口号
-  scheme: http         # 协议（http/https）
-  username: elastic     # 安装后生成的默认用户
+  port: 9200 # Elasticsearch端口号
+  scheme: http # 协议（http/https）
+  username: elastic # 安装后生成的默认用户
   # password: es123456 # 密码（ES启动时生成）
-  password: PaiSmart2025   # 密码（ES启动时生成）
+  password: PaiSmart2025 # 密码（ES启动时生成）
   ssl:
-    verification-mode: none   # 开发环境可关闭SSL验证（生产需配置证书）
+    verification-mode: none # 开发环境可关闭SSL验证（生产需配置证书）
 server:
   port: 8123
   servlet:

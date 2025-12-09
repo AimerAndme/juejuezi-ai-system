@@ -2,6 +2,7 @@ package com.yupi.yuaiagent.node;
 
 import com.alibaba.cloud.ai.graph.OverAllState;
 import com.alibaba.cloud.ai.graph.action.NodeAction;
+import com.yupi.yuaiagent.domin.vo.UserChatVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.prompt.PromptTemplate;
@@ -20,10 +21,11 @@ public class QueryRewritingNode implements NodeAction {
 
     @Override
     public Map<String, Object> apply(OverAllState state) throws Exception {
-        if (state.value("query").isEmpty()) {
+        if (state.value("queryInfo").isEmpty()) {
             log.error("无法获取用户输入内容");
         }
-        String query = (String) state.value("query").get();
+        UserChatVO userChatVO = (UserChatVO) state.value("queryInfo").get();
+        String query = userChatVO.getQuery();
         PromptTemplate promptTemplate = new PromptTemplate("""
                 【任务】对用户输入的Query进行润色改写，为后续意图识别提供清晰、规范的文本。
                 【核心规则】
@@ -54,6 +56,7 @@ public class QueryRewritingNode implements NodeAction {
             log.info("查询重写完成，结果query为：{}", content);
             query = content;
         }
-        return Map.of("query", query);
+        return Map.of("reWriteQuery", query);
     }
+
 }
