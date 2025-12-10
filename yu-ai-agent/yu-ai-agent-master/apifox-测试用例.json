@@ -1,0 +1,515 @@
+{
+  "projectName": "YV-AI 用户认证系统",
+  "projectDescription": "用户注册、登录、登出、个人信息查询",
+  "apiCollections": [
+    {
+      "name": "用户认证",
+      "description": "用户认证相关接口",
+      "items": [
+        {
+          "id": "register-001",
+          "name": "注册 - 成功案例",
+          "method": "POST",
+          "url": "http://localhost:8123/api/auth/register",
+          "description": "新用户注册，自动生成UUID作为用户ID",
+          "headers": [
+            {
+              "name": "Content-Type",
+              "value": "application/x-www-form-urlencoded"
+            }
+          ],
+          "query": [
+            {
+              "name": "account",
+              "value": "user001",
+              "description": "登录账号"
+            },
+            {
+              "name": "password",
+              "value": "123456",
+              "description": "登录密码"
+            },
+            {
+              "name": "userName",
+              "value": "测试用户1",
+              "description": "用户昵称"
+            },
+            {
+              "name": "userRole",
+              "value": "miner",
+              "description": "用户角色（miner/technician/manager）"
+            }
+          ],
+          "expectedResponse": {
+            "code": 200,
+            "msg": "注册成功",
+            "data": "UUID格式的用户ID"
+          }
+        },
+        {
+          "id": "register-002",
+          "name": "注册 - 账号已存在",
+          "method": "POST",
+          "url": "http://localhost:8123/api/auth/register",
+          "description": "尝试使用已存在的账号注册",
+          "headers": [
+            {
+              "name": "Content-Type",
+              "value": "application/x-www-form-urlencoded"
+            }
+          ],
+          "query": [
+            {
+              "name": "account",
+              "value": "user001",
+              "description": "已存在的账号"
+            },
+            {
+              "name": "password",
+              "value": "password",
+              "description": "密码"
+            },
+            {
+              "name": "userName",
+              "value": "重复用户",
+              "description": "用户昵称"
+            },
+            {
+              "name": "userRole",
+              "value": "technician",
+              "description": "用户角色"
+            }
+          ],
+          "expectedResponse": {
+            "code": 400,
+            "msg": "账号已存在",
+            "data": null
+          }
+        },
+        {
+          "id": "register-003",
+          "name": "注册 - 参数缺失",
+          "method": "POST",
+          "url": "http://localhost:8123/api/auth/register",
+          "description": "缺少必填参数",
+          "headers": [
+            {
+              "name": "Content-Type",
+              "value": "application/x-www-form-urlencoded"
+            }
+          ],
+          "query": [
+            {
+              "name": "account",
+              "value": "",
+              "description": "空账号"
+            },
+            {
+              "name": "password",
+              "value": "123456",
+              "description": "密码"
+            },
+            {
+              "name": "userName",
+              "value": "用户",
+              "description": "用户昵称"
+            },
+            {
+              "name": "userRole",
+              "value": "manager",
+              "description": "用户角色"
+            }
+          ],
+          "expectedResponse": {
+            "code": 400,
+            "msg": "账号和密码不能为空",
+            "data": null
+          }
+        },
+        {
+          "id": "login-001",
+          "name": "登录 - 成功案例",
+          "method": "POST",
+          "url": "http://localhost:8123/api/auth/login",
+          "description": "使用正确的账号和密码登录",
+          "headers": [
+            {
+              "name": "Content-Type",
+              "value": "application/x-www-form-urlencoded"
+            }
+          ],
+          "query": [
+            {
+              "name": "account",
+              "value": "user001",
+              "description": "用户账号"
+            },
+            {
+              "name": "password",
+              "value": "123456",
+              "description": "用户密码"
+            }
+          ],
+          "expectedResponse": {
+            "code": 200,
+            "msg": "登录成功",
+            "data": "UUID格式的用户ID"
+          }
+        },
+        {
+          "id": "login-002",
+          "name": "登录 - 密码错误",
+          "method": "POST",
+          "url": "http://localhost:8123/api/auth/login",
+          "description": "使用错误的密码登录",
+          "headers": [
+            {
+              "name": "Content-Type",
+              "value": "application/x-www-form-urlencoded"
+            }
+          ],
+          "query": [
+            {
+              "name": "account",
+              "value": "user001",
+              "description": "用户账号"
+            },
+            {
+              "name": "password",
+              "value": "wrongpassword",
+              "description": "错误的密码"
+            }
+          ],
+          "expectedResponse": {
+            "code": 400,
+            "msg": "账号或密码错误",
+            "data": null
+          }
+        },
+        {
+          "id": "login-003",
+          "name": "登录 - 账号不存在",
+          "method": "POST",
+          "url": "http://localhost:8123/api/auth/login",
+          "description": "使用不存在的账号登录",
+          "headers": [
+            {
+              "name": "Content-Type",
+              "value": "application/x-www-form-urlencoded"
+            }
+          ],
+          "query": [
+            {
+              "name": "account",
+              "value": "nonexistent",
+              "description": "不存在的账号"
+            },
+            {
+              "name": "password",
+              "value": "123456",
+              "description": "密码"
+            }
+          ],
+          "expectedResponse": {
+            "code": 400,
+            "msg": "账号或密码错误",
+            "data": null
+          }
+        },
+        {
+          "id": "login-004",
+          "name": "登录 - 参数缺失",
+          "method": "POST",
+          "url": "http://localhost:8123/api/auth/login",
+          "description": "缺少必填参数",
+          "headers": [
+            {
+              "name": "Content-Type",
+              "value": "application/x-www-form-urlencoded"
+            }
+          ],
+          "query": [
+            {
+              "name": "account",
+              "value": "user001",
+              "description": "用户账号"
+            },
+            {
+              "name": "password",
+              "value": "",
+              "description": "空密码"
+            }
+          ],
+          "expectedResponse": {
+            "code": 400,
+            "msg": "账号和密码不能为空",
+            "data": null
+          }
+        },
+        {
+          "id": "logout-001",
+          "name": "登出 - 成功案例",
+          "method": "POST",
+          "url": "http://localhost:8123/api/auth/logout",
+          "description": "用户登出（前端删除userId，后端返回成功）",
+          "headers": [
+            {
+              "name": "X-User-Id",
+              "value": "550e8400-e29b-41d4-a716-446655440000",
+              "description": "从登录接口返回的用户ID"
+            }
+          ],
+          "expectedResponse": {
+            "code": 200,
+            "msg": "登出成功",
+            "data": null
+          }
+        },
+        {
+          "id": "logout-002",
+          "name": "登出 - 不提供用户ID",
+          "method": "POST",
+          "url": "http://localhost:8123/api/auth/logout",
+          "description": "不提供X-User-Id请求头也能返回成功",
+          "headers": [],
+          "expectedResponse": {
+            "code": 200,
+            "msg": "登出成功",
+            "data": null
+          }
+        },
+        {
+          "id": "test-001",
+          "name": "获取用户信息 - 成功案例",
+          "method": "GET",
+          "url": "http://localhost:8123/api/auth/test",
+          "description": "获取当前登录用户的详细信息",
+          "headers": [
+            {
+              "name": "X-User-Id",
+              "value": "550e8400-e29b-41d4-a716-446655440000",
+              "description": "从登录接口返回的用户ID"
+            }
+          ],
+          "expectedResponse": {
+            "code": 200,
+            "msg": "获取成功",
+            "data": {
+              "userId": "550e8400-e29b-41d4-a716-446655440000",
+              "account": "user001",
+              "password": "123456",
+              "userName": "测试用户1",
+              "userRole": "miner",
+              "phone": null,
+              "createTime": "2025-12-08T10:30:45",
+              "isDeleted": false
+            }
+          }
+        },
+        {
+          "id": "test-002",
+          "name": "获取用户信息 - 用户ID不存在",
+          "method": "GET",
+          "url": "http://localhost:8123/api/auth/test",
+          "description": "使用不存在的用户ID",
+          "headers": [
+            {
+              "name": "X-User-Id",
+              "value": "nonexistent-id",
+              "description": "不存在的用户ID"
+            }
+          ],
+          "expectedResponse": {
+            "code": 400,
+            "msg": "用户不存在",
+            "data": null
+          }
+        },
+        {
+          "id": "test-003",
+          "name": "获取用户信息 - 未提供用户ID",
+          "method": "GET",
+          "url": "http://localhost:8123/api/auth/test",
+          "description": "不提供X-User-Id请求头",
+          "headers": [],
+          "expectedResponse": {
+            "code": 400,
+            "msg": "用户未登录",
+            "data": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "集成测试流程",
+      "description": "完整的用户认证流程",
+      "items": [
+        {
+          "id": "flow-001",
+          "name": "完整流程：注册 → 登录 → 获取信息 → 登出",
+          "description": "用户完整操作流程",
+          "steps": [
+            {
+              "step": 1,
+              "description": "执行注册",
+              "apiId": "register-001",
+              "beforeNote": "需要修改account参数为唯一值"
+            },
+            {
+              "step": 2,
+              "description": "保存返回的userId",
+              "apiId": "register-001",
+              "beforeNote": "从响应中提取data字段作为用户ID"
+            },
+            {
+              "step": 3,
+              "description": "执行登录",
+              "apiId": "login-001",
+              "beforeNote": "使用注册时的account和password"
+            },
+            {
+              "step": 4,
+              "description": "保存返回的userId",
+              "apiId": "login-001",
+              "beforeNote": "从响应中提取data字段"
+            },
+            {
+              "step": 5,
+              "description": "获取用户信息",
+              "apiId": "test-001",
+              "beforeNote": "使用登录返回的userId作为X-User-Id请求头"
+            },
+            {
+              "step": 6,
+              "description": "验证返回的用户数据",
+              "apiId": "test-001",
+              "beforeNote": "确认userId、account、userName等信息正确"
+            },
+            {
+              "step": 7,
+              "description": "执行登出",
+              "apiId": "logout-001",
+              "beforeNote": "使用userId作为X-User-Id请求头"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "environment": {
+    "name": "开发环境",
+    "variables": [
+      {
+        "name": "baseUrl",
+        "value": "http://localhost:8123/api",
+        "description": "后端API基础地址"
+      },
+      {
+        "name": "userId",
+        "value": "",
+        "description": "当前用户ID（用于关联请求）"
+      },
+      {
+        "name": "account",
+        "value": "user001",
+        "description": "测试用户账号"
+      },
+      {
+        "name": "password",
+        "value": "123456",
+        "description": "测试用户密码"
+      }
+    ]
+  },
+  "testData": [
+    {
+      "name": "正常注册用户数据",
+      "cases": [
+        {
+          "account": "user001",
+          "password": "123456",
+          "userName": "张三",
+          "userRole": "miner"
+        },
+        {
+          "account": "user002",
+          "password": "password123",
+          "userName": "李四",
+          "userRole": "technician"
+        },
+        {
+          "account": "user003",
+          "password": "manager@123",
+          "userName": "王五",
+          "userRole": "manager"
+        }
+      ]
+    },
+    {
+      "name": "异常场景数据",
+      "cases": [
+        {
+          "description": "账号为空",
+          "account": "",
+          "password": "123456",
+          "userName": "用户",
+          "userRole": "miner"
+        },
+        {
+          "description": "密码为空",
+          "account": "user001",
+          "password": "",
+          "userName": "用户",
+          "userRole": "miner"
+        },
+        {
+          "description": "特殊字符账号",
+          "account": "user@#$",
+          "password": "123456",
+          "userName": "特殊用户",
+          "userRole": "miner"
+        },
+        {
+          "description": "长度过长密码",
+          "account": "user004",
+          "password": "1234567890123456789012345678901234567890",
+          "userName": "长密码用户",
+          "userRole": "technician"
+        }
+      ]
+    }
+  ],
+  "assertions": [
+    {
+      "name": "响应码检验",
+      "type": "statusCode",
+      "description": "验证HTTP响应状态码"
+    },
+    {
+      "name": "JSON格式检验",
+      "type": "jsonStructure",
+      "description": "验证响应JSON包含code、msg、data字段"
+    },
+    {
+      "name": "userId格式检验",
+      "type": "regex",
+      "pattern": "^[a-f0-9-]{36}$",
+      "description": "验证返回的userId是UUID格式"
+    },
+    {
+      "name": "错误响应检验",
+      "type": "responseBody",
+      "field": "code",
+      "operator": "equals",
+      "value": 400,
+      "description": "验证错误响应code为400"
+    }
+  ],
+  "documentation": {
+    "overview": "YV-AI平台用户认证系统的完整测试套件",
+    "baseUrl": "http://localhost:8123/api",
+    "authentication": "无认证（学习项目）",
+    "responseFormat": "所有接口返回统一的JSON格式: {code: number, msg: string, data: any}",
+    "errorHandling": "请求失败时code为400，成功时code为200"
+  }
+}

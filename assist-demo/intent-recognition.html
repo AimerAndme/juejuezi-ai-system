@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>意图识别测试工具</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #f5f5f5;
+      }
+
+      .container {
+        background-color: white;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        color: #333;
+        text-align: center;
+      }
+
+      .input-section {
+        margin-bottom: 20px;
+      }
+
+      textarea {
+        width: 100%;
+        height: 200px;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        resize: vertical;
+        font-family: monospace;
+      }
+
+      button {
+        background-color: #4caf50;
+        color: white;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+        margin: 10px 0;
+      }
+
+      button:hover {
+        background-color: #45a049;
+      }
+
+      button:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
+      }
+
+      .mode-selection {
+        margin: 20px 0;
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background-color: #f9f9f9;
+      }
+
+      .mode-selection label {
+        margin-right: 20px;
+        font-weight: bold;
+      }
+
+      .mode-selection input[type='radio'] {
+        margin-right: 5px;
+      }
+
+      .file-input-section {
+        margin: 15px 0;
+      }
+
+      .results-section {
+        margin-top: 20px;
+      }
+
+      .result-item {
+        border: 1px solid #eee;
+        padding: 10px;
+        margin-bottom: 10px;
+        border-radius: 4px;
+        background-color: #fafafa;
+      }
+
+      .result-item.correct {
+        border-left: 4px solid #4caf50;
+      }
+
+      .result-item.incorrect {
+        border-left: 4px solid #f44336;
+      }
+
+      .stats {
+        background-color: #e3f2fd;
+        padding: 15px;
+        border-radius: 4px;
+        margin-top: 20px;
+        text-align: center;
+      }
+
+      .scrollable-output {
+        max-height: 300px;
+        overflow-y: auto;
+        border: 1px solid #ddd;
+        padding: 10px;
+        background-color: #f9f9f9;
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      .single-test-controls {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 15px 0;
+      }
+
+      .single-test-controls button {
+        margin: 0;
+      }
+
+      .auto-load-info {
+        background-color: #e3f2fd;
+        padding: 10px;
+        border-radius: 4px;
+        margin: 10px 0;
+        font-size: 14px;
+      }
+
+      .batch-controls {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 15px 0;
+      }
+
+      .batch-controls input {
+        width: 80px;
+        padding: 5px;
+      }
+
+      .file-selection {
+        margin: 15px 0;
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background-color: #f9f9f9;
+      }
+
+      .file-selection label {
+        margin-right: 15px;
+        font-weight: bold;
+      }
+
+      .file-selection input[type='radio'] {
+        margin-right: 5px;
+      }
+
+      .load-file-btn {
+        background-color: #2196f3;
+        margin-left: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>意图识别测试工具</h1>
+
+      <div class="file-selection">
+        <h2>选择测试数据文件</h2>
+        <label>
+          <input
+            type="radio"
+            name="fileType"
+            value="测试意图问答（单场景）.js"
+            checked
+          />
+          测试意图问答（单场景）.js
+        </label>
+        <label>
+          <input
+            type="radio"
+            name="fileType"
+            value="测试意图问答（多场景）.js"
+          />
+          测试意图问答（多场景）.js
+        </label>
+        <button id="loadFileBtn" class="load-file-btn">一键加载文件</button>
+        <p id="fileStatus">请选择文件并点击加载按钮</p>
+      </div>
+
+      <div class="mode-selection">
+        <h2>选择测试模式</h2>
+        <label>
+          <input type="radio" name="testMode" value="batch" />
+          批量测试（手动输入JSON数据）
+        </label>
+        <label>
+          <input type="radio" name="testMode" value="random" checked />
+          随机批量测试（从JS文件中随机选择）
+        </label>
+        <label>
+          <input type="radio" name="testMode" value="single" />
+          单次随机测试（从JS文件中随机选择一条）
+        </label>
+      </div>
+
+      <div class="input-section hidden" id="batchInputSection">
+        <h2>输入JSON数据</h2>
+        <p>请输入包含question和intent字段的JSON数据，每行一个JSON对象：</p>
+        <textarea
+          id="jsonData"
+          placeholder='例如：
+{"question": "今天天气怎么样？", "intent": "weather_query"}
+{"question": "播放音乐", "intent": "music_play"}'
+        ></textarea>
+        <button
+          id="clearInputBtn"
+          style="background-color: #f44336; margin-top: 10px"
+        >
+          清空输入
+        </button>
+      </div>
+
+      <div class="file-input-section" id="fileInputSection">
+        <h2>手动加载文件</h2>
+        <input type="file" id="testDataFile" accept=".js" />
+        <p>或者通过文件选择器手动加载其他JS文件</p>
+      </div>
+
+      <div class="single-test-controls" id="singleTestControls">
+        <button id="randomTestBtn" disabled>随机测试一条</button>
+      </div>
+
+      <div class="batch-controls hidden" id="batchControls">
+        <label for="batchCount">随机测试数量：</label>
+        <input type="number" id="batchCount" min="1" value="10" />
+        <button id="startRandomBatchBtn">开始随机批量测试</button>
+      </div>
+
+      <div class="batch-controls hidden" id="manualBatchControls">
+        <button id="startManualBatchBtn">开始批量测试</button>
+      </div>
+
+      <button id="clearBtn">清空结果</button>
+      <button
+        id="clearAllBtn"
+        style="background-color: #ff9800; margin-left: 10px"
+      >
+        清空所有数据
+      </button>
+
+      <div class="results-section">
+        <h2>测试结果</h2>
+        <div id="stats" class="stats hidden">
+          <p>总测试数: <span id="totalCount">0</span></p>
+          <p>正确数: <span id="correctCount">0</span></p>
+          <p>正确率: <span id="accuracyRate">0%</span></p>
+        </div>
+
+        <div id="resultsContainer" class="scrollable-output">
+          <!-- 结果将在这里显示 -->
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        // DOM元素
+        const jsonDataTextarea = document.getElementById('jsonData')
+        const clearBtn = document.getElementById('clearBtn')
+        const clearAllBtn = document.getElementById('clearAllBtn')
+        const clearInputBtn = document.getElementById('clearInputBtn')
+        const resultsContainer = document.getElementById('resultsContainer')
+        const statsDiv = document.getElementById('stats')
+        const totalCountSpan = document.getElementById('totalCount')
+        const correctCountSpan = document.getElementById('correctCount')
+        const accuracyRateSpan = document.getElementById('accuracyRate')
+        const testModeRadios = document.getElementsByName('testMode')
+        const fileTypeRadios = document.getElementsByName('fileType')
+        const batchInputSection = document.getElementById('batchInputSection')
+        const fileInputSection = document.getElementById('fileInputSection')
+        const testDataFileInput = document.getElementById('testDataFile')
+        const singleTestControls = document.getElementById('singleTestControls')
+        const batchControls = document.getElementById('batchControls')
+        const manualBatchControls = document.getElementById(
+          'manualBatchControls'
+        )
+        const randomTestBtn = document.getElementById('randomTestBtn')
+        const loadFileBtn = document.getElementById('loadFileBtn')
+        const startRandomBatchBtn = document.getElementById(
+          'startRandomBatchBtn'
+        )
+        const startManualBatchBtn = document.getElementById(
+          'startManualBatchBtn'
+        )
+        const batchCountInput = document.getElementById('batchCount')
+        const fileStatus = document.getElementById('fileStatus')
+
+        // 数据变量
+        let totalTests = 0
+        let correctTests = 0
+        let testDataArray = [] // 存储从JS文件读取的测试数据
+
+        // 模式切换
+        testModeRadios.forEach((radio) => {
+          radio.addEventListener('change', function () {
+            if (this.value === 'batch') {
+              // 手动批量测试模式
+              batchInputSection.classList.remove('hidden')
+              singleTestControls.classList.add('hidden')
+              batchControls.classList.add('hidden')
+              manualBatchControls.classList.remove('hidden')
+            } else if (this.value === 'random') {
+              // 随机批量测试模式
+              batchInputSection.classList.add('hidden')
+              singleTestControls.classList.add('hidden')
+              batchControls.classList.remove('hidden')
+              manualBatchControls.classList.add('hidden')
+            } else {
+              // 单次测试模式
+              batchInputSection.classList.add('hidden')
+              singleTestControls.classList.remove('hidden')
+              batchControls.classList.add('hidden')
+              manualBatchControls.classList.add('hidden')
+            }
+          })
+        })
+
+        // 文件选择器事件
+        testDataFileInput.addEventListener('change', function (event) {
+          const file = event.target.files[0]
+          if (file) {
+            loadTestDataFromFile(file)
+          }
+        })
+
+        // 一键加载文件按钮事件
+        loadFileBtn.addEventListener('click', async function () {
+          const selectedFile = document.querySelector(
+            'input[name="fileType"]:checked'
+          ).value
+          try {
+            // 使用fetch加载选定的文件
+            const response = await fetch(selectedFile)
+            if (!response.ok) {
+              throw new Error(`无法加载文件: ${response.status}`)
+            }
+
+            const content = await response.text()
+            // 解析JS文件内容
+            parseTestData(content, selectedFile)
+          } catch (error) {
+            console.error('加载文件失败:', error)
+            fileStatus.innerHTML = `<span style="color: red;">文件加载失败: ${error.message}</span>`
+            randomTestBtn.disabled = true
+          }
+        })
+
+        // 随机测试一条按钮事件
+        randomTestBtn.addEventListener('click', async function () {
+          if (testDataArray.length === 0) {
+            alert('测试数据为空，请先加载文件')
+            return
+          }
+
+          // 随机选择一条数据
+          const randomIndex = Math.floor(Math.random() * testDataArray.length)
+          const randomTestData = testDataArray[randomIndex]
+
+          // 执行单次测试
+          await runTest(randomTestData, 1, true)
+        })
+
+        // 开始随机批量测试按钮事件
+        startRandomBatchBtn.addEventListener('click', async function () {
+          if (testDataArray.length === 0) {
+            alert('请先加载测试数据文件')
+            return
+          }
+
+          const count = parseInt(batchCountInput.value)
+          if (isNaN(count) || count <= 0) {
+            alert('请输入有效的测试数量')
+            return
+          }
+
+          // 随机选择指定数量的数据
+          const testData = getRandomItems(
+            testDataArray,
+            Math.min(count, testDataArray.length)
+          )
+
+          // 执行批量测试
+          await runBatchTests(testData, false)
+        })
+
+        // 开始手动批量测试按钮事件
+        startManualBatchBtn.addEventListener('click', async function () {
+          const jsonData = jsonDataTextarea.value.trim()
+          if (!jsonData) {
+            alert('请输入JSON数据')
+            return
+          }
+
+          // 解析JSON数据
+          const lines = jsonData
+            .split('\n')
+            .filter((line) => line.trim() !== '')
+          const testData = []
+
+          try {
+            for (let i = 0; i < lines.length; i++) {
+              const line = lines[i].trim()
+              if (line) {
+                testData.push(JSON.parse(line))
+              }
+            }
+          } catch (e) {
+            alert('JSON格式错误，请检查输入数据')
+            return
+          }
+
+          if (testData.length === 0) {
+            alert('没有有效的测试数据')
+            return
+          }
+
+          // 执行批量测试
+          await runBatchTests(testData, false)
+        })
+
+        // 执行批量测试
+        async function runBatchTests(testData, isSingleTest) {
+          if (testData.length === 0) {
+            alert('没有有效的测试数据')
+            return
+          }
+
+          // 重置统计
+          totalTests = testData.length
+          correctTests = 0
+          resultsContainer.innerHTML = ''
+          statsDiv.classList.remove('hidden')
+          updateStats()
+
+          // 禁用按钮防止重复点击
+          const isRandomBatch =
+            document.querySelector('input[name="testMode"]:checked').value ===
+            'random'
+          const isManualBatch =
+            document.querySelector('input[name="testMode"]:checked').value ===
+            'batch'
+
+          if (isRandomBatch) {
+            startRandomBatchBtn.disabled = true
+            startRandomBatchBtn.textContent = '随机批量测试中...'
+          } else if (isManualBatch) {
+            startManualBatchBtn.disabled = true
+            startManualBatchBtn.textContent = '批量测试中...'
+          }
+
+          // 执行测试
+          for (let i = 0; i < testData.length; i++) {
+            await runTest(testData[i], i + 1, isSingleTest)
+          }
+
+          // 启用按钮
+          if (isRandomBatch) {
+            startRandomBatchBtn.disabled = false
+            startRandomBatchBtn.textContent = '开始随机批量测试'
+          } else if (isManualBatch) {
+            startManualBatchBtn.disabled = false
+            startManualBatchBtn.textContent = '开始批量测试'
+          }
+        }
+
+        // 从文件加载测试数据
+        function loadTestDataFromFile(file) {
+          const reader = new FileReader()
+          reader.onload = function (e) {
+            try {
+              const content = e.target.result
+              parseTestData(content, file.name)
+            } catch (error) {
+              console.error('解析文件出错:', error)
+              fileStatus.innerHTML = `<span style="color: red;">文件解析失败: ${error.message}</span>`
+              testDataArray = []
+              randomTestBtn.disabled = true
+            }
+          }
+          reader.readAsText(file, 'UTF-8')
+        }
+
+        // 解析测试数据
+        function parseTestData(content, fileName) {
+          try {
+            // 提取数组部分
+            const arrayMatch = content.match(/\[\s*([\s\S]*)\s*\]/)
+            if (arrayMatch) {
+              // 构造可执行的JS代码
+              const arrayContent = `[${arrayMatch[1]}]`
+              const rawData = eval(arrayContent)
+
+              // 转换数据格式以统一处理
+              testDataArray = rawData.map((item) => {
+                // 如果intent是数组，将其转换为"、"分隔的字符串
+                if (Array.isArray(item.intent)) {
+                  return {
+                    question: item.question,
+                    intent: item.intent.join('、'),
+                  }
+                }
+                // 如果intent是字符串，直接返回
+                return item
+              })
+
+              fileStatus.innerHTML = `<span style="color: green;">文件 ${fileName} 加载成功，共${testDataArray.length}条测试数据</span>`
+              randomTestBtn.disabled = false
+            } else {
+              throw new Error('文件格式不正确，未找到数据数组')
+            }
+          } catch (error) {
+            throw new Error(`数据解析错误: ${error.message}`)
+          }
+        }
+
+        // 从数组中随机获取指定数量的项
+        function getRandomItems(arr, count) {
+          const shuffled = [...arr].sort(() => 0.5 - Math.random())
+          return shuffled.slice(0, count)
+        }
+
+        // 执行单个测试
+        async function runTest(data, index, isSingleTest = false) {
+          const { question, intent: expectedIntent } = data
+
+          try {
+            // 记录请求开始时间
+            const startTime = performance.now()
+
+            // 发送HTTP请求
+            const response = await fetch(
+              `http://localhost:8123/api/mine/intent-recognize?query=${encodeURIComponent(
+                question
+              )}`
+            )
+
+            // 记录请求结束时间
+            const endTime = performance.now()
+            const duration = (endTime - startTime).toFixed(2) // 转换为毫秒并保留两位小数
+
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`)
+            }
+
+            // 获取响应文本
+            const responseText = await response.text()
+
+            // 解析实际意图（支持多场景返回格式）
+            let actualIntents = []
+            let actualIntentDisplay = ''
+
+            // 尝试解析为JSON
+            try {
+              const result = JSON.parse(responseText)
+              // 如果解析成功且有intent字段
+              if (result.intent) {
+                if (typeof result.intent === 'string') {
+                  // 处理逗号分隔的多场景意图
+                  if (result.intent.includes('、')) {
+                    actualIntents = result.intent
+                      .split('、')
+                      .map((intent) => intent.trim())
+                    actualIntentDisplay = result.intent
+                  } else {
+                    actualIntents = [result.intent]
+                    actualIntentDisplay = result.intent
+                  }
+                } else if (Array.isArray(result.intent)) {
+                  // 如果intent是数组
+                  actualIntents = result.intent
+                  actualIntentDisplay = result.intent.join('、')
+                } else {
+                  // 其他情况
+                  actualIntents = [String(result.intent)]
+                  actualIntentDisplay = String(result.intent)
+                }
+              } else {
+                // 没有intent字段，使用整个响应
+                actualIntents = [responseText]
+                actualIntentDisplay = responseText
+              }
+            } catch (parseError) {
+              // 解析JSON失败，尝试处理文本格式
+              if (responseText.includes('、')) {
+                actualIntents = responseText
+                  .split('、')
+                  .map((intent) => intent.trim())
+                actualIntentDisplay = responseText
+              } else {
+                actualIntents = [responseText]
+                actualIntentDisplay = responseText
+              }
+            }
+
+            // 解析期望意图（支持多场景）
+            let expectedIntents = []
+            if (expectedIntent.includes('、')) {
+              expectedIntents = expectedIntent
+                .split('、')
+                .map((intent) => intent.trim())
+            } else {
+              expectedIntents = [expectedIntent]
+            }
+
+            // 比对结果（支持多场景比对）
+            let isCorrect = false
+            let comparisonDetails = ''
+
+            if (expectedIntents.length === 1 && actualIntents.length === 1) {
+              // 单对单比对
+              isCorrect = expectedIntents[0] === actualIntents[0]
+              comparisonDetails = `期望: ${expectedIntents[0]} | 实际: ${actualIntents[0]}`
+            } else if (expectedIntents.length > 1 && actualIntents.length > 1) {
+              // 多对多比对
+              isCorrect = arraysEqual(expectedIntents, actualIntents)
+              comparisonDetails = `期望: [${expectedIntents.join(
+                ', '
+              )}] | 实际: [${actualIntents.join(', ')}]`
+            } else {
+              // 其他情况，只要有一个匹配就算正确
+              isCorrect = expectedIntents.some((exp) =>
+                actualIntents.includes(exp)
+              )
+              comparisonDetails = `期望: [${expectedIntents.join(
+                ', '
+              )}] | 实际: [${actualIntents.join(', ')}]`
+            }
+
+            // 更新统计
+            if (isCorrect && !isSingleTest) {
+              correctTests++
+            }
+
+            // 显示结果
+            displayResult(
+              index,
+              question,
+              expectedIntent,
+              actualIntentDisplay,
+              isCorrect,
+              isSingleTest,
+              duration, // 传递耗时信息
+              comparisonDetails // 传递比对详情
+            )
+
+            // 更新统计（仅批量测试时更新）
+            if (!isSingleTest) {
+              updateStats()
+            }
+          } catch (error) {
+            // 处理错误
+            displayError(index, question, error.message, isSingleTest)
+          }
+        }
+
+        // 比较两个数组是否相等
+        function arraysEqual(a, b) {
+          if (a.length !== b.length) return false
+          const sortedA = [...a].sort()
+          const sortedB = [...b].sort()
+          return sortedA.every((val, idx) => val === sortedB[idx])
+        }
+
+        // 显示测试结果（单行输出）
+        function displayResult(
+          index,
+          question,
+          expectedIntent,
+          actualIntent,
+          isCorrect,
+          isSingleTest = false,
+          duration = null,
+          comparisonDetails = ''
+        ) {
+          const resultItem = document.createElement('div')
+          resultItem.className = `result-item ${
+            isCorrect ? 'correct' : 'incorrect'
+          }`
+
+          const title = isSingleTest ? '随机测试' : `测试 #${index}`
+          const durationInfo = duration
+            ? `<span style="color: #1976d2; font-weight: bold;">[耗时: ${duration}ms]</span>`
+            : ''
+          const resultText = isCorrect
+            ? '<span style="font-weight: bold; color: #4caf50;">✓ 正确</span>'
+            : '<span style="font-weight: bold; color: #f44336;">✗ 错误</span>'
+          const detailsText = comparisonDetails
+            ? `<span style="color: #795548;">${comparisonDetails}</span>`
+            : ''
+
+          // 单行输出所有信息
+          resultItem.innerHTML = `
+            <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+              <strong>${title}</strong> ${durationInfo} 
+              <strong style="color: #333;">问题:</strong> <span style="color: #555;">${question}</span> | 
+              <strong style="color: #388e3c;">期望意图:</strong> <span style="color: #4caf50;">${expectedIntent}</span> | 
+              <strong style="color: #f57c00;">实际意图:</strong> <span style="color: #ff9800;">${actualIntent}</span> | 
+              ${detailsText} |
+              <strong>结果:</strong> ${resultText}
+            </div>
+          `
+
+          resultsContainer.appendChild(resultItem)
+          resultsContainer.scrollTop = resultsContainer.scrollHeight // 自动滚动到底部
+        }
+
+        // 显示错误信息（单行输出）
+        function displayError(
+          index,
+          question,
+          errorMessage,
+          isSingleTest = false
+        ) {
+          const resultItem = document.createElement('div')
+          resultItem.className = 'result-item incorrect'
+
+          const title = isSingleTest ? '随机测试' : `测试 #${index}`
+
+          // 单行输出错误信息
+          resultItem.innerHTML = `
+            <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+              <strong>${title}</strong> 
+              <strong style="color: #333;">问题:</strong> <span style="color: #555;">${question}</span> | 
+              <strong style="color: #d32f2f;">错误:</strong> <span style="color: #f44336; font-weight: bold;">${errorMessage}</span>
+            </div>
+          `
+
+          resultsContainer.appendChild(resultItem)
+          resultsContainer.scrollTop = resultsContainer.scrollHeight // 自动滚动到底部
+        }
+
+        // 更新统计信息
+        function updateStats() {
+          totalCountSpan.textContent = totalTests
+          correctCountSpan.textContent = correctTests
+          const accuracyRate =
+            totalTests > 0 ? ((correctTests / totalTests) * 100).toFixed(2) : 0
+          accuracyRateSpan.textContent = `${accuracyRate}%`
+        }
+
+        // 清空结果
+        clearBtn.addEventListener('click', function () {
+          resultsContainer.innerHTML = ''
+          statsDiv.classList.add('hidden')
+          totalTests = 0
+          correctTests = 0
+          updateStats()
+        })
+
+        // 清空输入
+        clearInputBtn.addEventListener('click', function () {
+          jsonDataTextarea.value = ''
+        })
+
+        // 清空所有数据
+        clearAllBtn.addEventListener('click', clearAllData)
+
+        // 添加清空所有数据的函数
+        function clearAllData() {
+          // 清空输入框
+          jsonDataTextarea.value = ''
+
+          // 清空已加载的文件数据
+          testDataArray = []
+          fileStatus.innerHTML =
+            '<span style="color: #999;">已清空文件数据，请重新加载</span>'
+          randomTestBtn.disabled = true
+
+          // 清空测试结果
+          resultsContainer.innerHTML = ''
+          statsDiv.classList.add('hidden')
+          totalTests = 0
+          correctTests = 0
+          updateStats()
+        }
+      })
+    </script>
+  </body>
+</html>
