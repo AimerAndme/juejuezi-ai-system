@@ -24,6 +24,7 @@ const handleLogout = async () => {
     await logout(userId.value)
     localStorage.removeItem('userId')
     localStorage.removeItem('account')
+    localStorage.removeItem('userRole')
     router.push('/login')
   } catch (err) {
     console.error('登出失败:', err)

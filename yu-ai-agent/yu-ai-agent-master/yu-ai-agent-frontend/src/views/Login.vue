@@ -44,7 +44,7 @@
 <script>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { login } from '../api/index.js'
+import { login, getCurrentUser } from '../api/index.js'
 
 export default {
   name: 'Login',
@@ -74,6 +74,21 @@ export default {
           // 保存用户ID到localStorage
           localStorage.setItem('userId', userId)
           localStorage.setItem('account', form.value.account)
+
+          // 获取用户完整信息，包括 userRole
+          try {
+            const userInfo = await getCurrentUser(userId)
+            if (userInfo.data.code === 200 && userInfo.data.data) {
+              localStorage.setItem(
+                'userRole',
+                userInfo.data.data.userRole || 'user'
+              )
+            }
+          } catch (err) {
+            console.error('获取用户信息失败:', err)
+            // 如果获取失败，设置默认值
+            localStorage.setItem('userRole', 'user')
+          }
 
           // 跳转到首页
           router.push('/')

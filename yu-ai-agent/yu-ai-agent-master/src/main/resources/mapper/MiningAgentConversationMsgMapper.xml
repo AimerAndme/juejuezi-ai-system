@@ -9,7 +9,7 @@
         <result column="sender_id" property="senderId"/>
         <result column="msg_type" property="msgType"/>
         <result column="msg_content" property="msgContent"/>
-        <result column="file_meta" property="fileMeta" typeHandler="com.yupi.yuaiagent.handler.JsonbTypeHandler"/>
+        <result column="file_meta" property="fileMeta"/>
         <result column="send_time" property="sendTime"/>
         <result column="is_deleted" property="isDeleted"/>
     </resultMap>
@@ -19,7 +19,7 @@
         INSERT INTO agent.mining_agent_conversation_msg (msg_id, conversation_id, sender_type, sender_id, msg_type,
                                                          msg_content, file_meta)
         VALUES (#{msgId}, #{conversationId}, #{senderType}, #{senderId}, #{msgType}, #{msgContent},
-                #{fileMeta,typeHandler=com.yupi.yuaiagent.handler.JsonbTypeHandler, jdbcType=OTHER})
+                #{fileMeta}::jsonb)
     </insert>
 
     <!-- 根据消息ID查询（未删除） -->
@@ -84,7 +84,7 @@
                send_time,
                is_deleted
         FROM agent.mining_agent_conversation_msg
-        WHERE sender_id = #{senderId}
+        WHERE conversation_id = #{conversationId}
           AND is_deleted = FALSE
         ORDER BY send_time DESC
         LIMIT #{limit}

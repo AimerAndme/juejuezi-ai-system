@@ -8,6 +8,7 @@ import com.yupi.yuaiagent.mapper.MiningAgentConversationMapper;
 import com.yupi.yuaiagent.mapper.MiningAgentConversationMsgMapper;
 import com.yupi.yuaiagent.service.MemoryAsyncProducer;
 import com.yupi.yuaiagent.util.UniqueIdGenerator;
+import com.yupi.yuaiagent.utils.JsonUtils;
 import com.yupi.yuaiagent.utils.MessageSerializer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.memory.ChatMemory;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -30,7 +32,7 @@ import java.util.concurrent.TimeUnit;
 public class RedisChatMemory implements ChatMemory {
     // Redis 键前缀，避免键冲突
     private static final String KEY_PREFIX = "chat:memory:";
-    private static final Integer LIMIT_MESSAGES = 20;
+    private static final Integer LIMIT_MESSAGES = 20;//包含问与答
     private final RedisTemplate<String, Object> redisTemplate;
     @Autowired
     MemoryAsyncProducer memoryAsyncProducer;
@@ -73,12 +75,14 @@ public class RedisChatMemory implements ChatMemory {
         if (conversation == null) {
             log.error("会话id：{}，当前会话不存在！", conversationId);
         }
+        //将所有message封装并 分发给mq处理
         for (Message message : messages) {
             MemoryFragment memoryFragment = new MemoryFragment();
             String memoryId = UniqueIdGenerator.generateMemoryId(conversationId);
             memoryFragment.setMemoryId(memoryId);
             memoryFragment.setSessionId(conversationId);
             memoryFragment.setUserId(conversation.getUserId());
+            String json = JsonUtils.toJson(message.getMetadata());
             memoryFragment.setExtraMeta(message.getMetadata());
             String serialize = MessageSerializer.serialize(message);
             memoryFragment.setContent(serialize);
@@ -86,10 +90,7 @@ public class RedisChatMemory implements ChatMemory {
             memoryFragment.setMessageType(codeByBizKey);//参入当前消息的类型
             memoryAsyncProducer.sendMemoryFragment(memoryFragment);
         }
-        // 检查消息数量，如果超过limit条则删除多余部分，只保留最新的limit条
-        if (existingMessages.size() > LIMIT_MESSAGES) {
-            trimConversation(conversationId);
-        }
+
         log.debug("已向对话 [{}] 添加 {} 条消息，当前总消息数: {}",
                 conversationId, messages.size(), Math.min(existingMessages.size(), 20));
     }
@@ -126,6 +127,7 @@ public class RedisChatMemory implements ChatMemory {
      */
     public void trimConversation(String conversationId) {
         List<Message> allMessages = getFromRedis(conversationId);
+        // 检查消息数量，如果超过limit条则删除多余部分，只保留最新的limit条
         if (allMessages.size() > LIMIT_MESSAGES) {
             List<Message> recentMessages = allMessages.subList(allMessages.size() - LIMIT_MESSAGES, allMessages.size());
             setToRedis(conversationId, recentMessages);
@@ -160,10 +162,12 @@ public class RedisChatMemory implements ChatMemory {
         Object value = redisTemplate.opsForValue().get(key);
         // 处理空值或类型不匹配的情况
         if (value == null) {
+            log.info("当前对话redis无缓存内容，开始重建");
             //如果redis为空
             //1、数据库拉取数据进行重建
             List<MiningAgentConversationMsg> msgList = miningAgentConversationMsgMapper.selectByConversationIdOnLimit(conversationId, LIMIT_MESSAGES);
             if (msgList == null || msgList.isEmpty()) {
+                log.info("redis、数据库均为对话记录，返回空数组");
                 //2、若数据库也为空，直接返回空数组
                 return new ArrayList<>();
             }
@@ -174,7 +178,7 @@ public class RedisChatMemory implements ChatMemory {
                 UserMessage userMessage = UserMessage.builder()
                         .media(new ArrayList<>())
                         .text(conversationMsg.getMsgContent())
-                        .metadata(conversationMsg.getFileMeta()).build();
+                        .metadata(conversationMsg.getFileMeta() == null ? Map.of() : JsonUtils.jsonToMap(conversationMsg.getFileMeta())).build();
                 list.add(userMessage);
             }
             return list;
@@ -210,6 +214,10 @@ public class RedisChatMemory implements ChatMemory {
      */
     private void setToRedis(String conversationId, List<Message> messages) {
         String key = getRedisKey(conversationId);
+        if (messages.size() > LIMIT_MESSAGES) {
+            messages = messages.subList(messages.size() - LIMIT_MESSAGES, messages.size());
+            log.debug("已清理对话 [{}] 的历史消息，从 {} 条减少到 {} 条", conversationId, messages.size(), LIMIT_MESSAGES);
+        }
         List<String> serializedMessages = new ArrayList<>(messages.size());
         for (Message message : messages) {
             try {

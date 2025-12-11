@@ -7,6 +7,7 @@ import com.yupi.yuaiagent.domin.entity.MiningAgentConversationMsg;
 import com.yupi.yuaiagent.mapper.MiningAgentConversationMsgMapper;
 import com.yupi.yuaiagent.service.MemoryIdempotentService;
 import com.yupi.yuaiagent.util.UniqueIdGenerator;
+import com.yupi.yuaiagent.utils.JsonUtils;
 import com.yupi.yuaiagent.utils.MessageSerializer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.messages.Message;
@@ -79,7 +80,8 @@ public class MemoryAsyncConsumer {
                 MiningAgentConversationMsg message = new MiningAgentConversationMsg();
                 message.setConversationId(validFragment.getSessionId());
                 message.setMsgType(validFragment.getMessageType());
-                message.setFileMeta(validFragment.getExtraMeta());
+                String json = JsonUtils.toJson(validFragment.getExtraMeta());
+                message.setFileMeta(json);
                 String content = validFragment.getContent();
                 Message deserialize = MessageSerializer.deserialize(content);
                 message.setMsgContent(deserialize.getText());

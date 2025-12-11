@@ -72,12 +72,14 @@ const sendMessage = async (message) => {
   connectionStatus.value = 'connecting'
 
   const userId = localStorage.getItem('userId')
-  console.log(userId, currentConversationId)
+  const userRole = localStorage.getItem('userRole') || 'user'
+  console.log(userId, currentConversationId, userRole)
   try {
     const response = await chatWithMineAgent(
       message,
       userId,
-      currentConversationId.value
+      currentConversationId.value,
+      userRole
     )
     if (response.data && response.data.code === 200) {
       addMessage(response.data.data, false, 'ai-answer')
@@ -133,7 +135,9 @@ onMounted(async () => {
         if (historicalMessages && historicalMessages.length > 0) {
           console.log('恢复', historicalMessages.length, '条消息')
           historicalMessages.forEach((msg) => {
-            addMessage(msg.msgContent, msg.senderType === 0, '')
+            // 根据 msgType 判断：1=用户消息，2=系统回复
+            const isUser = msg.msgType === 1
+            addMessage(msg.msgContent, isUser, '')
           })
         }
       }

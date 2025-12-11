@@ -21,5 +21,5 @@ public class MemoryFragment implements Serializable {
     private Integer messageType;//消息类型,0:system,1:user,2:assistant
     private List<String> entities; // 非核心实体（如普通名词）
     private LocalDateTime createTime; // 创建时间
-    private Map<String, Object> extraMeta; // 额外元数据（如场景标识）
+    private Map<String,Object> extraMeta; // 额外元数据（如场景标识）
 }

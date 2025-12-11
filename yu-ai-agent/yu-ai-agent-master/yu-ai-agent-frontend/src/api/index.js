@@ -53,12 +53,18 @@ export const chatWithLoveApp = (message, chatId) => {
 }
 
 // AI矿山专家聊天
-export const chatWithMineAgent = (query, userId, conversationId) => {
+export const chatWithMineAgent = (
+  query,
+  userId,
+  conversationId,
+  userRole = 'user'
+) => {
   return request.get('/mine/chat', {
     params: {
       query,
-      userId,
+      UserId: userId,
       conversationId,
+      UserRole: userRole,
     },
   })
 }

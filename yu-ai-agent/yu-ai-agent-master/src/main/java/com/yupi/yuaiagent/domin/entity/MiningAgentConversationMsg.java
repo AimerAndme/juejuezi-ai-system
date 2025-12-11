@@ -1,6 +1,8 @@
 package com.yupi.yuaiagent.domin.entity;
 
+import com.yupi.yuaiagent.handler.JsonbTypeHandler;
 import lombok.Data;
+import org.apache.ibatis.annotations.Result;
 
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -41,7 +43,7 @@ public class MiningAgentConversationMsg {
     /**
      * 文件元信息（JSON格式，非文件消息为空）
      */
-    private Map<String, Object> fileMeta;
+    private String fileMeta;
 
     /**
      * 发送时间
