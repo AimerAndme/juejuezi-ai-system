@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yupi.yuaiagent.mapper.FileUploadMapper">
+
+    <insert id="insert" parameterType="com.yupi.yuaiagent.domin.entity.FileUpload">
+        INSERT INTO file_upload (file_md5, file_name, total_size, status, user_id, is_public, created_at)
+        VALUES (#{fileMd5}, #{fileName}, #{totalSize}, #{status}, #{userId}, #{isPublic}, #{createdAt})
+    </insert>
+
+    <select id="selectByFileMd5" resultType="com.yupi.yuaiagent.domin.entity.FileUpload">
+        SELECT * FROM file_upload WHERE file_md5 = #{fileMd5}
+    </select>
+
+    <select id="selectByFileMd5AndUserId" resultType="com.yupi.yuaiagent.domin.entity.FileUpload">
+        SELECT * FROM file_upload WHERE file_md5 = #{fileMd5} AND user_id = #{userId}
+    </select>
+
+    <update id="updateStatus">
+        UPDATE file_upload
+        SET status = #{status}
+        WHERE file_md5 = #{fileMd5}
+    </update>
+
+    <update id="updateMergedAt">
+        UPDATE file_upload
+        SET merged_at = CURRENT_TIMESTAMP
+        WHERE file_md5 = #{fileMd5}
+    </update>
+
+</mapper>

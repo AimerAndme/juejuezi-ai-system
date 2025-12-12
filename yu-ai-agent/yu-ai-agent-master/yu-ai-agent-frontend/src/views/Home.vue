@@ -47,6 +47,19 @@
           <span class="btn-icon">→</span>
         </div>
       </div>
+
+      <div class="app-card" @click="navigateTo('/file-upload')">
+        <div class="card-glow"></div>
+        <div class="app-icon file-icon">📁</div>
+        <div class="app-info">
+          <div class="app-title">文件管理</div>
+          <div class="app-desc">支持大文件分片上传、断点续传和秒传功能</div>
+        </div>
+        <div class="app-button">
+          <span class="btn-text">立即体验</span>
+          <span class="btn-icon">→</span>
+        </div>
+      </div>
     </div>
 
     <div class="cyber-circles">
@@ -319,6 +332,12 @@ const navigateTo = (path) => {
 .robot-icon {
   background: linear-gradient(135deg, var(--light-purple), var(--light-blue));
   box-shadow: 0 0 20px rgba(224, 187, 228, 0.5);
+  border: 2px solid white;
+}
+
+.file-icon {
+  background: linear-gradient(135deg, #a8e6cf, #56c596);
+  box-shadow: 0 0 20px rgba(86, 197, 150, 0.5);
   border: 2px solid white;
 }
 

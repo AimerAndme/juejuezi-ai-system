@@ -57,6 +57,15 @@ const routes = [
         'AI超级智能体是鱼皮AI超级智能体应用平台的全能助手，能解答各类专业问题，提供精准建议和解决方案',
     },
   },
+  {
+    path: '/file-upload',
+    name: 'FileUpload',
+    component: () => import('../views/FileUpload.vue'),
+    meta: {
+      title: '文件上传 - 鱼皑AI超级智能体应用平台',
+      description: '支持大文件分片上传、断点续传和秒传功能',
+    },
+  },
 ]
 
 const router = createRouter({

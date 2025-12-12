@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yupi.yuaiagent.mapper.ChunkInfoMapper">
+
+    <insert id="insert" parameterType="com.yupi.yuaiagent.domin.entity.ChunkInfo">
+        INSERT INTO chunk_info (file_md5, chunk_index, chunk_md5, storage_path)
+        VALUES (#{fileMd5}, #{chunkIndex}, #{chunkMd5}, #{storagePath})
+    </insert>
+
+    <select id="selectByFileMd5" resultType="com.yupi.yuaiagent.domin.entity.ChunkInfo">
+        SELECT * FROM chunk_info WHERE file_md5 = #{fileMd5} ORDER BY chunk_index
+    </select>
+
+    <select id="selectByFileMd5AndChunkIndex" resultType="com.yupi.yuaiagent.domin.entity.ChunkInfo">
+        SELECT * FROM chunk_info WHERE file_md5 = #{fileMd5} AND chunk_index = #{chunkIndex}
+    </select>
+
+    <select id="countByFileMd5" resultType="int">
+        SELECT COUNT(*) FROM chunk_info WHERE file_md5 = #{fileMd5}
+    </select>
+
+</mapper>

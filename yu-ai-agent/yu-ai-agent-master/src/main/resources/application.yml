@@ -75,7 +75,7 @@ spring:
           initial-interval: 1000 # 初始重试间隔：1秒
           multiplier: 2 # 重试间隔倍数：每次翻倍（1s→2s→4s）
 mybatis:
-  mapper-locations: classpath:mapper/MiningAgentUserMapper.xml,classpath:mapper/MiningAgentConversationMapper.xml # 暂时排除有语法错误的MiningAgentConversationMsgMapper.xml
+  mapper-locations: classpath:mapper/MiningAgentUserMapper.xml,classpath:mapper/MiningAgentConversationMapper.xml,classpath:mapper/FileUploadMapper.xml,classpath:mapper/ChunkInfoMapper.xml # 暂时排除有语法错误的MiningAgentConversationMsgMapper.xml
   type-aliases-package: com.yupi.yuaiagent.domin.entity # 实体类包路径（简化 XML 中类名）
   configuration:
     map-underscore-to-camel-case: true # 下划线转驼峰命名（适配 PG 表字段）
@@ -120,3 +120,10 @@ search-api:
 logging:
   level:
     org.springframework.ai: DEBUG
+
+# File Upload Configuration
+file:
+  upload:
+    chunk-size: 2097152 # 2MB per chunk
+    temp-dir: ./upload/temp
+    final-dir: ./upload/files
