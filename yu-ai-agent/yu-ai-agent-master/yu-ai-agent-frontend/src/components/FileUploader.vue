@@ -162,9 +162,16 @@ const handleFileSelect = async (event) => {
 
   try {
     // 计算文件MD5
+    console.log(
+      '[文件选择] 开始计算MD5, 文件名:',
+      file.name,
+      '大小:',
+      file.size
+    )
     fileMd5.value = await calculateFileMD5(file, (progress) => {
       uploadStatus.value = `正在计算文件MD5... ${progress}%`
     })
+    console.log('[文件选择] MD5计算完成:', fileMd5.value)
 
     uploadStatus.value = '就绪，可以开始上传'
 
@@ -257,6 +264,16 @@ const uploadChunks = async () => {
   const file = selectedFile.value
   const totalSize = file.size
 
+  console.log(
+    '[上传分片] 开始上传, 文件:',
+    file.name,
+    '大小:',
+    file.size,
+    'MD5:',
+    fileMd5.value
+  )
+  console.log('[上传分片] File对象:', file)
+
   for (let i = 0; i < totalChunks.value; i++) {
     if (cancelFlag) {
       uploadStatus.value = '上传已取消'
@@ -273,6 +290,10 @@ const uploadChunks = async () => {
     const start = i * CHUNK_SIZE
     const end = Math.min(start + CHUNK_SIZE, totalSize)
     const chunk = file.slice(start, end)
+
+    console.log(
+      `[上传分片] 分片${i}: start=${start}, end=${end}, size=${chunk.size}`
+    )
 
     // 计算分片MD5
     const chunkMd5 = await calculateChunkMD5(chunk)

@@ -119,15 +119,4 @@ export const createConversation = (userId) => {
   })
 }
 
-export default {
-  chatWithLoveApp,
-  chatWithMineAgent,
-  chatWithManus,
-  register,
-  login,
-  logout,
-  getCurrentUser,
-  getLatestConversationWithMessages,
-  getConversationMessages,
-  createConversation,
-}
+export default request

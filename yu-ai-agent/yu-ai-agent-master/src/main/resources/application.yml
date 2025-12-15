@@ -1,4 +1,9 @@
 spring:
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 100MB
   application:
     name: yu-ai-agent
   profiles:
@@ -120,10 +125,16 @@ search-api:
 logging:
   level:
     org.springframework.ai: DEBUG
-
+embedding:
+  api:
+    url: https://dashscope.aliyuncs.com/compatible-mode/v1
+    key: sk-da831ca6d01e4b8aaa04c1705d35f990   # 填入通义千问API key
+    model: text-embedding-v4
+    batch-size: 10  # 单次请求最大行数（DashScope限制为10）
+    dimension: 2048  # 指定向量维度
 # File Upload Configuration
 file:
   upload:
-    chunk-size: 2097152 # 2MB per chunk
-    temp-dir: ./upload/temp
-    final-dir: ./upload/files
+    chunk-size: 20971520 # 2MB per chunk
+    temp-dir: E:/编程学习/项目/yv-ai/upload/temp
+    final-dir: E:/编程学习/项目/yv-ai/upload/files

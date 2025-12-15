@@ -27,5 +27,34 @@
         SET merged_at = CURRENT_TIMESTAMP
         WHERE file_md5 = #{fileMd5}
     </update>
+    
+    <!-- 文件管理接口 -->
+    <select id="selectByUserId" resultType="com.yupi.yuaiagent.domin.entity.FileUpload">
+        SELECT * FROM file_upload 
+        WHERE user_id = #{userId} AND status = 1
+        ORDER BY created_at DESC
+    </select>
+    
+    <select id="selectAll" resultType="com.yupi.yuaiagent.domin.entity.FileUpload">
+        SELECT * FROM file_upload 
+        WHERE status = 1
+        ORDER BY created_at DESC
+    </select>
+    
+    <delete id="deleteByFileMd5">
+        DELETE FROM file_upload WHERE file_md5 = #{fileMd5}
+    </delete>
+    
+    <update id="updateFileName">
+        UPDATE file_upload
+        SET file_name = #{fileName}
+        WHERE file_md5 = #{fileMd5}
+    </update>
+    
+    <update id="updateIsPublic">
+        UPDATE file_upload
+        SET is_public = #{isPublic}
+        WHERE file_md5 = #{fileMd5}
+    </update>
 
 </mapper>

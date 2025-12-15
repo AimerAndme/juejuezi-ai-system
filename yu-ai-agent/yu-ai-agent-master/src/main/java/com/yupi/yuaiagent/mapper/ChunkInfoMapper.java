@@ -15,4 +15,6 @@ public interface ChunkInfoMapper {
     ChunkInfo selectByFileMd5AndChunkIndex(@Param("fileMd5") String fileMd5, @Param("chunkIndex") Integer chunkIndex);
 
     int countByFileMd5(@Param("fileMd5") String fileMd5);
+
+    int deleteByFileMd5(@Param("fileMd5") String fileMd5);
 }

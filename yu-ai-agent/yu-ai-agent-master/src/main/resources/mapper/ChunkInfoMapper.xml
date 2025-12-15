@@ -19,5 +19,9 @@
     <select id="countByFileMd5" resultType="int">
         SELECT COUNT(*) FROM chunk_info WHERE file_md5 = #{fileMd5}
     </select>
+    
+    <delete id="deleteByFileMd5">
+        DELETE FROM chunk_info WHERE file_md5 = #{fileMd5}
+    </delete>
 
 </mapper>

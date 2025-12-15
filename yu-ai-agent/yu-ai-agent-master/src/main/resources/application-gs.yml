@@ -62,6 +62,14 @@ spring:
           max-attempts: 3 # 最大重试次数：3次
           initial-interval: 1000 # 初始重试间隔：1秒
           multiplier: 2 # 重试间隔倍数：每次翻倍（1s→2s→4s）
+  # Elasticsearch 配置
+  elasticsearch:
+    uris: http://127.0.0.1:9200
+    username: elastic     # 安装后生成的默认用户
+    password: es123456 # 密码（ES启动时生成）
+    #password: PaiSmart2025   # 密码（ES启动时生成）
+    ssl:
+      verification-mode: none   # 开发环境可关闭SSL验证（生产需配置证书）
   # 临时注释掉，便于大家开发调试和部署（实际需要启动 PgVector 数据库）
   #    vectorstore:
   #      pgvector:
@@ -78,17 +86,7 @@ mybatis:
   configuration:
     map-underscore-to-camel-case: true  # 下划线转驼峰命名（适配 PG 表字段）
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl  # 显示 MyBatis SQL（开发用）
-  # Elasticsearch 配置
-elasticsearch:
-  host: localhost       # Elasticsearch主机地址
-  #host: 192.168.152.129
-  port: 9200            # Elasticsearch端口号
-  scheme: http         # 协议（http/https）
-  username: elastic     # 安装后生成的默认用户
-  password: es123456 # 密码（ES启动时生成）
-  #password: PaiSmart2025   # 密码（ES启动时生成）
-  ssl:
-    verification-mode: none   # 开发环境可关闭SSL验证（生产需配置证书）
+
 server:
   port: 8123
   servlet:

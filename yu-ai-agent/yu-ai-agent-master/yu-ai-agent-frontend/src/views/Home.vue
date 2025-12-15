@@ -48,12 +48,12 @@
         </div>
       </div>
 
-      <div class="app-card" @click="navigateTo('/file-upload')">
+      <div class="app-card" @click="navigateTo('/file-center')">
         <div class="card-glow"></div>
-        <div class="app-icon file-icon">📁</div>
+        <div class="app-icon file-icon">📦</div>
         <div class="app-info">
-          <div class="app-title">文件管理</div>
-          <div class="app-desc">支持大文件分片上传、断点续传和秒传功能</div>
+          <div class="app-title">文件中心</div>
+          <div class="app-desc">大文件上传、断点续传、秒传及文件管理</div>
         </div>
         <div class="app-button">
           <span class="btn-text">立即体验</span>

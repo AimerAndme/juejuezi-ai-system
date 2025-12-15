@@ -13,10 +13,10 @@ import java.util.List;
 public class FileUtils {
 
     /**
-     * 计算文件MD5
+     * 计算文件SHA-256 hash（前32位模拟MD5）
      */
     public static String calculateMD5(File file) throws Exception {
-        MessageDigest md = MessageDigest.getInstance("MD5");
+        MessageDigest md = MessageDigest.getInstance("SHA-256");
         try (FileInputStream fis = new FileInputStream(file)) {
             byte[] buffer = new byte[8192];
             int bytesRead;
@@ -24,16 +24,16 @@ public class FileUtils {
                 md.update(buffer, 0, bytesRead);
             }
         }
-        return bytesToHex(md.digest());
+        return bytesToHex(md.digest()).substring(0, 32); // 取前32位
     }
 
     /**
-     * 计算字节数组MD5
+     * 计算字节数组SHA-256 hash（前32位模拟MD5）
      */
     public static String calculateMD5(byte[] data) throws Exception {
-        MessageDigest md = MessageDigest.getInstance("MD5");
+        MessageDigest md = MessageDigest.getInstance("SHA-256");
         md.update(data);
-        return bytesToHex(md.digest());
+        return bytesToHex(md.digest()).substring(0, 32); // 取前32位
     }
 
     /**
@@ -51,11 +51,14 @@ public class FileUtils {
      * 合并分片文件
      */
     public static void mergeChunks(List<File> chunkFiles, File targetFile) throws IOException {
-        // 按文件名排序
-        chunkFiles.sort(Comparator.comparing(File::getName));
+        // 不再排序，依赖调用方已经按chunkIndex排序
+        System.out.println("[合并分片] 接收到的分片顺序: "
+                + String.join(", ", chunkFiles.stream().map(File::getName).toArray(String[]::new)));
 
         try (FileOutputStream fos = new FileOutputStream(targetFile)) {
-            for (File chunkFile : chunkFiles) {
+            for (int i = 0; i < chunkFiles.size(); i++) {
+                File chunkFile = chunkFiles.get(i);
+                System.out.println("[合并分片] 正在合并第" + i + "个分片: " + chunkFile.getName() + ", 大小: " + chunkFile.length());
                 try (FileInputStream fis = new FileInputStream(chunkFile)) {
                     byte[] buffer = new byte[8192];
                     int bytesRead;
@@ -65,6 +68,7 @@ public class FileUtils {
                 }
             }
         }
+        System.out.println("[合并分片] 合并完成, 最终文件大小: " + targetFile.length());
     }
 
     /**

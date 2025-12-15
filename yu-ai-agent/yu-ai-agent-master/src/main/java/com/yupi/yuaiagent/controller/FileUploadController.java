@@ -29,6 +29,14 @@ public class FileUploadController {
         Map<String, Object> result = new HashMap<>();
 
         try {
+            // 先验证文件类型
+            if (!com.yupi.yuaiagent.util.FileUtils.isAllowedFileType(request.getFileName())) {
+                result.put("code", 400);
+                result.put("message", "不支持的文件类型，仅支持 .docx, .md, .pdf");
+                result.put("data", null);
+                return result;
+            }
+
             InitiateUploadResponse response = fileUploadService.initiateUpload(request);
             result.put("code", 200);
             result.put("message", "初始化成功");

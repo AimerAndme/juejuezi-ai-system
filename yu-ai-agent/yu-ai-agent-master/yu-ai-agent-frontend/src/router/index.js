@@ -58,13 +58,23 @@ const routes = [
     },
   },
   {
-    path: '/file-upload',
-    name: 'FileUpload',
-    component: () => import('../views/FileUpload.vue'),
+    path: '/file-center',
+    name: 'FileCenter',
+    component: () => import('../views/FileCenter.vue'),
     meta: {
-      title: '文件上传 - 鱼皑AI超级智能体应用平台',
-      description: '支持大文件分片上传、断点续传和秒传功能',
+      title: '文件中心 - 鱼ai AI超级智能体应用平台',
+      description:
+        '统一的文件上传与管理平台，支持大文件分片上传、断点续传、秒传和文件管理',
     },
+  },
+  // 保留旧路由以便兼容
+  {
+    path: '/file-upload',
+    redirect: '/file-center',
+  },
+  {
+    path: '/file-manage',
+    redirect: '/file-center',
   },
 ]
 
