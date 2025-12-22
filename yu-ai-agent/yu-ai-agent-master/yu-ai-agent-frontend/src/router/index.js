@@ -67,6 +67,15 @@ const routes = [
         '统一的文件上传与管理平台，支持大文件分片上传、断点续传、秒传和文件管理',
     },
   },
+  {
+    path: '/vector-manage',
+    name: 'VectorManage',
+    component: () => import('../views/DocumentVectorManage.vue'),
+    meta: {
+      title: '文档向量管理 - 鱼皑AI超级智能体应用平台',
+      description: '查看和管理您上传的文档向量数据',
+    },
+  },
   // 保留旧路由以便兼容
   {
     path: '/file-upload',

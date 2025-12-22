@@ -17,9 +17,12 @@ public class RabbitMQConfig {
 
     // 队列名称（可配置到 application.yml）
     public static final String MEMORY_ASYNC_QUEUE = "agent.memory.async.queue";
+    public static final String FILE_ASYNC_QUEUE = "agent.file.async.queue";
     public static final String MEMORY_DLQ_QUEUE = "agent.memory.dlq.queue"; // 死信队列
     public static final String MEMORY_EXCHANGE = "agent.memory.exchange";
+    public static final String FILE_EXCHANGE = "agent.file.exchange";
     public static final String MEMORY_ROUTING_KEY = "agent.memory.routing.key";
+    public static final String FILE_ROUTING_KEY = "agent.file.routing.key";
     public static final String MEMORY_DLQ_EXCHANGE = "agent.memory.dlq.exchange";
     public static final String MEMORY_DLQ_ROUTING_KEY = "agent.memory.dlq.routing.key";
 
@@ -59,11 +62,33 @@ public class RabbitMQConfig {
     }
 
     /**
+     * 文件交换机
+     */
+    @Bean
+    public DirectExchange fileExchange() {
+        return new DirectExchange(FILE_EXCHANGE, true, false);
+    }
+
+    /**
      * 主队列（持久化+绑定死信交换机）
      */
     @Bean
     public Queue memoryAsyncQueue() {
         return QueueBuilder.durable(MEMORY_ASYNC_QUEUE)
+                // 绑定死信交换机（消费失败重试后进入）
+                .withArgument("x-dead-letter-exchange", MEMORY_DLQ_EXCHANGE)
+                .withArgument("x-dead-letter-routing-key", MEMORY_DLQ_ROUTING_KEY)
+                .withArgument("x-message-ttl", 60000) // 消息过期时间：60秒（未消费则进入死信）
+                .withArgument("x-max-length", 10000) // 队列最大长度：1万条（避免堆积过多）
+                .build();
+    }
+
+    /**
+     * 文件处理队列
+     */
+    @Bean
+    public Queue fileAsyncQueue() {
+        return QueueBuilder.durable(FILE_ASYNC_QUEUE)
                 // 绑定死信交换机（消费失败重试后进入）
                 .withArgument("x-dead-letter-exchange", MEMORY_DLQ_EXCHANGE)
                 .withArgument("x-dead-letter-routing-key", MEMORY_DLQ_ROUTING_KEY)
@@ -80,6 +105,16 @@ public class RabbitMQConfig {
         return BindingBuilder.bind(memoryAsyncQueue())
                 .to(memoryExchange())
                 .with(MEMORY_ROUTING_KEY);
+    }
+
+    /**
+     * 文件处理主队列绑定
+     */
+    @Bean
+    public Binding fileBinding() {
+        return BindingBuilder.bind(fileAsyncQueue())
+                .to(fileExchange())
+                .with(FILE_ROUTING_KEY);
     }
 
     /**

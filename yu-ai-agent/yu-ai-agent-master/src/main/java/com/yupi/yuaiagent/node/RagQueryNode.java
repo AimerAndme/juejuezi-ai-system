@@ -1,0 +1,44 @@
+package com.yupi.yuaiagent.node;
+
+import com.alibaba.cloud.ai.graph.OverAllState;
+import com.alibaba.cloud.ai.graph.action.NodeAction;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.prompt.PromptTemplate;
+import org.springframework.stereotype.Component;
+
+import java.util.Map;
+import java.util.Optional;
+
+@Slf4j
+@Component
+public class RagQueryNode implements NodeAction {
+    private final ChatClient ragChatClient;
+
+    public RagQueryNode(ChatClient ragChatClient) {
+        this.ragChatClient = ragChatClient;
+
+    }
+
+    @Override
+    public Map<String, Object> apply(OverAllState state) throws Exception {
+        Optional<Object> queryInfo = state.value("queryInfo");
+        if (queryInfo.isEmpty()) {
+            log.error("无法获取用户输入内容");
+        }
+        PromptTemplate promptTemplate = new PromptTemplate("""
+                "对于下面的问题，你需要先执行一个信息检索步骤。请识别出回答该问题所需的关键信息点，
+                并设想你正在从一个大型文档集合中查找包含这些信息点的段落。
+                获取到相关段落后，请综合这些信息，给出一个详尽且准确的回答。
+                你的回答应完全基于检索到的内容。问题：{queryInfo}"
+                """);
+        promptTemplate.add("queryInfo", queryInfo.get());
+        String content = ragChatClient.prompt(promptTemplate.render()).call().content();
+        if (content == null) {
+            log.error(" ragChatClient 输出结果为空");
+            return Map.of("ragQueryResult", "");
+        }
+        log.info(" ragChatClient 输出结果为：{}", content);
+        return Map.of("ragQueryResult", content);
+    }
+}

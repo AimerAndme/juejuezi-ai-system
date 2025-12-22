@@ -84,4 +84,5 @@ public class ElasticsearchService {
             throw new RuntimeException("删除文档失败", e);
         }
     }
+
 }

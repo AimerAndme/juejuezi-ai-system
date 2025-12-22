@@ -3,6 +3,7 @@ package com.yupi.yuaiagent.config;
 import com.yupi.yuaiagent.advisor.MessageMemoryAdvisor;
 import com.yupi.yuaiagent.advisor.MyLoggerAdvisor;
 import com.yupi.yuaiagent.advisor.ReReadingAdvisor;
+import com.yupi.yuaiagent.advisor.RetrievalRerankAdvisor;
 import com.yupi.yuaiagent.chatmemory.RedisChatMemory;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
@@ -13,8 +14,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.RedisTemplate;
 
-import java.util.Map;
-
 @Configuration
 public class ChatClientConfig {
     private static final String SYSTEM_PROMPT = "榆林市神东煤矿生产协同专有对话系统，" +
@@ -22,14 +21,16 @@ public class ChatClientConfig {
             "及神东煤矿内部数据安全规范。";
     private final ToolCallbackProvider toolCallbackProvider;
     private final RedisChatMemory redisChatMemory;
+    private final RetrievalRerankAdvisor retrievalRerankAdvisor;
     @Autowired
     public ChatModel dashscopeChatModel;
     @Autowired
     public RedisTemplate redisTemplate;
 
-    public ChatClientConfig(ToolCallbackProvider toolCallbackProvider, RedisChatMemory redisChatMemory) {
+    public ChatClientConfig(ToolCallbackProvider toolCallbackProvider, RedisChatMemory redisChatMemory, RetrievalRerankAdvisor retrievalRerankAdvisor) {
         this.toolCallbackProvider = toolCallbackProvider;
         this.redisChatMemory = redisChatMemory;
+        this.retrievalRerankAdvisor = retrievalRerankAdvisor;
     }
 
     @Bean
@@ -60,6 +61,18 @@ public class ChatClientConfig {
                 .defaultToolCallbacks(toolCallbackProvider)
                 .defaultAdvisors(
                         MessageMemoryAdvisor.builder(redisChatMemory).build()
+                )
+                .build();
+    }
+
+    @Bean
+    public ChatClient ragChatClient() {
+        return ChatClient
+                .builder(dashscopeChatModel)
+                .defaultSystem(SYSTEM_PROMPT)
+                .defaultToolCallbacks(toolCallbackProvider)
+                .defaultAdvisors(
+                        retrievalRerankAdvisor
                 )
                 .build();
     }

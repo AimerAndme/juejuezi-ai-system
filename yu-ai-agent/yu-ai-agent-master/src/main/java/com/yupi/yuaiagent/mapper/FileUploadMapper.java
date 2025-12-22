@@ -13,6 +13,8 @@ public interface FileUploadMapper {
 
     FileUpload selectByFileMd5(@Param("fileMd5") String fileMd5);
 
+    List<FileUpload> selectByFileMd5List(@Param("md5List") List<String> md5List);
+
     FileUpload selectByFileMd5AndUserId(@Param("fileMd5") String fileMd5, @Param("userId") String userId);
 
     int updateStatus(@Param("fileMd5") String fileMd5, @Param("status") Integer status);

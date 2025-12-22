@@ -1,4 +1,4 @@
-package com.yupi.yuaiagent.service;
+package com.yupi.yuaiagent.service.producer;
 
 import com.yupi.yuaiagent.config.RabbitMQConfig;
 import com.yupi.yuaiagent.domin.entity.MemoryFragment;
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
-public class MemoryAsyncProducer {
+public class MqAsyncProducer {
 
     @Autowired
     private RabbitTemplate rabbitTemplate;
@@ -30,8 +30,8 @@ public class MemoryAsyncProducer {
 
             // 发送消息到队列
             rabbitTemplate.convertAndSend(
-                    RabbitMQConfig.MEMORY_EXCHANGE,
-                    RabbitMQConfig.MEMORY_ROUTING_KEY,
+                    RabbitMQConfig.FILE_EXCHANGE,
+                    RabbitMQConfig.FILE_ROUTING_KEY,
                     fragment,
                     correlationData
             );
@@ -42,6 +42,23 @@ public class MemoryAsyncProducer {
             // 发送失败可记录到本地日志，后续通过对账机制补全
             throw new RuntimeException("消息发送失败", e);
         }
+    }
+
+    public void sendFileParseFragment(String fileMd5) {
+        CorrelationData correlationData = new CorrelationData(fileMd5);
+        try {
+            rabbitTemplate.convertAndSend(
+                    RabbitMQConfig.FILE_EXCHANGE,
+                    RabbitMQConfig.FILE_ROUTING_KEY,
+                    fileMd5,
+                    correlationData);
+            log.info("文件解析向量化任务提交成功，fileMd5：{}", fileMd5);
+        } catch (Exception e) {
+            log.error("文件解析向量化任务提交失败，fileMd5: {}", fileMd5, e);
+            // 发送失败可记录到本地日志，后续通过对账机制补全
+            throw new RuntimeException("消息发送失败", e);
+        }
+
     }
 
     /**

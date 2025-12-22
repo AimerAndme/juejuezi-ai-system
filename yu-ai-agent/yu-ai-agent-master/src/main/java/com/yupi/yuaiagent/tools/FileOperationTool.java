@@ -1,7 +1,7 @@
 package com.yupi.yuaiagent.tools;
 
 import cn.hutool.core.io.FileUtil;
-import com.yupi.yuaiagent.constant.FileConstant;
+import com.yupi.yuaiagent.domin.constant.FileConstant;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
 

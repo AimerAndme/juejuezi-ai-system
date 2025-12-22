@@ -1,42 +1,47 @@
 package com.yupi.yuaiagent.service;
 
 
-import com.itextpdf.kernel.pdf.canvas.parser.listener.TextChunk;
 import com.yupi.yuaiagent.client.EmbeddingClient;
+import com.yupi.yuaiagent.domin.constant.EmbeddingModelConstant;
+import com.yupi.yuaiagent.domin.entity.DocumentVector;
 import com.yupi.yuaiagent.domin.entity.EsDocument;
+import com.yupi.yuaiagent.domin.entity.TextChunk;
+import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.IntStream;
 
 // 向量化服务类
 @Service
+@AllArgsConstructor
+@Component
 public class VectorizationService {
 
     private static final Logger logger = LoggerFactory.getLogger(VectorizationService.class);
-
-    @Autowired
-    private EmbeddingClient embeddingClient;
-
+    private final IDocumentVectorService documentVectorService;
+    private final EmbeddingClient embeddingClient;
     @Autowired
     private ElasticsearchService elasticsearchService;
 
-
     /**
      * 执行向量化操作
-     * @param fileMd5 文件指纹
-     * @param userId 上传用户ID
-     * @param orgTag 组织标签
+     *
+     * @param fileMd5  文件指纹
+     * @param userId   上传用户ID
+     * @param orgTag   组织标签
      * @param isPublic 是否公开
      */
     public void vectorize(String fileMd5, String userId, String orgTag, boolean isPublic) {
         try {
             logger.info("开始向量化文件，fileMd5: {}, userId: {}, orgTag: {}, isPublic: {}",
-                       fileMd5, userId, orgTag, isPublic);
+                    fileMd5, userId, orgTag, isPublic);
             // 获取文件分块内容
             List<TextChunk> chunks = fetchTextChunks(fileMd5);
             if (chunks == null || chunks.isEmpty()) {
@@ -49,8 +54,8 @@ public class VectorizationService {
                     .toList();
 
             // 调用外部模型生成向量
-            List<float[]> vectors = embeddingClient.embed(texts);
-
+            List<double[]> vectors = texts.stream().map(embeddingClient::text2embed).toList();
+//            List<float[]> vectors = embeddingClient.text2embed(texts);
             // 构建 Elasticsearch 文档并存储
             List<EsDocument> esDocuments = IntStream.range(0, chunks.size())
                     .mapToObj(i -> new EsDocument(
@@ -59,7 +64,7 @@ public class VectorizationService {
                             chunks.get(i).getChunkId(),
                             chunks.get(i).getContent(),
                             vectors.get(i),
-                            "deepseek-embed", // 更新为 DeepSeek 的模型版本
+                            EmbeddingModelConstant.TY_EMBEDDING_MODEL, // 更新为 DeepSeek 的模型版本
                             userId,
                             orgTag,
                             isPublic
@@ -78,13 +83,15 @@ public class VectorizationService {
 
     /**
      * 获取文件分块内容
+     *
      * @param fileMd5 文件指纹
      * @return 分块内容列表
      */
     // 从数据库获取分块内容
-    private List<TextChunk> fetchTextChunks(String fileMd5) {
+    public List<TextChunk> fetchTextChunks(String fileMd5) {
         // 调用 Repository 查询数据
-        List<DocumentVector> vectors = documentVectorRepository.findByFileMd5(fileMd5);
+        List<DocumentVector> vectors = documentVectorService.getVectorsByFileMd5(fileMd5);
+
 
         // 转换为 TextChunk 列表
         return vectors.stream()
@@ -94,4 +101,26 @@ public class VectorizationService {
                 ))
                 .toList();
     }
+
+    /**
+     * 生成查询向量，返回 List<Float>，失败时返回 null
+     */
+    public List<Double> embedToVectorList(String text) {
+        try {
+            double[] vecs = embeddingClient.text2embed(text);
+            if (vecs == null || vecs.length == 0) {
+                logger.warn("生成的向量为空");
+                return null;
+            }
+            List<Double> list = new ArrayList<>(vecs.length);
+            for (Double v : vecs) {
+                list.add(v);
+            }
+            return list;
+        } catch (Exception e) {
+            logger.error("生成向量失败", e);
+            return null;
+        }
+    }
+
 }

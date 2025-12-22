@@ -12,6 +12,14 @@
         SELECT * FROM file_upload WHERE file_md5 = #{fileMd5}
     </select>
 
+    <select id="selectByFileMd5List" resultType="com.yupi.yuaiagent.domin.entity.FileUpload">
+        SELECT * FROM file_upload
+        WHERE file_md5 IN
+        <foreach collection="md5List" item="md5" open="(" separator="," close=")">
+            #{md5}
+        </foreach>
+    </select>
+
     <select id="selectByFileMd5AndUserId" resultType="com.yupi.yuaiagent.domin.entity.FileUpload">
         SELECT * FROM file_upload WHERE file_md5 = #{fileMd5} AND user_id = #{userId}
     </select>

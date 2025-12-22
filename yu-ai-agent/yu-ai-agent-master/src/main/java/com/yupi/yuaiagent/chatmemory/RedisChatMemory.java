@@ -6,7 +6,7 @@ import com.yupi.yuaiagent.domin.entity.MiningAgentConversationMsg;
 import com.yupi.yuaiagent.domin.enums.ChatMessageEnum;
 import com.yupi.yuaiagent.mapper.MiningAgentConversationMapper;
 import com.yupi.yuaiagent.mapper.MiningAgentConversationMsgMapper;
-import com.yupi.yuaiagent.service.MemoryAsyncProducer;
+import com.yupi.yuaiagent.service.producer.MqAsyncProducer;
 import com.yupi.yuaiagent.util.UniqueIdGenerator;
 import com.yupi.yuaiagent.utils.JsonUtils;
 import com.yupi.yuaiagent.utils.MessageSerializer;
@@ -35,7 +35,7 @@ public class RedisChatMemory implements ChatMemory {
     private static final Integer LIMIT_MESSAGES = 20;//包含问与答
     private final RedisTemplate<String, Object> redisTemplate;
     @Autowired
-    MemoryAsyncProducer memoryAsyncProducer;
+    MqAsyncProducer memoryAsyncProducer;
     @Autowired
     MiningAgentConversationMapper miningAgentConversationMapper;
     @Autowired

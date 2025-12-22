@@ -1,4 +1,4 @@
-package com.yupi.yuaiagent.constant;
+package com.yupi.yuaiagent.domin.constant;
 
 /**
  * 文件常量
