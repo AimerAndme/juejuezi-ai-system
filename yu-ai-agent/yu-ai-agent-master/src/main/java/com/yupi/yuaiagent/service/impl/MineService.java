@@ -51,7 +51,8 @@ public class MineService implements com.yupi.yuaiagent.service.IMineService {
         if (conversations == null || conversations.isEmpty()) {
             throw new RuntimeException("当前用户不存在对话！！");
         }
-        CompiledGraph graph = preProcessingGraphFactory.getChatInstance();
+        //CompiledGraph graph = preProcessingGraphFactory.getChatInstance();
+        CompiledGraph graph = preProcessingGraphFactory.getRagChatInstance();
         Optional<OverAllState> call = graph.call(Map.of("queryInfo", userChatVO));
         return (String) call.map(OverAllState::data).orElse(Map.of()).get("chatResult");
     }

@@ -22,15 +22,17 @@ public class ChatClientConfig {
     private final ToolCallbackProvider toolCallbackProvider;
     private final RedisChatMemory redisChatMemory;
     private final RetrievalRerankAdvisor retrievalRerankAdvisor;
+    private final MyLoggerAdvisor myLoggerAdvisor;
     @Autowired
     public ChatModel dashscopeChatModel;
     @Autowired
     public RedisTemplate redisTemplate;
 
-    public ChatClientConfig(ToolCallbackProvider toolCallbackProvider, RedisChatMemory redisChatMemory, RetrievalRerankAdvisor retrievalRerankAdvisor) {
+    public ChatClientConfig(ToolCallbackProvider toolCallbackProvider, RedisChatMemory redisChatMemory, RetrievalRerankAdvisor retrievalRerankAdvisor, MyLoggerAdvisor myLoggerAdvisor) {
         this.toolCallbackProvider = toolCallbackProvider;
         this.redisChatMemory = redisChatMemory;
         this.retrievalRerankAdvisor = retrievalRerankAdvisor;
+        this.myLoggerAdvisor = myLoggerAdvisor;
     }
 
     @Bean
@@ -60,11 +62,17 @@ public class ChatClientConfig {
                 .defaultSystem(SYSTEM_PROMPT)
                 .defaultToolCallbacks(toolCallbackProvider)
                 .defaultAdvisors(
+                        myLoggerAdvisor,
                         MessageMemoryAdvisor.builder(redisChatMemory).build()
                 )
                 .build();
     }
 
+    /**
+     * 带记忆的rag问答客户端
+     *
+     * @return
+     */
     @Bean
     public ChatClient ragChatClient() {
         return ChatClient
@@ -72,7 +80,9 @@ public class ChatClientConfig {
                 .defaultSystem(SYSTEM_PROMPT)
                 .defaultToolCallbacks(toolCallbackProvider)
                 .defaultAdvisors(
-                        retrievalRerankAdvisor
+                        myLoggerAdvisor,
+                        retrievalRerankAdvisor,
+                        MessageMemoryAdvisor.builder(redisChatMemory).build()
                 )
                 .build();
     }

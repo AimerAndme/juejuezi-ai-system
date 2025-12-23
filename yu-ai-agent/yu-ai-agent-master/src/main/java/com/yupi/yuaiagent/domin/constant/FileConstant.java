@@ -6,7 +6,11 @@ package com.yupi.yuaiagent.domin.constant;
 public interface FileConstant {
 
     /**
-     * 文件保存目录
+     * 零时文件保存目录
      */
     String FILE_SAVE_DIR = System.getProperty("user.dir") + "/tmp";
+    /**
+     * 文件保存目录
+     */
+    String FILE_UPLOAD_SAVE_DIR_ = System.getProperty("user.dir") + "/upload/files";
 }

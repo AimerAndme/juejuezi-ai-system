@@ -24,6 +24,7 @@ public class NormalChatNode implements NodeAction {
 
     @Override
     public Map<String, Object> apply(OverAllState state) throws Exception {
+        log.info(" memoryChatClient 闲聊开始执行");
         if (state.value("queryInfo").isEmpty() || state.value("reWriteQuery").isEmpty()) {
             log.error("无法获取用户query");
         }

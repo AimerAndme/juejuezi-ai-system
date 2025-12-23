@@ -112,9 +112,56 @@ public class ParseService {
             }
 
             return content;
+        } catch (TikaException e) {
+            log.error("Tika解析失败，尝试备用解析方法", e);
+
+            if (e.getCause() != null && e.getCause() instanceof IOException) {
+                IOException ioException = (IOException) e.getCause();
+                if (ioException.getMessage() != null &&
+                        ioException.getMessage().contains("Missing descendant font dictionary")) {
+                    log.warn("PDF字体字典缺失，尝试使用宽松模式解析");
+                    return extractTextWithLenientMode(bufferedStream);
+                }
+            }
+
+            throw e;
         } catch (org.xml.sax.SAXException e) {
             log.error("文档解析失败", e);
             throw new RuntimeException("文档解析失败", e);
+        }
+    }
+
+    private String extractTextWithLenientMode(BufferedInputStream fileStream) {
+        try {
+            fileStream.reset();
+
+            org.apache.pdfbox.pdmodel.PDDocument document = null;
+            try {
+                document = org.apache.pdfbox.pdmodel.PDDocument.load(fileStream);
+
+                org.apache.pdfbox.text.PDFTextStripper stripper =
+                        new org.apache.pdfbox.text.PDFTextStripper();
+
+                stripper.setSortByPosition(true);
+
+                String text = stripper.getText(document);
+                log.info("使用宽松模式成功解析PDF，提取文本长度: {}", text.length());
+                return text;
+            } catch (Exception e) {
+                log.error("宽松模式解析也失败，返回空内容", e);
+                return "";
+            } finally {
+                if (document != null) {
+                    try {
+                        document.close();
+                    } catch (IOException e) {
+                        log.warn("关闭PDF文档失败", e);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.error("无法重置输入流，返回空内容", e);
+            return "";
         }
     }
 

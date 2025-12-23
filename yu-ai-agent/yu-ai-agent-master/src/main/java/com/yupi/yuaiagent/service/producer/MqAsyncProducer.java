@@ -30,8 +30,8 @@ public class MqAsyncProducer {
 
             // 发送消息到队列
             rabbitTemplate.convertAndSend(
-                    RabbitMQConfig.FILE_EXCHANGE,
-                    RabbitMQConfig.FILE_ROUTING_KEY,
+                    RabbitMQConfig.MEMORY_EXCHANGE,
+                    RabbitMQConfig.MEMORY_ROUTING_KEY,
                     fragment,
                     correlationData
             );

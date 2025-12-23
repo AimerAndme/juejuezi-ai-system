@@ -2,12 +2,14 @@ package com.yupi.yuaiagent.service.consumeer;
 
 import com.rabbitmq.client.Channel;
 import com.yupi.yuaiagent.config.RabbitMQConfig;
+import com.yupi.yuaiagent.domin.constant.FileConstant;
 import com.yupi.yuaiagent.domin.entity.FileUpload;
 import com.yupi.yuaiagent.exception.BusinessException;
 import com.yupi.yuaiagent.exception.ErrorCode;
 import com.yupi.yuaiagent.mapper.FileUploadMapper;
 import com.yupi.yuaiagent.service.ParseService;
 import com.yupi.yuaiagent.service.VectorizationService;
+import com.yupi.yuaiagent.utils.FileUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -85,7 +87,12 @@ public class FileAsyncConsumer {
      * @return
      */
     private InputStream downloadFileByFileMd5(FileUpload fileUpload) {
-        String filePath = "E:\\编程学习\\项目\\yv-ai\\upload\\files\\test.txt"; // 替换为你的文件路径
+        String fileName = fileUpload.getFileMd5() + "_" + fileUpload.getFileName();
+        String filePath = FileUtils.findFileByName(FileConstant.FILE_UPLOAD_SAVE_DIR_, fileName); // 替换为你的文件路径
+        if (filePath == null) {
+            log.error("文件不存在");
+            throw new RuntimeException("文件不存在");
+        }
         // 使用 try-with-resources 确保 InputStream 被正确关闭
         try {
             // 现在你可以使用 inputStream 了
