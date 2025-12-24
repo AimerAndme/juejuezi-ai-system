@@ -1,11 +1,11 @@
 package com.yupi.yuaiagent.service;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import co.elastic.clients.elasticsearch.core.BulkRequest;
-import co.elastic.clients.elasticsearch.core.BulkResponse;
-import co.elastic.clients.elasticsearch.core.DeleteByQueryRequest;
+import co.elastic.clients.elasticsearch.core.*;
 import co.elastic.clients.elasticsearch.core.bulk.BulkOperation;
 import co.elastic.clients.elasticsearch.core.bulk.BulkResponseItem;
+import co.elastic.clients.elasticsearch.core.search.Hit;
+import co.elastic.clients.elasticsearch.core.search.HitsMetadata;
 
 import com.yupi.yuaiagent.domin.entity.EsDocument;
 import org.slf4j.Logger;
@@ -13,7 +13,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 // Elasticsearch操作封装服务
 @Service
@@ -34,22 +37,22 @@ public class ElasticsearchService {
     public void bulkIndex(List<EsDocument> documents) {
         try {
             logger.info("开始批量索引文档到Elasticsearch，文档数量: {}", documents.size());
-            
+
             // 将文档列表转换为批量操作列表，每个文档都对应一个索引操作
             List<BulkOperation> bulkOperations = documents.stream()
                     .map(doc -> BulkOperation.of(op -> op.index(idx -> idx
-                            .index("knowledge_base") // 指定索引名称
-                            .id(doc.getId()) // 使用文档的ID作为Elasticsearch中的文档ID
-                            .document(doc) // 将文档对象作为数据源
-                    )))
+                    .index("knowledge_base") // 指定索引名称
+                    .id(doc.getId()) // 使用文档的ID作为Elasticsearch中的文档ID
+                    .document(doc) // 将文档对象作为数据源
+            )))
                     .toList();
 
             // 创建BulkRequest对象，并将批量操作列表添加到请求中
             BulkRequest request = BulkRequest.of(b -> b.operations(bulkOperations));
-            
+
             // 执行批量索引操作
             BulkResponse response = esClient.bulk(request);
-            
+
             // 检查响应结果
             if (response.errors()) {
                 logger.error("批量索引过程中发生错误:");
@@ -71,17 +74,128 @@ public class ElasticsearchService {
 
     /**
      * 根据file_md5删除文档
+     *
      * @param fileMd5 文件指纹
      */
     public void deleteByFileMd5(String fileMd5) {
         try {
+            logger.info("删除ES文档: fileMd5={}", fileMd5);
             DeleteByQueryRequest request = DeleteByQueryRequest.of(d -> d
                     .index("knowledge_base")
                     .query(q -> q.term(t -> t.field("fileMd5").value(fileMd5)))
             );
-            esClient.deleteByQuery(request);
+            DeleteByQueryResponse response = esClient.deleteByQuery(request);
+            logger.info("删除成功，删除数量: {}", response.deleted());
         } catch (Exception e) {
+            logger.error("删除文档失败, fileMd5={}", fileMd5, e);
             throw new RuntimeException("删除文档失败", e);
+        }
+    }
+
+    /**
+     * 根据文档ID删除单个文档
+     *
+     * @param docId 文档ID
+     */
+    public void deleteById(String docId) {
+        try {
+            logger.info("删除ES文档: docId={}", docId);
+            DeleteRequest request = DeleteRequest.of(d -> d
+                    .index("knowledge_base")
+                    .id(docId)
+            );
+            DeleteResponse response = esClient.delete(request);
+            logger.info("删除成功，结果: {}", response.result());
+        } catch (Exception e) {
+            logger.error("删除文档失败, docId={}", docId, e);
+            throw new RuntimeException("删除文档失败", e);
+        }
+    }
+
+    /**
+     * 根据fileMd5查询所有分片文档
+     *
+     * @param fileMd5 文件MD5
+     * @param from 起始位置
+     * @param size 查询数量
+     * @return 文档列表
+     */
+    public List<Map<String, Object>> queryByFileMd5(String fileMd5, int from, int size) {
+        try {
+            logger.info("查询ES文档: fileMd5={}, from={}, size={}", fileMd5, from, size);
+            SearchRequest request = SearchRequest.of(s -> s
+                    .index("knowledge_base")
+                    .query(q -> q.term(t -> t.field("fileMd5").value(fileMd5)))
+                    .from(from)
+                    .size(size)
+                    .sort(sort -> sort.field(f -> f.field("chunkId").order(co.elastic.clients.elasticsearch._types.SortOrder.Asc)))
+            );
+            SearchResponse<Map> response = esClient.search(request, Map.class);
+
+            List<Map<String, Object>> results = new ArrayList<>();
+            HitsMetadata<Map> hits = response.hits();
+            for (Hit<Map> hit : hits.hits()) {
+                Map<String, Object> doc = new HashMap<>();
+                doc.put("id", hit.id());
+                doc.put("source", hit.source());
+                results.add(doc);
+            }
+            logger.info("查询成功，命中数量: {}", results.size());
+            return results;
+        } catch (Exception e) {
+            logger.error("查询文档失败, fileMd5={}", fileMd5, e);
+            throw new RuntimeException("查询文档失败", e);
+        }
+    }
+
+    /**
+     * 根据文档ID查询单个文档
+     *
+     * @param docId 文档ID
+     * @return 文档内容
+     */
+    public Map<String, Object> getById(String docId) {
+        try {
+            logger.info("查询ES文档: docId={}", docId);
+            GetRequest request = GetRequest.of(g -> g
+                    .index("knowledge_base")
+                    .id(docId)
+            );
+            GetResponse<Map> response = esClient.get(request, Map.class);
+
+            if (!response.found()) {
+                return null;
+            }
+
+            Map<String, Object> result = new HashMap<>();
+            result.put("id", response.id());
+            result.put("source", response.source());
+            return result;
+        } catch (Exception e) {
+            logger.error("查询文档失败, docId={}", docId, e);
+            throw new RuntimeException("查询文档失败", e);
+        }
+    }
+
+    /**
+     * 统计fileMd5对应的文档数量
+     *
+     * @param fileMd5 文件MD5
+     * @return 文档数量
+     */
+    public long countByFileMd5(String fileMd5) {
+        try {
+            logger.info("统计ES文档数量: fileMd5={}", fileMd5);
+            CountRequest request = CountRequest.of(c -> c
+                    .index("knowledge_base")
+                    .query(q -> q.term(t -> t.field("fileMd5").value(fileMd5)))
+            );
+            CountResponse response = esClient.count(request);
+            logger.info("统计成功，数量: {}", response.count());
+            return response.count();
+        } catch (Exception e) {
+            logger.error("统计文档失败, fileMd5={}", fileMd5, e);
+            throw new RuntimeException("统计文档失败", e);
         }
     }
 

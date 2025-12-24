@@ -1,9 +1,34 @@
 <template>
-  <div class="super-agent-container">
+  <div class="super-agent-container" :class="{ 'dark-mode': isDarkMode }">
     <div class="header">
-      <div class="back-button" @click="goBack">返回</div>
-      <h1 class="title">AI超级智能体</h1>
-      <div class="placeholder"></div>
+      <div class="header-left">
+        <div class="back-button" @click="goBack">返回</div>
+        <h1 class="logo">AI智能体平台</h1>
+      </div>
+      <div class="header-right">
+        <select class="language-select" v-model="currentLanguage">
+          <option value="zh-CN">简体中文</option>
+          <option value="en-US">English</option>
+        </select>
+        <a
+          href="https://github.com/alibaba/spring-ai-alibaba"
+          target="_blank"
+          class="github-link"
+        >
+          <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor">
+            <path
+              d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"
+            ></path>
+          </svg>
+        </a>
+        <button
+          class="theme-toggle"
+          @click="toggleTheme"
+          :title="isDarkMode ? '切换到浅色模式' : '切换到深色模式'"
+        >
+          {{ isDarkMode ? '🌞' : '🌙' }}
+        </button>
+      </div>
     </div>
 
     <div class="content-wrapper">
@@ -50,7 +75,25 @@ useHead({
 const router = useRouter()
 const messages = ref([])
 const connectionStatus = ref('disconnected')
+const isDarkMode = ref(false)
+const currentLanguage = ref('zh-CN')
 let eventSource = null
+
+// 主题切换
+const toggleTheme = () => {
+  isDarkMode.value = !isDarkMode.value
+  document.documentElement.classList.toggle('dark-mode', isDarkMode.value)
+  localStorage.setItem('theme', isDarkMode.value ? 'dark' : 'light')
+}
+
+// 初始化主题
+const initTheme = () => {
+  const savedTheme = localStorage.getItem('theme')
+  isDarkMode.value = savedTheme === 'dark'
+  if (isDarkMode.value) {
+    document.documentElement.classList.add('dark-mode')
+  }
+}
 
 // 添加消息到列表
 const addMessage = (content, isUser, type = '') => {
@@ -165,6 +208,7 @@ const goBack = () => {
 
 // 页面加载时添加欢迎消息
 onMounted(() => {
+  initTheme()
   // 添加欢迎消息
   addMessage(
     '你好，我是AI超级智能体。我可以解答各类问题，提供专业建议，请问有什么可以帮助你的吗？',
@@ -185,46 +229,76 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background: linear-gradient(135deg, var(--light-blue), var(--sky-blue));
+  background: var(--bg-light);
   position: relative;
   overflow: hidden;
+  font-family: var(--font-family-base);
+  transition: background-color 0.3s ease;
+}
+
+.super-agent-container.dark-mode {
+  background: var(--bg-light);
 }
 
 .header {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  padding: 16px 24px;
-  background: linear-gradient(90deg, var(--light-blue), var(--sky-blue));
-  color: white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: var(--header-padding-vertical) var(--header-padding-horizontal);
+  background: var(--bg-white);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-light);
   position: sticky;
   top: 0;
   z-index: 10;
-  border-bottom: 2px dashed var(--light-gray-blue);
+  border-bottom: 1px solid var(--border-light);
+  transition: all 0.3s ease;
+  pointer-events: auto;
+}
+
+.dark-mode .header {
+  background: var(--bg-white);
+  border-bottom-color: var(--border-light);
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
 .back-button {
-  font-size: 16px;
+  font-size: var(--font-size-small);
   cursor: pointer;
   display: flex;
   align-items: center;
-  transition: all 0.3s;
-  justify-self: start;
-  padding: 8px 16px;
-  border-radius: 20px;
-  background-color: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(10px);
-  /* 轻微的浅灰色阴影 */
-  box-shadow: 0 2px 4px rgba(221, 238, 255, 0.4);
+  transition: all 0.3s ease;
+  padding: var(--button-padding-vertical) var(--button-padding-horizontal);
+  border-radius: var(--button-border-radius);
+  background-color: var(--bg-light);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  pointer-events: auto;
+}
+
+.dark-mode .back-button {
+  background-color: #3d3d3d;
+  color: #e0e0e0;
+  border-color: #4d4d4d;
 }
 
 .back-button:hover {
-  opacity: 0.8;
-  transform: scale(1.03);
-  box-shadow: 0 0 10px rgba(173, 216, 230, 0.7);
-  /* 淡蓝色微光闪烁 */
-  animation: blueGlowFlash 0.5s ease-in-out;
+  transform: scale(1.05);
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+  background-color: rgba(22, 119, 255, 0.1);
+  box-shadow: var(--shadow-medium);
 }
 
 .back-button:before {
@@ -232,24 +306,83 @@ onBeforeUnmount(() => {
   margin-right: 8px;
 }
 
-.title {
+.logo {
   font-size: 20px;
-  font-weight: bold;
+  font-weight: 600;
   margin: 0;
-  text-align: center;
-  justify-self: center;
-  background: linear-gradient(45deg, var(--light-blue), #1a2a3a);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  font-family: 'Orbitron', sans-serif;
-  /* 添加文本阴影以提高可读性 */
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
+  color: var(--logo-color);
+  letter-spacing: 0.5px;
 }
 
-.placeholder {
-  width: 1px;
-  justify-self: end;
+.dark-mode .logo {
+  color: var(--logo-color);
+}
+
+.language-select {
+  padding: 6px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-white);
+  color: var(--text-primary);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  outline: none;
+  pointer-events: auto;
+}
+
+.dark-mode .language-select {
+  background: #3d3d3d;
+  color: #e0e0e0;
+  border-color: #4d4d4d;
+}
+
+.language-select:hover {
+  border-color: var(--primary-color);
+}
+
+.github-link {
+  display: flex;
+  align-items: center;
+  color: var(--text-secondary);
+  transition: all 0.3s ease;
+  padding: 6px;
+  border-radius: 6px;
+  pointer-events: auto;
+}
+
+.dark-mode .github-link {
+  color: #e0e0e0;
+}
+
+.github-link:hover {
+  color: var(--primary-color);
+  transform: scale(1.05);
+}
+
+.theme-toggle {
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-white);
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+}
+
+.dark-mode .theme-toggle {
+  background: #3d3d3d;
+  border-color: #4d4d4d;
+}
+
+.theme-toggle:hover {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-medium);
+  border-color: var(--primary-color);
 }
 
 .content-wrapper {
@@ -260,17 +393,43 @@ onBeforeUnmount(() => {
 
 .chat-area {
   flex: 1;
-  padding: 16px;
+  padding: var(--chat-area-padding);
   overflow: hidden;
   position: relative;
-  /* 设置最小高度确保内容显示正常 */
-  min-height: calc(100vh - 56px - 180px); /* 100vh减去头部高度和页脚高度 */
-  margin-bottom: 16px; /* 为页脚留出空间 */
-  background: rgba(221, 238, 255, 0.3);
-  border-radius: 16px;
-  margin: 16px;
-  border: 2px dashed var(--light-gray-blue);
-  backdrop-filter: blur(5px);
+  min-height: calc(100vh - var(--header-height) - var(--footer-height));
+  margin: var(--chat-area-margin-vertical) auto;
+  max-width: var(--container-max-width);
+  width: 100%;
+  background: var(--bg-card);
+  border-radius: var(--chat-area-border-radius);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--shadow-card);
+  transition: all 0.3s ease;
+  animation: fadeIn 0.6s ease-in;
+}
+
+.dark-mode .chat-area {
+  background: var(--bg-card);
+  border-color: var(--card-border);
+}
+
+.chat-area:hover {
+  box-shadow: var(--shadow-card-hover);
+}
+
+.dark-mode .chat-area:hover {
+  box-shadow: var(--shadow-card-hover);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .footer-container {
@@ -291,18 +450,6 @@ onBeforeUnmount(() => {
     padding: 12px;
     min-height: calc(100vh - 48px - 160px); /* 调整计算值 */
     margin-bottom: 12px;
-  }
-}
-
-@keyframes blueGlowFlash {
-  0% {
-    box-shadow: 0 0 10px rgba(173, 216, 230, 0.7);
-  }
-  50% {
-    box-shadow: 0 0 15px rgba(173, 216, 230, 0.9);
-  }
-  100% {
-    box-shadow: 0 0 10px rgba(173, 216, 230, 0.7);
   }
 }
 

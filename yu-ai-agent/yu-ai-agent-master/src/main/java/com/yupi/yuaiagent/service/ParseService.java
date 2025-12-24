@@ -84,26 +84,23 @@ public class ParseService {
      * @throws TikaException 如果文件解析过程中发生错误
      */
     private String extractText(InputStream fileStream) throws IOException, TikaException {
-        // 检查内存使用情况
         checkMemoryThreshold();
         BufferedInputStream bufferedStream = new BufferedInputStream(fileStream, bufferSize);
+        bufferedStream.mark(bufferSize * 10);
+        
         try {
-            // 使用流式处理handler，限制内存使用
             StreamingContentHandler handler = new StreamingContentHandler();
             Metadata metadata = new Metadata();
             ParseContext context = new ParseContext();
             AutoDetectParser parser = new AutoDetectParser();
 
-            // 解析文件
             parser.parse(bufferedStream, handler, metadata, context);
 
-            // 打印元数据
             log.debug("文件元数据:");
             for (String name : metadata.names()) {
                 log.debug("{}: {}", name, metadata.get(name));
             }
 
-            // 获取解析内容
             String content = handler.getContent();
             log.debug("提取的文本内容长度: {}", content.length());
 
@@ -111,7 +108,7 @@ public class ParseService {
                 log.warn("解析结果为空，请检查文件内容或格式");
             }
 
-            return content;
+            return cleanTextContent(content);
         } catch (TikaException e) {
             log.error("Tika解析失败，尝试备用解析方法", e);
 
@@ -120,7 +117,7 @@ public class ParseService {
                 if (ioException.getMessage() != null &&
                         ioException.getMessage().contains("Missing descendant font dictionary")) {
                     log.warn("PDF字体字典缺失，尝试使用宽松模式解析");
-                    return extractTextWithLenientMode(bufferedStream);
+                    return cleanTextContent(extractTextWithLenientMode(bufferedStream));
                 }
             }
 
@@ -131,13 +128,29 @@ public class ParseService {
         }
     }
 
+    private String cleanTextContent(String content) {
+        if (content == null || content.isEmpty()) {
+            return content;
+        }
+        
+        return content
+                .replaceAll("\\r\\n", "\n")
+                .replaceAll("\\r", "\n")
+                .replaceAll("[ \\t]+", " ")
+                .replaceAll(" *\\n *", "\n")
+                .replaceAll("\\n{3,}", "\n\n")
+                .replaceAll("^\\s+", "")
+                .replaceAll("\\s+$", "")
+                .trim();
+    }
+
     private String extractTextWithLenientMode(BufferedInputStream fileStream) {
         try {
             fileStream.reset();
-
             org.apache.pdfbox.pdmodel.PDDocument document = null;
             try {
-                document = org.apache.pdfbox.pdmodel.PDDocument.load(fileStream);
+                document = org.apache.pdfbox.pdmodel.PDDocument.load(fileStream,
+                        org.apache.pdfbox.io.MemoryUsageSetting.setupTempFileOnly());
 
                 org.apache.pdfbox.text.PDFTextStripper stripper =
                         new org.apache.pdfbox.text.PDFTextStripper();
@@ -148,7 +161,7 @@ public class ParseService {
                 log.info("使用宽松模式成功解析PDF，提取文本长度: {}", text.length());
                 return text;
             } catch (Exception e) {
-                log.error("宽松模式解析也失败，返回空内容", e);
+                log.error("宽松模式解析也失败，尝试OCR或返回空内容", e);
                 return "";
             } finally {
                 if (document != null) {

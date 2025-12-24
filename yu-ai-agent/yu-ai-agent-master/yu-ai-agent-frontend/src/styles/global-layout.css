@@ -6,26 +6,35 @@
 
 /* ================================
    1. CSS 变量定义 - 全局配置中心
-   模仿 java2ai.com 的现代简洁风格
    ================================ */
 :root {
-  /* 颜色主题 - 模仿 java2ai.com 配色 */
-  --primary-blue: #0066cc;
-  --primary-blue-light: #3385e0;
-  --primary-blue-lighter: #e6f2ff;
-  --secondary-blue: #1890ff;
-  --text-primary: #1a1a1a;
+  /* 字体配置 - Inter / PingFang SC */
+  --font-family-base: 'Inter', 'PingFang SC', -apple-system, BlinkMacSystemFont,
+    'Segoe UI', Roboto, sans-serif;
+  --font-family-title: 'Inter', 'PingFang SC', sans-serif;
+
+  /* 颜色主题 - 新配色方案 */
+  --primary-color: #1677ff;
+  --primary-color-hover: #0958d9;
+  --primary-color-light: #4096ff;
+  --logo-color: #00d1b2;
+  --text-primary: #333333;
   --text-secondary: #666666;
   --text-light: #999999;
   --bg-white: #ffffff;
   --bg-light: #f8f9fa;
-  --bg-card: #ffffff;
+  --bg-card: rgba(147, 210, 184, 0.1);
+  --card-border: rgba(147, 210, 184, 0.2);
   --border-light: #e8e8e8;
-  --border-color: #d9d9d9;
+  --border-color: #e0e0e0;
   --shadow-color: rgba(0, 0, 0, 0.08);
 
   /* 保留原有颜色变量以兼容 */
-  --light-blue: #3385e0;
+  --primary-blue: #1677ff;
+  --primary-blue-light: #4096ff;
+  --primary-blue-lighter: #e6f2ff;
+  --secondary-blue: #1890ff;
+  --light-blue: #4096ff;
   --sky-blue: #1890ff;
   --light-gray-blue: #e6f2ff;
   --light-purple: #e0bbe4;
@@ -35,36 +44,36 @@
   --cyber-light: #f8f9fa;
   --light-bg: #f8f9fa;
 
-  /* 页面布局间距配置 - java2ai.com 风格 */
-  --page-padding-horizontal: 24px; /* 页面左右内边距（更宽松） */
-  --page-padding-horizontal-mobile: 16px; /* 移动端左右内边距 */
-  --page-padding-horizontal-small: 12px; /* 小屏幕左右内边距 */
-  --container-max-width: 1200px; /* 容器最大宽度 */
+  /* 页面布局间距配置 */
+  --page-padding-horizontal: 32px;
+  --page-padding-horizontal-mobile: 16px;
+  --page-padding-horizontal-small: 12px;
+  --container-max-width: 1200px;
 
   /* 头部配置 */
-  --header-padding-vertical: 20px; /* 头部上下内边距 */
-  --header-padding-horizontal: 24px; /* 头部左右内边距 */
-  --header-height: 64px; /* 头部高度 */
+  --header-padding-vertical: 16px;
+  --header-padding-horizontal: 32px;
+  --header-height: 64px;
 
   /* 聊天区域配置 */
-  --chat-area-padding: 24px; /* 聊天区域内边距 */
-  --chat-area-margin-vertical: 24px; /* 聊天区域上下外边距 */
-  --chat-area-margin-horizontal: 0; /* 聊天区域左右外边距 */
-  --chat-area-border-radius: 12px; /* 聊天区域圆角（更小更现代） */
+  --chat-area-padding: 24px;
+  --chat-area-margin-vertical: 24px;
+  --chat-area-margin-horizontal: 0;
+  --chat-area-border-radius: 16px;
 
   /* 页脚配置 */
-  --footer-height: 180px; /* 页脚高度 */
+  --footer-height: 180px;
 
-  /* 卡片配置（用于首页应用卡片） */
-  --card-padding: 32px; /* 卡片内边距（更宽松） */
-  --card-margin: 20px; /* 卡片间距 */
-  --card-border-radius: 12px; /* 卡片圆角（统一12px） */
-  --card-gap: 32px; /* 卡片之间的间隙 */
+  /* 卡片配置 */
+  --card-padding: 32px;
+  --card-margin: 20px;
+  --card-border-radius: 12px;
+  --card-gap: 32px;
 
   /* 按钮配置 */
   --button-padding-vertical: 8px;
   --button-padding-horizontal: 16px;
-  --button-border-radius: 20px;
+  --button-border-radius: 8px;
 
   /* 响应式断点 */
   --breakpoint-tablet: 768px;
@@ -72,28 +81,44 @@
 
   /* 过渡动画 */
   --transition-speed: 0.3s;
-  --transition-timing: ease-in-out;
+  --transition-timing: ease;
 
-  /* 阴影效果 - java2ai.com 柔和阴影 */
-  --shadow-light: 0 2px 8px rgba(0, 0, 0, 0.04);
-  --shadow-medium: 0 4px 12px rgba(0, 0, 0, 0.08);
-  --shadow-heavy: 0 6px 16px rgba(0, 0, 0, 0.12);
-  --shadow-card: 0 2px 8px 0 rgba(0, 0, 0, 0.08);
-  --shadow-card-hover: 0 4px 16px 0 rgba(0, 0, 0, 0.12);
+  /* 阴影效果 */
+  --shadow-light: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-medium: 0 4px 12px rgba(0, 0, 0, 0.12);
+  --shadow-heavy: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-card-hover: 0 8px 24px rgba(0, 0, 0, 0.12);
 
   /* 字体配置 */
-  --font-family-title: 'Orbitron', sans-serif;
   --font-size-title: 20px;
   --font-size-subtitle: 1.2rem;
   --font-size-text: 16px;
   --font-size-small: 14px;
 }
 
+/* 深色模式配置 */
+:root.dark-mode,
+[data-theme='dark'] {
+  --text-primary: #e0e0e0;
+  --text-secondary: #a0a0a0;
+  --text-light: #808080;
+  --bg-white: #2d2d2d;
+  --bg-light: #1a1a1a;
+  --bg-card: rgba(147, 210, 184, 0.05);
+  --card-border: rgba(147, 210, 184, 0.15);
+  --border-light: #3d3d3d;
+  --border-color: #4d4d4d;
+  --shadow-color: rgba(0, 0, 0, 0.4);
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-card-hover: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
 /* ================================
    2. 通用容器样式
    ================================ */
 
-/* 页面主容器 - java2ai.com 风格 */
+/* 页面主容器 */
 .page-container {
   display: flex;
   flex-direction: column;
@@ -101,12 +126,14 @@
   background: var(--bg-light);
   position: relative;
   overflow: hidden;
+  font-family: var(--font-family-base);
+  transition: background-color 0.3s ease;
 }
 
-/* 页面头部 - java2ai.com 简洁风格 */
+/* 页面头部 */
 .page-header {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  display: flex;
+  justify-content: space-between;
   align-items: center;
   padding: var(--header-padding-vertical) var(--header-padding-horizontal);
   background: var(--bg-white);
@@ -116,6 +143,7 @@
   top: 0;
   z-index: 10;
   border-bottom: 1px solid var(--border-light);
+  transition: all 0.3s ease;
 }
 
 /* 矿山主题头部 */
@@ -124,17 +152,16 @@
   border-bottom: 1px solid var(--border-light);
 }
 
-/* 头部返回按钮 - java2ai.com 简洁按钮风格 */
+/* 头部返回按钮 */
 .page-header .back-button {
-  font-size: var(--font-size-text);
+  font-size: var(--font-size-small);
   cursor: pointer;
   display: flex;
   align-items: center;
   transition: all var(--transition-speed) var(--transition-timing);
-  justify-self: start;
   padding: var(--button-padding-vertical) var(--button-padding-horizontal);
-  border-radius: 8px;
-  background-color: transparent;
+  border-radius: var(--button-border-radius);
+  background-color: var(--bg-light);
   color: var(--text-secondary);
   border: 1px solid var(--border-color);
 }
@@ -145,21 +172,21 @@
 }
 
 .page-header .back-button:hover {
-  color: var(--primary-blue);
-  border-color: var(--primary-blue);
-  background-color: var(--primary-blue-lighter);
+  transform: scale(1.05);
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+  background-color: rgba(22, 119, 255, 0.1);
+  box-shadow: var(--shadow-medium);
 }
 
-/* 头部标题 - java2ai.com 简洁标题 */
+/* 头部标题 */
 .page-header .title {
   font-size: var(--font-size-title);
   font-weight: 600;
   margin: 0;
-  text-align: center;
-  justify-self: center;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-    'Helvetica Neue', Arial, sans-serif;
-  color: var(--text-primary);
+  font-family: var(--font-family-title);
+  color: var(--logo-color);
+  letter-spacing: 0.5px;
 }
 
 /* 内容包装器 */
@@ -169,7 +196,7 @@
   flex: 1;
 }
 
-/* 聊天区域 - java2ai.com 卡片风格 */
+/* 聊天区域 */
 .chat-area {
   flex: 1;
   padding: var(--chat-area-padding);
@@ -179,10 +206,28 @@
   margin: var(--chat-area-margin-vertical) auto;
   max-width: var(--container-max-width);
   width: 100%;
-  background: var(--bg-white);
+  background: var(--bg-card);
   border-radius: var(--chat-area-border-radius);
-  border: 1px solid var(--border-light);
+  border: 1px solid var(--card-border);
   box-shadow: var(--shadow-card);
+  transition: all 0.3s ease;
+  animation: fadeIn 0.6s ease-in;
+}
+
+.chat-area:hover {
+  box-shadow: var(--shadow-card-hover);
+}
+
+/* 淡入动画 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* 页脚容器 */
@@ -194,20 +239,21 @@
    3. 首页特殊样式
    ================================ */
 
-/* 首页头部 - java2ai.com 风格 */
+/* 首页头部 */
 .home-header {
   padding: 80px var(--page-padding-horizontal) 60px;
   text-align: center;
   background: linear-gradient(
     180deg,
-    var(--primary-blue-lighter) 0%,
+    rgba(22, 119, 255, 0.05) 0%,
     var(--bg-light) 100%
   );
   position: relative;
   z-index: 2;
+  animation: fadeIn 0.6s ease-in;
 }
 
-/* 应用卡片容器 - java2ai.com 风格 */
+/* 应用卡片容器 */
 .apps-container {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -220,9 +266,9 @@
   z-index: 2;
 }
 
-/* 应用卡片 - java2ai.com 简洁卡片风格 */
+/* 应用卡片 */
 .app-card {
-  background: var(--bg-white);
+  background: var(--bg-card);
   border-radius: var(--card-border-radius);
   padding: var(--card-padding);
   cursor: pointer;
@@ -230,13 +276,14 @@
   position: relative;
   overflow: hidden;
   box-shadow: var(--shadow-card);
-  border: 1px solid var(--border-light);
+  border: 1px solid var(--card-border);
+  animation: fadeIn 0.6s ease-in;
 }
 
 .app-card:hover {
-  transform: translateY(-4px);
+  transform: scale(1.05) translateY(-4px);
   box-shadow: var(--shadow-card-hover);
-  border-color: var(--primary-blue-light);
+  border-color: var(--primary-color);
 }
 
 /* ================================

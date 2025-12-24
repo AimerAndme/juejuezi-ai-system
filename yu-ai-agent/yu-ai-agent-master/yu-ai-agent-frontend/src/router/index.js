@@ -76,6 +76,15 @@ const routes = [
       description: '查看和管理您上传的文档向量数据',
     },
   },
+  {
+    path: '/es-doc-manage',
+    name: 'EsDocManage',
+    component: () => import('../views/EsDocManage.vue'),
+    meta: {
+      title: 'ES索引文档管理 - 鱼皑AI超级智能体应用平台',
+      description: '查看和管理Elasticsearch中的文档向量数据',
+    },
+  },
   // 保留旧路由以便兼容
   {
     path: '/file-upload',

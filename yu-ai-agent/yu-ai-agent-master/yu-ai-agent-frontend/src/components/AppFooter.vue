@@ -3,7 +3,7 @@
     <div class="footer-content">
       <div class="footer-section">
         <div class="footer-logo">
-          <h3>鱼皮AI超级智能体应用平台</h3>
+          <h3>AI超级智能体应用平台</h3>
         </div>
         <div class="footer-links">
           <a href="#">《用户协议》</a>
@@ -14,9 +14,9 @@
       <div class="footer-section">
         <h4>友情链接</h4>
         <div class="footer-links">
-          <a href="https://www.mianshiya.com" target="_blank">面试鸭</a>
-          <a href="#" target="_blank">编程导航</a>
-          <a href="#" target="_blank">代码小抄</a>
+          <a href="#" target="_blank">雷克萨斯</a>
+          <a href="#" target="_blank">宝马</a>
+          <a href="#" target="_blank">丰田</a>
         </div>
       </div>
 
@@ -24,13 +24,13 @@
         <h4>联系我们</h4>
         <div class="footer-links">
           <a href="#">商务合作</a>
-          <a href="#">站长：鱼皮</a>
+          <a href="#">站长：吕七七</a>
         </div>
       </div>
     </div>
 
     <div class="footer-bottom">
-      <p>© {{ currentYear }} 鱼皮AI超级智能体应用平台 - 让AI为你服务</p>
+      <p>© {{ currentYear }} AI超级智能体应用平台 - 让AI为你服务</p>
     </div>
   </footer>
 </template>
@@ -44,19 +44,15 @@ const currentYear = computed(() => new Date().getFullYear())
 
 <style scoped>
 .app-footer {
-  background: linear-gradient(
-    135deg,
-    rgba(221, 238, 255, 0.8),
-    rgba(173, 216, 230, 0.8)
-  );
+  background: var(--bg-card);
   padding: 40px 0 20px;
-  color: #3a5a7a;
-  border-top: 2px dashed var(--light-gray-blue);
+  color: var(--text-primary);
+  border-top: 1px solid var(--card-border);
   width: 100%;
-  margin-top: auto;
+  margin: 0;
   position: relative;
   z-index: 2;
-  backdrop-filter: blur(5px);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .footer-content {
@@ -65,11 +61,9 @@ const currentYear = computed(() => new Date().getFullYear())
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  padding: 0 20px;
-  /* 模块间用浅蓝色虚线分隔 */
-  border-top: 1px dashed var(--light-gray-blue);
-  border-bottom: 1px dashed var(--light-gray-blue);
   padding: 20px;
+  border-top: 1px solid var(--card-border);
+  border-bottom: 1px solid var(--card-border);
 }
 
 .footer-section {
@@ -82,23 +76,17 @@ const currentYear = computed(() => new Date().getFullYear())
 .footer-logo h3 {
   font-size: 1.25rem;
   margin-bottom: 15px;
-  color: #3a5a7a;
-  background: linear-gradient(45deg, var(--light-blue), #3a5a7a);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  font-family: 'Orbitron', sans-serif;
+  color: var(--logo-color);
+  font-family: var(--font-family-title);
+  font-weight: 600;
 }
 
 .footer-section h4 {
   font-size: 1rem;
   margin-bottom: 15px;
-  color: #3a5a7a;
-  background: linear-gradient(45deg, var(--light-blue), #3a5a7a);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  font-family: 'Orbitron', sans-serif;
+  color: var(--text-primary);
+  font-family: var(--font-family-title);
+  font-weight: 600;
 }
 
 .footer-links {
@@ -108,20 +96,19 @@ const currentYear = computed(() => new Date().getFullYear())
 
 .footer-links a {
   margin-bottom: 10px;
-  color: #3a5a7a;
+  color: var(--text-secondary);
   text-decoration: none;
-  transition: all 0.3s;
+  transition: all 0.3s ease;
   padding: 5px 10px;
-  border-radius: 12px;
-  /* 轻微的浅蓝色阴影 */
-  box-shadow: 0 2px 4px rgba(221, 238, 255, 0.4);
+  border-radius: 8px;
+  border: 1px solid transparent;
 }
 
 .footer-links a:hover {
-  color: var(--light-blue);
-  transform: scale(1.03);
-  /* 淡蓝色微光闪烁 */
-  box-shadow: 0 0 8px rgba(173, 216, 230, 0.7);
+  color: var(--primary-color);
+  transform: scale(1.05);
+  background-color: rgba(22, 119, 255, 0.1);
+  border-color: var(--primary-color);
 }
 
 .qrcode {
@@ -136,16 +123,16 @@ const currentYear = computed(() => new Date().getFullYear())
 .qrcode-placeholder {
   width: 90px;
   height: 90px;
-  background: linear-gradient(135deg, var(--light-bg), var(--light-blue));
+  background: var(--bg-card);
   margin: 0 auto 10px;
-  border-radius: 16px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 2rem;
-  /* 轻微的浅蓝色阴影 */
-  box-shadow: 0 4px 8px rgba(221, 238, 255, 0.4);
-  border: 2px solid var(--light-gray-blue);
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--card-border);
+  transition: all 0.3s ease;
 }
 
 .qrcode-placeholder:after {
@@ -156,10 +143,10 @@ const currentYear = computed(() => new Date().getFullYear())
   text-align: center;
   padding-top: 20px;
   margin-top: 20px;
-  border-top: 1px dashed var(--light-gray-blue);
-  color: #3a5a7a;
+  border-top: 1px solid var(--card-border);
+  color: var(--text-secondary);
   font-size: 0.9rem;
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--font-family-base);
 }
 
 /* 响应式设计 */

@@ -1,9 +1,34 @@
 <template>
-  <div class="mine-agent-container">
+  <div class="mine-agent-container" :class="{ 'dark-mode': isDarkMode }">
     <div class="header">
-      <div class="back-button" @click="goBack">返回</div>
-      <h1 class="title">AI矿山专家</h1>
-      <div class="placeholder"></div>
+      <div class="header-left">
+        <div class="back-button" @click="goBack">返回</div>
+        <h1 class="logo">AI智能体平台</h1>
+      </div>
+      <div class="header-right">
+        <select class="language-select" v-model="currentLanguage">
+          <option value="zh-CN">简体中文</option>
+          <option value="en-US">English</option>
+        </select>
+        <a
+          href="https://github.com/alibaba/spring-ai-alibaba"
+          target="_blank"
+          class="github-link"
+        >
+          <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor">
+            <path
+              d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"
+            ></path>
+          </svg>
+        </a>
+        <button
+          class="theme-toggle"
+          @click="toggleTheme"
+          :title="isDarkMode ? '切换到浅色模式' : '切换到深色模式'"
+        >
+          {{ isDarkMode ? '🌞' : '🌙' }}
+        </button>
+      </div>
     </div>
 
     <div class="content-wrapper">
@@ -34,6 +59,21 @@ import {
   getLatestConversationWithMessages,
   createConversation,
 } from '../api'
+
+// 主题切换
+const isDarkMode = ref(false)
+const currentLanguage = ref('zh-CN')
+
+const toggleTheme = () => {
+  isDarkMode.value = !isDarkMode.value
+  localStorage.setItem('theme', isDarkMode.value ? 'dark' : 'light')
+}
+
+// 初始化主题
+const initTheme = () => {
+  const savedTheme = localStorage.getItem('theme')
+  isDarkMode.value = savedTheme === 'dark'
+}
 
 // 设置页面标题和元数据
 useHead({
@@ -100,6 +140,7 @@ const goBack = () => {
 
 // 页面加载时恢复消息
 onMounted(async () => {
+  initTheme()
   console.log('=== onMounted 开始执行 ===')
   const userId = localStorage.getItem('userId')
   console.log('userId:', userId)
@@ -179,46 +220,81 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background: linear-gradient(135deg, var(--light-blue), var(--sky-blue));
+  background: #f8f9fa;
   position: relative;
   overflow: hidden;
+  font-family: 'Inter', 'PingFang SC', -apple-system, BlinkMacSystemFont,
+    sans-serif;
+  transition: background-color 0.3s ease;
+}
+
+.mine-agent-container.dark-mode {
+  background: #1a1a1a;
+  color: #e0e0e0;
 }
 
 .header {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  padding: 16px 24px;
-  background: linear-gradient(90deg, var(--light-orange), var(--orange));
-  color: white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 16px 32px;
+  background: #ffffff;
+  color: #333;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   position: sticky;
   top: 0;
   z-index: 10;
-  border-bottom: 2px dashed var(--light-gray-blue);
+  transition: all 0.3s ease;
+  pointer-events: auto;
+}
+
+.dark-mode .header {
+  background: #2d2d2d;
+  color: #e0e0e0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
 .back-button {
-  font-size: 16px;
+  font-size: 14px;
   cursor: pointer;
   display: flex;
   align-items: center;
-  transition: all 0.3s;
-  justify-self: start;
+  transition: all 0.3s ease;
   padding: 8px 16px;
-  border-radius: 20px;
-  background-color: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(10px);
-  /* 轻微的浅灰色阴影 */
-  box-shadow: 0 2px 4px rgba(221, 238, 255, 0.4);
+  border-radius: 8px;
+  background-color: #f0f0f0;
+  color: #333;
+  border: 1px solid #e0e0e0;
+  pointer-events: auto;
+}
+
+.dark-mode .back-button {
+  background-color: #3d3d3d;
+  color: #e0e0e0;
+  border-color: #4d4d4d;
 }
 
 .back-button:hover {
-  opacity: 0.8;
-  transform: scale(1.03);
-  box-shadow: 0 0 10px rgba(255, 165, 0, 0.7);
-  /* 橙色微光闪烁 */
-  animation: orangeGlowFlash 0.5s ease-in-out;
+  transform: scale(1.05);
+  background-color: #e8e8e8;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.dark-mode .back-button:hover {
+  background-color: #4d4d4d;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 .back-button:before {
@@ -226,24 +302,86 @@ onBeforeUnmount(() => {
   margin-right: 8px;
 }
 
-.title {
+.logo {
   font-size: 20px;
-  font-weight: bold;
+  font-weight: 600;
   margin: 0;
-  text-align: center;
-  justify-self: center;
-  background: linear-gradient(45deg, var(--light-orange), #1a2a3a);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  font-family: 'Orbitron', sans-serif;
-  /* 添加文本阴影以提高可读性 */
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
+  color: #00d1b2;
+  letter-spacing: 0.5px;
 }
 
-.placeholder {
-  width: 1px;
-  justify-self: end;
+.dark-mode .logo {
+  color: #00d1b2;
+}
+
+.language-select {
+  padding: 6px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #333;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  outline: none;
+  pointer-events: auto;
+}
+
+.dark-mode .language-select {
+  background: #3d3d3d;
+  color: #e0e0e0;
+  border-color: #4d4d4d;
+}
+
+.language-select:hover {
+  border-color: #1677ff;
+}
+
+.github-link {
+  display: flex;
+  align-items: center;
+  color: #333;
+  transition: all 0.3s ease;
+  padding: 6px;
+  border-radius: 6px;
+  pointer-events: auto;
+}
+
+.dark-mode .github-link {
+  color: #e0e0e0;
+}
+
+.github-link:hover {
+  color: #1677ff;
+  transform: scale(1.05);
+}
+
+.theme-toggle {
+  padding: 8px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  background: #ffffff;
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+}
+
+.dark-mode .theme-toggle {
+  background: #3d3d3d;
+  border-color: #4d4d4d;
+}
+
+.theme-toggle:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.dark-mode .theme-toggle:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 .content-wrapper {
@@ -257,14 +395,38 @@ onBeforeUnmount(() => {
   padding: 16px;
   overflow: hidden;
   position: relative;
-  /* 设置最小高度确保内容显示正常 */
-  min-height: calc(100vh - 56px - 180px); /* 100vh减去头部高度和页脚高度 */
-  margin-bottom: 16px; /* 为页脚留出空间 */
-  background: rgba(221, 238, 255, 0.3);
+  min-height: calc(100vh - 56px - 180px);
+  margin-bottom: 16px;
+  background: rgba(147, 210, 184, 0.1);
   border-radius: 16px;
   margin: 16px;
-  border: 2px dashed var(--light-gray-blue);
-  backdrop-filter: blur(5px);
+  border: 1px solid rgba(147, 210, 184, 0.2);
+  transition: all 0.3s ease;
+  animation: fadeIn 0.6s ease-in;
+}
+
+.dark-mode .chat-area {
+  background: rgba(147, 210, 184, 0.05);
+  border-color: rgba(147, 210, 184, 0.15);
+}
+
+.chat-area:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.dark-mode .chat-area:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .footer-container {
@@ -285,18 +447,6 @@ onBeforeUnmount(() => {
     padding: 12px;
     min-height: calc(100vh - 48px - 160px); /* 调整计算值 */
     margin-bottom: 12px;
-  }
-}
-
-@keyframes orangeGlowFlash {
-  0% {
-    box-shadow: 0 0 10px rgba(255, 165, 0, 0.7);
-  }
-  50% {
-    box-shadow: 0 0 15px rgba(255, 165, 0, 0.9);
-  }
-  100% {
-    box-shadow: 0 0 10px rgba(255, 165, 0, 0.7);
   }
 }
 

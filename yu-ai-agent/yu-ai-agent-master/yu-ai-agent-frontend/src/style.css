@@ -1,29 +1,58 @@
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  /* 字体配置 - Inter / PingFang SC */
+  font-family: 'Inter', 'PingFang SC', -apple-system, BlinkMacSystemFont,
+    'Segoe UI', Roboto, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
   color-scheme: light dark;
-  color: #213547; /* 加深默认字体颜色，提高辨识度 */
-  background-color: #242424;
+  color: #333333;
+  background-color: #f8f9fa;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
-  /* 添加橙色系变量用于矿山主题 */
+  /* 主题配色 */
+  --primary-color: #1677ff;
+  --logo-color: #00d1b2;
+  --bg-color: #f8f9fa;
+  --card-bg: rgba(147, 210, 184, 0.1);
+  --card-border: rgba(147, 210, 184, 0.2);
+  --text-primary: #333333;
+  --text-secondary: #666666;
+  --border-color: #e0e0e0;
+
+  /* 保留原有变量以兼容 */
   --light-orange: #ffd580;
   --orange: #ffa500;
 }
 
+/* 深色模式 */
+:root.dark-mode,
+[data-theme='dark'] {
+  color-scheme: dark;
+  color: #e0e0e0;
+  background-color: #1a1a1a;
+
+  --bg-color: #1a1a1a;
+  --card-bg: rgba(147, 210, 184, 0.05);
+  --card-border: rgba(147, 210, 184, 0.15);
+  --text-primary: #e0e0e0;
+  --text-secondary: #a0a0a0;
+  --border-color: #4d4d4d;
+}
+
 a {
   font-weight: 500;
-  color: #646cff;
+  color: var(--primary-color);
   text-decoration: inherit;
+  transition: all 0.3s ease;
 }
 a:hover {
-  color: #535bf2;
+  color: #0958d9;
+  transform: scale(1.02);
 }
 
 body {
@@ -46,12 +75,24 @@ button {
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a;
+  background-color: var(--primary-color);
+  color: #ffffff;
   cursor: pointer;
-  transition: border-color 0.25s;
+  transition: all 0.3s ease;
 }
 button:hover {
-  border-color: #646cff;
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(22, 119, 255, 0.3);
+}
+
+.dark-mode button {
+  background-color: #3d3d3d;
+  color: #e0e0e0;
+}
+
+.dark-mode button:hover {
+  background-color: #4d4d4d;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 button:focus,
 button:focus-visible {
@@ -60,23 +101,62 @@ button:focus-visible {
 
 .card {
   padding: 2em;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  animation: fadeIn 0.6s ease-in;
+}
+
+.card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.dark-mode .card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* 淡入动画 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 #app {
-  max-width: 1280px;
-  margin: 0 auto;
+  width: 100%;
+  margin: 0;
+  padding: 0;
   text-align: center;
 }
 
-@media (prefers-color-scheme: light) {
+/* 响应式字体 */
+@media (max-width: 768px) {
   :root {
-    color: #1a2a3a; /* 在浅色模式下使用更深的颜色 */
-    background-color: #ffffff;
+    font-size: 14px;
   }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+}
+
+/* 平滑滚动 */
+html {
+  scroll-behavior: smooth;
+}
+
+/* 通用动效类 */
+.hover-scale:hover {
+  transform: scale(1.05);
+}
+
+.hover-shadow:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.dark-mode .hover-shadow:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
 }
