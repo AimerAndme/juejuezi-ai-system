@@ -10,6 +10,8 @@ import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.AutoDetectParser;
 import org.apache.tika.parser.ParseContext;
 import org.apache.tika.sax.BodyContentHandler;
+import org.springframework.ai.document.Document;
+import org.springframework.ai.transformer.splitter.TokenTextSplitter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,8 +55,11 @@ public class ParseService {
         // 使用 Apache Tika 提取文档内容
         String textContent = extractText(fileStream);
         log.info("成功提取文档内容");
-        // 将文本内容分割为固定大小的块
-        List<String> chunks = splitTextIntoChunks(textContent, chunkSize);
+        // TODO使用的Token分词器，可优化点，将文本内容分割为固定大小的块
+        TokenTextSplitter tokenTextSplitter = new TokenTextSplitter();
+        List<Document> split = tokenTextSplitter.split(new Document(textContent));
+        List<String> chunks = split.stream().map(Document::getText).toList();
+        //::List<String> chunks = splitTextIntoChunks(textContent, chunkSize);
         log.info("文档分割成功");
         // 保存每个文本块到数据库
         saveChunksWithSemantics(fileMd5, chunks, userId, orgTag, isPublic);
@@ -87,7 +92,7 @@ public class ParseService {
         checkMemoryThreshold();
         BufferedInputStream bufferedStream = new BufferedInputStream(fileStream, bufferSize);
         bufferedStream.mark(bufferSize * 10);
-        
+
         try {
             StreamingContentHandler handler = new StreamingContentHandler();
             Metadata metadata = new Metadata();
@@ -132,7 +137,7 @@ public class ParseService {
         if (content == null || content.isEmpty()) {
             return content;
         }
-        
+
         return content
                 .replaceAll("\\r\\n", "\n")
                 .replaceAll("\\r", "\n")

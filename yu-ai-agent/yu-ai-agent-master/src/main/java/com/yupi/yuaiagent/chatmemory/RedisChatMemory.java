@@ -32,7 +32,7 @@ import java.util.concurrent.TimeUnit;
 public class RedisChatMemory implements ChatMemory {
     // Redis 键前缀，避免键冲突
     private static final String KEY_PREFIX = "chat:memory:";
-    private static final Integer LIMIT_MESSAGES = 20;//包含问与答
+    private static final Integer LIMIT_MESSAGES = 10;//包含问与答
     private final RedisTemplate<String, Object> redisTemplate;
     @Autowired
     MqAsyncProducer memoryAsyncProducer;

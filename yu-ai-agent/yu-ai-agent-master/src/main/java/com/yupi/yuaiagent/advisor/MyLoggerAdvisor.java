@@ -48,7 +48,7 @@ public class MyLoggerAdvisor implements BaseAdvisor {
     }
 
     private ChatClientRequest before(ChatClientRequest request) {
-        log.info("AI Request: {}", request.prompt());
+        log.info("AI Request: before");
         return request;
     }
 

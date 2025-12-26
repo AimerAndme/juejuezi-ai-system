@@ -9,7 +9,7 @@
           type="file"
           ref="fileInput"
           @change="handleFileSelect"
-          accept=".docx,.md,.pdf"
+          accept=".docx,.md,.pdf,.txt"
           :disabled="isUploading"
         />
         <button
@@ -146,11 +146,11 @@ const handleFileSelect = async (event) => {
   if (!file) return
 
   // 验证文件类型
-  const allowedTypes = ['.docx', '.md', '.pdf']
+  const allowedTypes = ['.docx', '.md', '.pdf', '.txt']
   const fileExtension = '.' + file.name.split('.').pop().toLowerCase()
 
   if (!allowedTypes.includes(fileExtension)) {
-    errorMessage.value = '不支持的文件类型，仅支持 .docx, .md, .pdf'
+    errorMessage.value = '不支持的文件类型,仅支持 .docx, .md, .pdf, .txt'
     return
   }
 

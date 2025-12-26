@@ -1,7 +1,9 @@
 package com.yupi.yuaiagent.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
@@ -9,6 +11,12 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  */
 @Configuration
 public class CorsConfig implements WebMvcConfigurer {
+
+    @Value("${file.upload.final-dir:./upload/files}")
+    private String finalDir;
+
+    @Value("${file.upload.temp-dir:./upload/temp}")
+    private String tempDir;
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
@@ -21,5 +29,14 @@ public class CorsConfig implements WebMvcConfigurer {
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .exposedHeaders("*");
+    }
+
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("/upload/files/**")
+                .addResourceLocations("file:" + finalDir + "/");
+        
+        registry.addResourceHandler("/upload/temp/**")
+                .addResourceLocations("file:" + tempDir + "/");
     }
 }

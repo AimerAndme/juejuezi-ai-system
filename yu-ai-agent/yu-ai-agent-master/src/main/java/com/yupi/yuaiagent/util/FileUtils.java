@@ -103,6 +103,7 @@ public class FileUtils {
         String lowerCaseName = fileName.toLowerCase();
         return lowerCaseName.endsWith(".docx")
                 || lowerCaseName.endsWith(".md")
-                || lowerCaseName.endsWith(".pdf");
+                || lowerCaseName.endsWith(".pdf")
+                || lowerCaseName.endsWith(".txt");
     }
 }

@@ -42,6 +42,7 @@ spring:
         #  api-key: sk-da831ca6d01e4b8aaa04c1705d35f990
         options:
           model: qwen-plus
+
     ollama:
       base-url: http://localhost:11434
       chat:
@@ -85,7 +86,7 @@ mybatis:
   type-aliases-package: com.yupi.yuaiagent.domin.entity # 实体类包路径（简化 XML 中类名）
   configuration:
     map-underscore-to-camel-case: true # 下划线转驼峰命名（适配 PG 表字段）
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl # 显示 MyBatis SQL（开发用）
+    #log-impl: org.apache.ibatis.logging.stdout.StdOutImpl # 显示 MyBatis SQL（开发用）
 
 elasticsearch:
   # host: localhost       # Elasticsearch主机地址

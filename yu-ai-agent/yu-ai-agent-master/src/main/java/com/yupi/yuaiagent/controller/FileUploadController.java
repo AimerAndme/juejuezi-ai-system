@@ -32,7 +32,7 @@ public class FileUploadController {
             // 先验证文件类型
             if (!com.yupi.yuaiagent.util.FileUtils.isAllowedFileType(request.getFileName())) {
                 result.put("code", 400);
-                result.put("message", "不支持的文件类型，仅支持 .docx, .md, .pdf");
+                result.put("message", "不支持的文件类型,仅支持 .docx, .md, .pdf, .txt");
                 result.put("data", null);
                 return result;
             }

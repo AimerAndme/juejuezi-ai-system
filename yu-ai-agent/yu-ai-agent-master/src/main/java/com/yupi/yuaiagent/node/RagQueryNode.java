@@ -6,6 +6,7 @@ import com.yupi.yuaiagent.domin.vo.UserChatVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.prompt.PromptTemplate;
+import org.springframework.ai.transformer.splitter.TokenTextSplitter;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
