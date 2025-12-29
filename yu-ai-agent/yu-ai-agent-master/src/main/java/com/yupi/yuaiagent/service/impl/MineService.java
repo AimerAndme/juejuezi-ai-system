@@ -3,7 +3,9 @@ package com.yupi.yuaiagent.service.impl;
 import com.alibaba.cloud.ai.graph.CompiledGraph;
 import com.alibaba.cloud.ai.graph.OverAllState;
 import com.alibaba.cloud.ai.graph.exception.GraphStateException;
+import com.yupi.yuaiagent.domin.context.RagRequestContext;
 import com.yupi.yuaiagent.domin.entity.MiningAgentConversation;
+import com.yupi.yuaiagent.domin.entity.RagRequestContextData;
 import com.yupi.yuaiagent.domin.vo.UserChatVO;
 import com.yupi.yuaiagent.graph.PreProcessingGraphFactory;
 import com.yupi.yuaiagent.mapper.MiningAgentConversationMapper;
@@ -54,6 +56,15 @@ public class MineService implements com.yupi.yuaiagent.service.IMineService {
         //CompiledGraph graph = preProcessingGraphFactory.getChatInstance();
         CompiledGraph graph = preProcessingGraphFactory.getRagChatInstance();
         Optional<OverAllState> call = graph.call(Map.of("queryInfo", userChatVO));
+        //Todo解析Rag回答的上下文
+        parseRagContext(call);
         return (String) call.map(OverAllState::data).orElse(Map.of()).get("chatResult");
+    }
+
+    private void parseRagContext(Optional<OverAllState> call) {
+        Map<String, Object> stringObjectMap = call.map(OverAllState::data).orElse(Map.of());
+        RagRequestContextData ragRequestContextData = RagRequestContext.get();
+        ragRequestContextData.setQuery(stringObjectMap.get("queryInfo").toString());
+        ragRequestContextData.setChatAnswer(stringObjectMap.get("chatResult").toString());
     }
 }

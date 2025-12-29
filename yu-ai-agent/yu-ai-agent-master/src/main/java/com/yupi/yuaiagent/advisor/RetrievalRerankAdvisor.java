@@ -8,6 +8,8 @@ import com.alibaba.cloud.ai.document.DocumentWithScore;
 import com.alibaba.cloud.ai.model.RerankModel;
 import com.alibaba.cloud.ai.model.RerankRequest;
 import com.alibaba.cloud.ai.model.RerankResponse;
+import com.yupi.yuaiagent.domin.context.RagRequestContext;
+import com.yupi.yuaiagent.domin.entity.RagRequestContextData;
 import com.yupi.yuaiagent.domin.entity.SearchResult;
 import com.yupi.yuaiagent.service.HybridSearchService;
 import com.yupi.yuaiagent.service.VectorizationService;
@@ -117,6 +119,9 @@ public class RetrievalRerankAdvisor implements BaseAdvisor {
         List<SearchResult> documents = hybridSearchService.search(userMessage.getText(), 5);
         logger.debug("retrieved documents: {}", documents);
         context.put("qa_retrieved_documents", documents);
+        //TODO(可优化点)放置检索信息到上下文
+        RagRequestContextData ragRequestContextData = RagRequestContext.get();
+        ragRequestContextData.setRetrievedDocuments(documents.stream().map(SearchResult::getTextContent).toList());
         //重新排序
         //documents = this.doRerank(request, documents);
         String documentContext = (String) documents.stream().map(SearchResult::getTextContent).collect(Collectors.joining(System.lineSeparator()));

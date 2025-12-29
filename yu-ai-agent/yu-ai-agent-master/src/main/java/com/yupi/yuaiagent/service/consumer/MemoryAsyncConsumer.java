@@ -1,4 +1,4 @@
-package com.yupi.yuaiagent.service.consumeer;
+package com.yupi.yuaiagent.service.consumer;
 
 import com.rabbitmq.client.Channel;
 import com.yupi.yuaiagent.config.RabbitMQConfig;
