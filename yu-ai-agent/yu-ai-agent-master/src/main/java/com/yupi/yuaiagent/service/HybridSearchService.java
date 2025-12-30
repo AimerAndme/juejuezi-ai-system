@@ -3,20 +3,20 @@ package com.yupi.yuaiagent.service;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.query_dsl.Operator;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
+import co.elastic.clients.elasticsearch.core.search.Hit;
 import com.yupi.yuaiagent.client.EmbeddingClient;
 import com.yupi.yuaiagent.domin.entity.EsDocument;
 import com.yupi.yuaiagent.domin.entity.FileUpload;
 import com.yupi.yuaiagent.domin.entity.SearchResult;
 import com.yupi.yuaiagent.mapper.FileUploadMapper;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.ai.document.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -261,7 +261,7 @@ public class HybridSearchService {
     /**
      * 原始搜索方法，不包含权限过滤，保留向后兼容性
      */
-    public List<SearchResult> search(String query, int topK) {
+    public List<Document> search(String query, int topK) {
         try {
             logger.debug("开始混合检索，查询: {}, topK: {}", query, topK);
             logger.warn("使用了没有权限过滤的搜索方法，建议使用 searchWithPermission 方法");
@@ -307,13 +307,21 @@ public class HybridSearchService {
 
             return response.hits().hits().stream()
                     .map(hit -> {
-                        assert hit.source() != null;
-                        return new SearchResult(
-                                hit.source().getFileMd5(),
-                                hit.source().getChunkId(),
-                                hit.source().getTextContent(),
-                                hit.score()
-                        );
+                        if (hit.source() == null) {
+                            logger.warn("命中结果的 source 为空，跳过该记录");
+                            return null;  // 或抛出异常
+                        }
+                        Map<String, Object> metadata = getMetadata(hit);
+                        return Document.builder()
+                                .text(hit.source().getTextContent())
+                                .metadata(metadata)
+                                .build();
+//                        return new SearchResult(
+//                                hit.source().getFileMd5(),
+//                                hit.source().getChunkId(),
+//                                hit.source().getTextContent(),
+//                                hit.score()
+//                        );
                     })
                     .toList();
         } catch (Exception e) {
@@ -329,10 +337,24 @@ public class HybridSearchService {
         }
     }
 
+    @NotNull
+    private static Map<String, Object> getMetadata(Hit<EsDocument> hit) {
+        Map<String, Object> metadata = new HashMap<>();
+        metadata.put("score", hit.score());
+        if (hit.source().getUserId() != null) {
+            metadata.put("userId", hit.source().getUserId());
+        }
+        if (hit.source().getOrgTag() != null) {
+            metadata.put("orgTag", hit.source().getOrgTag());
+        }
+        metadata.put("isPublic", hit.source().isPublic());
+        return metadata;
+    }
+
     /**
      * 仅使用文本匹配的搜索方法
      */
-    private List<SearchResult> textOnlySearch(String query, int topK) throws Exception {
+    private List<Document> textOnlySearch(String query, int topK) throws Exception {
         SearchResponse<EsDocument> response = esClient.search(s -> s
                         .index("knowledge_base")
                         .query(q -> q
@@ -348,12 +370,19 @@ public class HybridSearchService {
         return response.hits().hits().stream()
                 .map(hit -> {
                     assert hit.source() != null;
-                    return new SearchResult(
-                            hit.source().getFileMd5(),
-                            hit.source().getChunkId(),
-                            hit.source().getTextContent(),
-                            hit.score()
-                    );
+                    return Document.builder()
+                            .text(hit.source().getTextContent())
+                            .metadata(Map.of("score", hit.score(),
+                                    "userId", hit.source().getUserId(),
+                                    "orgTag", hit.source().getOrgTag(),
+                                    "isPublick", hit.source().isPublic()))
+                            .build();
+//                    return new SearchResult(
+//                            hit.source().getFileMd5(),
+//                            hit.source().getChunkId(),
+//                            hit.source().getTextContent(),
+//                            hit.score()
+//                    );
                 })
                 .toList();
     }

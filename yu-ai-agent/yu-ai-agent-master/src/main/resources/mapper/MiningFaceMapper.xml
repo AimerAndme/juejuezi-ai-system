@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yupi.yuaiagent.mapper.MiningFaceMapper">
+    <resultMap id="BaseResultMap" type="com.yupi.yuaiagent.domin.entity.MiningFace">
+        <id column="face_id" property="faceId"/>
+        <result column="area_id" property="areaId"/>
+        <result column="seam_id" property="seamId"/>
+        <result column="start_date" property="startDate"/>
+        <result column="end_date" property="endDate"/>
+        <result column="length" property="length"/>
+        <result column="status" property="status"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.yupi.yuaiagent.domin.entity.MiningFace">
+        INSERT INTO agent.mining_face (face_id, area_id, seam_id, start_date, end_date, length, status)
+        VALUES (#{faceId}, #{areaId}, #{seamId}, #{startDate}, #{endDate}, #{length}, #{status})
+    </insert>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT face_id, area_id, seam_id, start_date, end_date, length, status FROM agent.mining_face WHERE face_id = #{faceId}
+    </select>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT face_id, area_id, seam_id, start_date, end_date, length, status FROM agent.mining_face
+    </select>
+
+    <select id="selectByAreaId" resultMap="BaseResultMap">
+        SELECT face_id, area_id, seam_id, start_date, end_date, length, status FROM agent.mining_face WHERE area_id = #{areaId}
+    </select>
+
+    <update id="update" parameterType="com.yupi.yuaiagent.domin.entity.MiningFace">
+        UPDATE agent.mining_face SET area_id = #{areaId}, seam_id = #{seamId}, start_date = #{startDate},
+        end_date = #{endDate}, length = #{length}, status = #{status}
+        WHERE face_id = #{faceId}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM agent.mining_face WHERE face_id = #{faceId}
+    </delete>
+</mapper>

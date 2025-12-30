@@ -85,6 +85,25 @@ const routes = [
       description: '查看和管理Elasticsearch中的文档向量数据',
     },
   },
+  {
+    path: '/data-center',
+    name: 'DataCenter',
+    component: () => import('../views/DataCenter.vue'),
+    meta: {
+      title: '数据中心 - 鱼皑AI超级智能体应用平台',
+      description:
+        '矿山地质数据管理平台，支持矿区、煤层、钻孔、巷道等数据的增删改查',
+    },
+  },
+  {
+    path: '/data-center/:table',
+    name: 'DataDetail',
+    component: () => import('../views/DataDetail.vue'),
+    meta: {
+      title: '数据详情 - 鱼皑AI超级智能体应用平台',
+      description: '矿山数据详情管理页面',
+    },
+  },
   // 保留旧路由以便兼容
   {
     path: '/file-upload',

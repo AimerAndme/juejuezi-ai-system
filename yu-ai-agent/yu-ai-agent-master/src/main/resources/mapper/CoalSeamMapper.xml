@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yupi.yuaiagent.mapper.CoalSeamMapper">
+    <resultMap id="BaseResultMap" type="com.yupi.yuaiagent.domin.entity.CoalSeam">
+        <id column="seam_id" property="seamId"/>
+        <result column="seam_name" property="seamName"/>
+        <result column="average_thickness" property="averageThickness"/>
+        <result column="dip_angle" property="dipAngle"/>
+        <result column="roof_lithology" property="roofLithology"/>
+        <result column="floor_lithology" property="floorLithology"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.yupi.yuaiagent.domin.entity.CoalSeam">
+        INSERT INTO agent.coal_seam (seam_id, seam_name, average_thickness, dip_angle, roof_lithology, floor_lithology)
+        VALUES (#{seamId}, #{seamName}, #{averageThickness}, #{dipAngle}, #{roofLithology}, #{floorLithology})
+    </insert>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT seam_id, seam_name, average_thickness, dip_angle, roof_lithology, floor_lithology
+        FROM public.coal_seam WHERE seam_id = #{seamId}
+    </select>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT seam_id, seam_name, average_thickness, dip_angle, roof_lithology, floor_lithology FROM agent.coal_seam
+    </select>
+
+    <update id="update" parameterType="com.yupi.yuaiagent.domin.entity.CoalSeam">
+        UPDATE agent.coal_seam SET seam_name = #{seamName}, average_thickness = #{averageThickness},
+        dip_angle = #{dipAngle}, roof_lithology = #{roofLithology}, floor_lithology = #{floorLithology}
+        WHERE seam_id = #{seamId}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM agent.coal_seam WHERE seam_id = #{seamId}
+    </delete>
+</mapper>

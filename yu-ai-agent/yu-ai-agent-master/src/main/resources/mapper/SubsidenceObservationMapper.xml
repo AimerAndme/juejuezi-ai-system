@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yupi.yuaiagent.mapper.SubsidenceObservationMapper">
+    <resultMap id="BaseResultMap" type="com.yupi.yuaiagent.domin.entity.SubsidenceObservation">
+        <id column="obs_id" property="obsId"/>
+        <result column="station_id" property="stationId"/>
+        <result column="obs_date" property="obsDate"/>
+        <result column="z_initial" property="zInitial"/>
+        <result column="z_current" property="zCurrent"/>
+        <result column="subsidence" property="subsidence"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.yupi.yuaiagent.domin.entity.SubsidenceObservation" useGeneratedKeys="true" keyProperty="obsId">
+        INSERT INTO public.subsidence_observation (station_id, obs_date, z_initial, z_current)
+        VALUES (#{stationId}, #{obsDate}, #{zInitial}, #{zCurrent})
+    </insert>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT obs_id, station_id, obs_date, z_initial, z_current, subsidence FROM public.subsidence_observation WHERE obs_id = #{obsId}
+    </select>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT obs_id, station_id, obs_date, z_initial, z_current, subsidence FROM public.subsidence_observation
+    </select>
+
+    <select id="selectByStationId" resultMap="BaseResultMap">
+        SELECT obs_id, station_id, obs_date, z_initial, z_current, subsidence FROM public.subsidence_observation WHERE station_id = #{stationId}
+    </select>
+
+    <update id="update" parameterType="com.yupi.yuaiagent.domin.entity.SubsidenceObservation">
+        UPDATE public.subsidence_observation SET station_id = #{stationId}, obs_date = #{obsDate}, z_initial = #{zInitial}, z_current = #{zCurrent}
+        WHERE obs_id = #{obsId}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM public.subsidence_observation WHERE obs_id = #{obsId}
+    </delete>
+</mapper>

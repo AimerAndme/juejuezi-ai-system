@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yupi.yuaiagent.mapper.RoadwayPointMapper">
+    <resultMap id="BaseResultMap" type="com.yupi.yuaiagent.domin.entity.RoadwayPoint">
+        <id column="point_id" property="pointId"/>
+        <result column="area_id" property="areaId"/>
+        <result column="x" property="x"/>
+        <result column="y" property="y"/>
+        <result column="z" property="z"/>
+        <result column="point_type" property="pointType"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.yupi.yuaiagent.domin.entity.RoadwayPoint">
+        INSERT INTO agent.roadway_point (point_id, area_id, x, y, z, point_type)
+        VALUES (#{pointId}, #{areaId}, #{x}, #{y}, #{z}, #{pointType})
+    </insert>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT point_id, area_id, x, y, z, point_type FROM agent.roadway_point WHERE point_id = #{pointId}
+    </select>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT point_id, area_id, x, y, z, point_type FROM agent.roadway_point
+    </select>
+
+    <select id="selectByAreaId" resultMap="BaseResultMap">
+        SELECT point_id, area_id, x, y, z, point_type FROM agent.roadway_point WHERE area_id = #{areaId}
+    </select>
+
+    <update id="update" parameterType="com.yupi.yuaiagent.domin.entity.RoadwayPoint">
+        UPDATE agent.roadway_point SET area_id = #{areaId}, x = #{x}, y = #{y}, z = #{z}, point_type = #{pointType}
+        WHERE point_id = #{pointId}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM agent.roadway_point WHERE point_id = #{pointId}
+    </delete>
+</mapper>

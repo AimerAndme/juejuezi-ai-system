@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yupi.yuaiagent.mapper.DocumentVectorMapper">
+
+    <insert id="insert" parameterType="com.yupi.yuaiagent.domin.entity.DocumentVector" useGeneratedKeys="true" keyProperty="vectorId">
+        INSERT INTO document_vectors (file_md5, chunk_id, text_content, model_version, user_id, org_tag, is_public)
+        VALUES (#{fileMd5}, #{chunkId}, #{textContent}, #{modelVersion}, #{userId}, #{orgTag}, #{isPublic})
+    </insert>
+
+    <insert id="batchInsert" parameterType="java.util.List">
+        INSERT INTO document_vectors (file_md5, chunk_id, text_content, model_version, user_id, org_tag, is_public)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.fileMd5}, #{item.chunkId}, #{item.textContent}, #{item.modelVersion}, #{item.userId}, #{item.orgTag}, #{item.isPublic})
+        </foreach>
+    </insert>
+
+    <select id="selectByVectorId" resultType="com.yupi.yuaiagent.domin.entity.DocumentVector">
+        SELECT * FROM document_vectors WHERE vector_id = #{vectorId}
+    </select>
+
+    <select id="selectByFileMd5" resultType="com.yupi.yuaiagent.domin.entity.DocumentVector">
+        SELECT * FROM document_vectors WHERE file_md5 = #{fileMd5} ORDER BY chunk_id ASC
+    </select>
+
+    <select id="selectByFileMd5AndUserId" resultType="com.yupi.yuaiagent.domin.entity.DocumentVector">
+        SELECT * FROM document_vectors 
+        WHERE file_md5 = #{fileMd5} AND user_id = #{userId}
+        ORDER BY chunk_id ASC
+    </select>
+
+    <select id="selectByUserId" resultType="com.yupi.yuaiagent.domin.entity.DocumentVector">
+        SELECT * FROM document_vectors 
+        WHERE user_id = #{userId}
+        ORDER BY vector_id DESC
+    </select>
+
+    <select id="selectPublicVectors" resultType="com.yupi.yuaiagent.domin.entity.DocumentVector">
+        SELECT * FROM document_vectors 
+        WHERE is_public = TRUE
+        ORDER BY vector_id DESC
+    </select>
+
+    <select id="selectByOrgTag" resultType="com.yupi.yuaiagent.domin.entity.DocumentVector">
+        SELECT * FROM document_vectors 
+        WHERE org_tag = #{orgTag}
+        ORDER BY vector_id DESC
+    </select>
+
+    <delete id="deleteByFileMd5">
+        DELETE FROM document_vectors WHERE file_md5 = #{fileMd5}
+    </delete>
+
+    <delete id="deleteByVectorId">
+        DELETE FROM document_vectors WHERE vector_id = #{vectorId}
+    </delete>
+
+    <update id="updateModelVersion">
+        UPDATE document_vectors
+        SET model_version = #{modelVersion}
+        WHERE vector_id = #{vectorId}
+    </update>
+
+    <select id="countByFileMd5" resultType="int">
+        SELECT COUNT(*) FROM document_vectors WHERE file_md5 = #{fileMd5}
+    </select>
+
+</mapper>

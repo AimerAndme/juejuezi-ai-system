@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yupi.yuaiagent.mapper.ReserveBlockMapper">
+    <resultMap id="BaseResultMap" type="com.yupi.yuaiagent.domin.entity.ReserveBlock">
+        <id column="block_id" property="blockId"/>
+        <result column="area_id" property="areaId"/>
+        <result column="seam_id" property="seamId"/>
+        <result column="block_type" property="blockType"/>
+        <result column="geological_reserve" property="geologicalReserve"/>
+        <result column="recoverable_reserve" property="recoverableReserve"/>
+        <result column="recovery_rate" property="recoveryRate"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.yupi.yuaiagent.domin.entity.ReserveBlock">
+        INSERT INTO public.reserve_block (block_id, area_id, seam_id, block_type, geological_reserve, recoverable_reserve, recovery_rate)
+        VALUES (#{blockId}, #{areaId}, #{seamId}, #{blockType}, #{geologicalReserve}, #{recoverableReserve}, #{recoveryRate})
+    </insert>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT block_id, area_id, seam_id, block_type, geological_reserve, recoverable_reserve, recovery_rate
+        FROM public.reserve_block WHERE block_id = #{blockId}
+    </select>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT block_id, area_id, seam_id, block_type, geological_reserve, recoverable_reserve, recovery_rate FROM public.reserve_block
+    </select>
+
+    <select id="selectByAreaId" resultMap="BaseResultMap">
+        SELECT block_id, area_id, seam_id, block_type, geological_reserve, recoverable_reserve, recovery_rate
+        FROM public.reserve_block WHERE area_id = #{areaId}
+    </select>
+
+    <update id="update" parameterType="com.yupi.yuaiagent.domin.entity.ReserveBlock">
+        UPDATE public.reserve_block SET area_id = #{areaId}, seam_id = #{seamId}, block_type = #{blockType},
+        geological_reserve = #{geologicalReserve}, recoverable_reserve = #{recoverableReserve}, recovery_rate = #{recoveryRate}
+        WHERE block_id = #{blockId}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM public.reserve_block WHERE block_id = #{blockId}
+    </delete>
+</mapper>

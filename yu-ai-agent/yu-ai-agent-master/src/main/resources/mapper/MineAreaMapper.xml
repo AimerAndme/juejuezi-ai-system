@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yupi.yuaiagent.mapper.MineAreaMapper">
+    <resultMap id="BaseResultMap" type="com.yupi.yuaiagent.domin.entity.MineArea">
+        <id column="area_id" property="areaId"/>
+        <result column="area_name" property="areaName"/>
+        <result column="coordinate_system" property="coordinateSystem"/>
+        <result column="datum_height" property="datumHeight"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.yupi.yuaiagent.domin.entity.MineArea">
+        INSERT INTO agent.mine_area (area_id, area_name, coordinate_system, datum_height)
+        VALUES (#{areaId}, #{areaName}, #{coordinateSystem}, #{datumHeight})
+    </insert>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT area_id, area_name, coordinate_system, datum_height
+        FROM agent.mine_area WHERE area_id = #{areaId}
+    </select>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT area_id, area_name, coordinate_system, datum_height FROM agent.mine_area
+    </select>
+
+    <update id="update" parameterType="com.yupi.yuaiagent.domin.entity.MineArea">
+        UPDATE agent.mine_area SET area_name = #{areaName}, coordinate_system = #{coordinateSystem}, datum_height = #{datumHeight}
+        WHERE area_id = #{areaId}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM agent.mine_area WHERE area_id = #{areaId}
+    </delete>
+</mapper>

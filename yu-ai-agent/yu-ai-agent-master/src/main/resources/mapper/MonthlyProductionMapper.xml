@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yupi.yuaiagent.mapper.MonthlyProductionMapper">
+    <resultMap id="BaseResultMap" type="com.yupi.yuaiagent.domin.entity.MonthlyProduction">
+        <id column="record_id" property="recordId"/>
+        <result column="block_id" property="blockId"/>
+        <result column="report_month" property="reportMonth"/>
+        <result column="mined_tonnage" property="minedTonnage"/>
+        <result column="loss_tonnage" property="lossTonnage"/>
+        <result column="actual_recovery_rate" property="actualRecoveryRate"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.yupi.yuaiagent.domin.entity.MonthlyProduction" useGeneratedKeys="true" keyProperty="recordId">
+        INSERT INTO public.monthly_production (block_id, report_month, mined_tonnage, loss_tonnage, actual_recovery_rate)
+        VALUES (#{blockId}, #{reportMonth}, #{minedTonnage}, #{lossTonnage}, #{actualRecoveryRate})
+    </insert>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT record_id, block_id, report_month, mined_tonnage, loss_tonnage, actual_recovery_rate
+        FROM public.monthly_production WHERE record_id = #{recordId}
+    </select>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT record_id, block_id, report_month, mined_tonnage, loss_tonnage, actual_recovery_rate FROM public.monthly_production
+    </select>
+
+    <select id="selectByBlockId" resultMap="BaseResultMap">
+        SELECT record_id, block_id, report_month, mined_tonnage, loss_tonnage, actual_recovery_rate
+        FROM public.monthly_production WHERE block_id = #{blockId}
+    </select>
+
+    <update id="update" parameterType="com.yupi.yuaiagent.domin.entity.MonthlyProduction">
+        UPDATE public.monthly_production SET block_id = #{blockId}, report_month = #{reportMonth},
+        mined_tonnage = #{minedTonnage}, loss_tonnage = #{lossTonnage}, actual_recovery_rate = #{actualRecoveryRate}
+        WHERE record_id = #{recordId}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM public.monthly_production WHERE record_id = #{recordId}
+    </delete>
+</mapper>

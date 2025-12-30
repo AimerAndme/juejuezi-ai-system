@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yupi.yuaiagent.mapper.BoreholeMapper">
+    <resultMap id="BaseResultMap" type="com.yupi.yuaiagent.domin.entity.Borehole">
+        <id column="hole_id" property="holeId"/>
+        <result column="area_id" property="areaId"/>
+        <result column="x" property="x"/>
+        <result column="y" property="y"/>
+        <result column="z" property="z"/>
+        <result column="total_depth" property="totalDepth"/>
+        <result column="drill_purpose" property="drillPurpose"/>
+        <result column="drill_date" property="drillDate"/>
+        <result column="status" property="status"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.yupi.yuaiagent.domin.entity.Borehole">
+        INSERT INTO agent.borehole (hole_id, area_id, x, y, z, total_depth, drill_purpose, drill_date, status)
+        VALUES (#{holeId}, #{areaId}, #{x}, #{y}, #{z}, #{totalDepth}, #{drillPurpose}, #{drillDate}, #{status})
+    </insert>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT hole_id, area_id, x, y, z, total_depth, drill_purpose, drill_date, status
+        FROM agent.borehole WHERE hole_id = #{holeId}
+    </select>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT hole_id, area_id, x, y, z, total_depth, drill_purpose, drill_date, status FROM agent.borehole
+    </select>
+
+    <select id="selectByAreaId" resultMap="BaseResultMap">
+        SELECT hole_id, area_id, x, y, z, total_depth, drill_purpose, drill_date, status
+        FROM public.borehole WHERE area_id = #{areaId}
+    </select>
+
+    <update id="update" parameterType="com.yupi.yuaiagent.domin.entity.Borehole">
+        UPDATE agent.borehole SET area_id = #{areaId}, x = #{x}, y = #{y}, z = #{z},
+        total_depth = #{totalDepth}, drill_purpose = #{drillPurpose}, drill_date = #{drillDate}, status = #{status}
+        WHERE hole_id = #{holeId}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM agent.borehole WHERE hole_id = #{holeId}
+    </delete>
+</mapper>

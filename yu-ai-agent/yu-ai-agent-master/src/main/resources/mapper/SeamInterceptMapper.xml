@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yupi.yuaiagent.mapper.SeamInterceptMapper">
+    <resultMap id="BaseResultMap" type="com.yupi.yuaiagent.domin.entity.SeamIntercept">
+        <id column="intercept_id" property="interceptId"/>
+        <result column="hole_id" property="holeId"/>
+        <result column="seam_id" property="seamId"/>
+        <result column="from_depth" property="fromDepth"/>
+        <result column="to_depth" property="toDepth"/>
+        <result column="thickness" property="thickness"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.yupi.yuaiagent.domin.entity.SeamIntercept" useGeneratedKeys="true" keyProperty="interceptId">
+        INSERT INTO agent.seam_intercept (hole_id, seam_id, from_depth, to_depth, thickness)
+        VALUES (#{holeId}, #{seamId}, #{fromDepth}, #{toDepth}, #{thickness})
+    </insert>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT intercept_id, hole_id, seam_id, from_depth, to_depth, thickness FROM agent.seam_intercept WHERE intercept_id = #{interceptId}
+    </select>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT intercept_id, hole_id, seam_id, from_depth, to_depth, thickness FROM agent.seam_intercept
+    </select>
+
+    <select id="selectByHoleId" resultMap="BaseResultMap">
+        SELECT intercept_id, hole_id, seam_id, from_depth, to_depth, thickness FROM agent.seam_intercept WHERE hole_id = #{holeId}
+    </select>
+
+    <update id="update" parameterType="com.yupi.yuaiagent.domin.entity.SeamIntercept">
+        UPDATE agent.seam_intercept SET hole_id = #{holeId}, seam_id = #{seamId}, from_depth = #{fromDepth}, to_depth = #{toDepth}, thickness = #{thickness}
+        WHERE intercept_id = #{interceptId}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM agent.seam_intercept WHERE intercept_id = #{interceptId}
+    </delete>
+</mapper>

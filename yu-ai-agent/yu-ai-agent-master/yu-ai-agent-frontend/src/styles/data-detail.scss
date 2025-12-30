@@ -1,0 +1,672 @@
+/* ============================================================
+   Data Detail Component Styles
+   使用 BEM 命名规范和 CSS 变量
+   ============================================================ */
+
+/* CSS 设计 Token 定义 - 与全局主题收整 */
+:root {
+  /* 主色绚误修复 */
+  --primary-color: #1677ff;
+  --primary-hover: #40a9ff;
+  --primary-active: #096dd9;
+  --success-color: #52c41a;
+  --success-hover: #73d13d;
+  --warning-color: #faad14;
+  --warning-hover: #ffc53d;
+  --error-color: #f5222d;
+  --error-hover: #ff4d4f;
+
+  /* 浅色模式（白天）*/
+  --text-primary: #333333;
+  --text-secondary: #666666;
+  --text-tertiary: #8c8c8c;
+  --text-disabled: #bfbfbf;
+
+  --bg-primary: #ffffff;
+  --bg-secondary: #fafafa;
+  --bg-tertiary: #f8f9fa;
+  --bg-overlay: rgba(0, 0, 0, 0.4);
+
+  --border-color: #d9d9d9;
+  --border-light: #e8e8e8;
+  --shadow-light: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-medium: 0 4px 16px rgba(0, 0, 0, 0.12);
+
+  /* 字体 Token */
+  --font-family-base: 'Inter', 'PingFang SC', -apple-system, BlinkMacSystemFont,
+    'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-size-xs: 12px;
+  --font-size-sm: 13px;
+  --font-size-base: 14px;
+  --font-size-lg: 18px;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-bold: 600;
+
+  /* 间距 Token */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+
+  /* 圆角 Token */
+  --border-radius: 6px;
+  --border-radius-lg: 8px;
+
+  /* 动画 Token */
+  --transition-base: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 深色模式（黑夜）*/
+:root.dark-mode,
+[data-theme='dark'] {
+  /* 深色模式颜色 */
+  --text-primary: #e0e0e0;
+  --text-secondary: #a0a0a0;
+  --text-tertiary: #717171;
+  --text-disabled: #5a5a5a;
+
+  --bg-primary: #1f1f1f;
+  --bg-secondary: #262626;
+  --bg-tertiary: #1a1a1a;
+  --bg-overlay: rgba(0, 0, 0, 0.65);
+
+  --border-color: #434343;
+  --border-light: #303030;
+  --shadow-light: 0 2px 8px rgba(0, 0, 0, 0.45);
+  --shadow-medium: 0 4px 16px rgba(0, 0, 0, 0.55);
+}
+
+/* ============================================================
+   BEM Block: .data-detail
+   ============================================================ */
+
+.data-detail {
+  min-height: 100vh;
+  background-color: var(--bg-tertiary);
+  padding: var(--spacing-md);
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-base);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+
+  /* 深层嵌套限制 */
+  /* 最多 3 层：.data-detail > .data-detail__xxx > .data-detail__xxx-item */
+}
+
+/* ============================================================
+   BEM Element: .data-detail__header
+   ============================================================ */
+
+.data-detail__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+  background-color: var(--bg-primary);
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-light);
+}
+
+.data-detail__header-left {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.data-detail__header-right {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.data-detail__title {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  line-height: 1.35;
+}
+
+/* ============================================================
+   BEM Block: Button Styles
+   ============================================================ */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid transparent;
+  border-radius: var(--border-radius);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+
+  /* 无缩放动画，防止 layout thrashing */
+  &:active {
+    transform: none;
+  }
+
+  /* 焦点可访问性 */
+  &:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+}
+
+/* 修饰符：主色按钮 */
+.btn--primary {
+  background-color: var(--primary-color);
+  color: var(--bg-primary);
+
+  &:hover:not(:disabled) {
+    background-color: var(--primary-hover);
+  }
+
+  &:active:not(:disabled) {
+    background-color: var(--primary-active);
+  }
+}
+
+/* 修饰符：成功按钮 */
+.btn--success {
+  background-color: var(--success-color);
+  color: var(--bg-primary);
+
+  &:hover:not(:disabled) {
+    background-color: var(--success-hover);
+  }
+}
+
+/* 修饰符：警告/取消按钮 */
+.btn--secondary {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  border-color: var(--border-light);
+
+  &:hover:not(:disabled) {
+    background-color: var(--bg-tertiary);
+    border-color: var(--border-color);
+  }
+}
+
+/* 修饰符：危险/删除按钮 */
+.btn--danger {
+  background-color: var(--error-color);
+  color: var(--bg-primary);
+
+  &:hover:not(:disabled) {
+    background-color: var(--error-hover);
+  }
+}
+
+/* 修饰符：编辑按钮 */
+.btn--warning {
+  background-color: var(--warning-color);
+  color: var(--bg-primary);
+
+  &:hover:not(:disabled) {
+    background-color: var(--warning-hover);
+  }
+}
+
+.btn--sm {
+  padding: 6px var(--spacing-sm);
+  font-size: var(--font-size-sm);
+}
+
+/* ============================================================
+   BEM Element: .data-detail__table-wrapper
+   ============================================================ */
+
+.data-detail__table-wrapper {
+  background-color: var(--bg-primary);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-light);
+  overflow: hidden;
+  min-height: 400px;
+
+  /* 防止表格列宽抖动 */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+}
+
+/* 表格头部 */
+.data-detail__table thead {
+  background-color: var(--bg-secondary);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.data-detail__table th {
+  padding: var(--spacing-md);
+  text-align: left;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-light);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 表格体 */
+.data-detail__table td {
+  padding: var(--spacing-md);
+  border-bottom: 1px solid var(--border-light);
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.data-detail__table tbody tr {
+  transition: background-color var(--transition-fast);
+
+  &:hover {
+    background-color: var(--bg-secondary);
+  }
+}
+
+.data-detail__table .th-actions,
+.data-detail__table .td-actions {
+  width: 120px;
+  text-align: center;
+  white-space: normal;
+}
+
+.data-detail__actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  justify-content: center;
+  align-items: center;
+}
+
+/* ============================================================
+   加载状态 & 空状态
+   ============================================================ */
+
+.data-detail__loading,
+.data-detail__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  color: var(--text-tertiary);
+}
+
+.data-detail__empty-icon {
+  font-size: 48px;
+  margin-bottom: var(--spacing-md);
+  opacity: 0.6;
+}
+
+.data-detail__empty-text {
+  font-size: var(--font-size-base);
+  margin-bottom: var(--spacing-lg);
+}
+
+.data-detail__empty-action {
+  margin-top: var(--spacing-md);
+}
+
+/* 加载动画 - Spinner */
+.data-detail__spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--border-light);
+  border-top-color: var(--primary-color);
+  border-radius: 50%;
+  animation: spinner 0.8s linear infinite;
+}
+
+@keyframes spinner {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================================================
+   BEM Element: .data-detail__form-modal
+   ============================================================ */
+
+.data-detail__form-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--bg-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: var(--spacing-md);
+
+  /* Esc 关闭 - 通过 Vue 事件处理 */
+  animation: fadeIn var(--transition-fast);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.data-detail__form-container {
+  background-color: var(--bg-primary);
+  border-radius: var(--border-radius-lg);
+  width: 500px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-medium);
+  animation: slideUp var(--transition-base);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 表单头部 */
+.data-detail__form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-lg);
+  border-bottom: 1px solid var(--border-light);
+  gap: var(--spacing-md);
+}
+
+.data-detail__form-title {
+  margin: 0;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+}
+
+.data-detail__form-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: var(--text-tertiary);
+  transition: color var(--transition-fast);
+  border-radius: var(--border-radius);
+
+  &:hover {
+    color: var(--text-primary);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+  }
+}
+
+/* 表单内容 */
+.data-detail__form-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--spacing-lg);
+}
+
+.data-detail__form-group {
+  margin-bottom: var(--spacing-lg);
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.data-detail__form-label {
+  display: block;
+  margin-bottom: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+.data-detail__form-input {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--border-light);
+  border-radius: var(--border-radius);
+  font-size: var(--font-size-base);
+  font-family: var(--font-family-base);
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
+  transition: border-color var(--transition-fast);
+
+  box-sizing: border-box;
+
+  &:hover {
+    border-color: var(--border-color);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+  }
+
+  &:disabled {
+    background-color: var(--bg-tertiary);
+    color: var(--text-disabled);
+    cursor: not-allowed;
+    border-color: var(--border-light);
+  }
+
+  &::placeholder {
+    color: var(--text-tertiary);
+  }
+}
+
+/* 表单底部 */
+.data-detail__form-footer {
+  padding: var(--spacing-lg);
+  border-top: 1px solid var(--border-light);
+  display: flex;
+  gap: var(--spacing-md);
+  justify-content: flex-end;
+}
+
+/* ============================================================
+   BEM Element: .message 消息提示
+   ============================================================ */
+
+.message {
+  position: fixed;
+  top: var(--spacing-lg);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: var(--border-radius);
+  font-size: var(--font-size-sm);
+  z-index: 2000;
+  box-shadow: var(--shadow-medium);
+  animation: slideDown var(--transition-base);
+
+  /* 可访问性属性 */
+  &[role='alert'] {
+    /* 高对比度颜色 - WCAG AA */
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* 修饰符：成功消息 */
+.message--success {
+  background-color: #f6ffed;
+  color: #274916;
+  border: 1px solid #b7eb8f;
+
+  &::before {
+    content: '✓ ';
+    color: var(--success-color);
+    font-weight: var(--font-weight-bold);
+  }
+}
+
+/* 修饰符：错误消息 */
+.message--error {
+  background-color: #fff2f0;
+  color: #5c0a0a;
+  border: 1px solid #ffccc7;
+
+  &::before {
+    content: '✕ ';
+    color: var(--error-color);
+    font-weight: var(--font-weight-bold);
+  }
+}
+
+/* ============================================================
+   响应式设计 - 小屏幕（<768px）
+   ============================================================ */
+
+@media (max-width: 768px) {
+  .data-detail {
+    padding: var(--spacing-sm);
+  }
+
+  /* 头部响应式 */
+  .data-detail__header {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md);
+  }
+
+  .data-detail__header-left,
+  .data-detail__header-right {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .data-detail__header-right {
+    flex-wrap: wrap;
+  }
+
+  /* 表格响应式 - 卡片式布局 */
+  .data-detail__table-wrapper {
+    overflow-x: auto;
+  }
+
+  .data-detail__table {
+    /* 在小屏幕上保持表格 */
+    font-size: var(--font-size-sm);
+
+    th,
+    td {
+      padding: var(--spacing-sm);
+      font-size: var(--font-size-xs);
+    }
+
+    .th-actions,
+    .td-actions {
+      width: 80px;
+    }
+  }
+
+  .data-detail__actions {
+    flex-direction: column;
+    gap: var(--spacing-xs);
+  }
+
+  .btn {
+    width: 100%;
+
+    &--sm {
+      padding: 6px var(--spacing-sm);
+    }
+  }
+
+  /* 弹窗响应式 */
+  .data-detail__form-container {
+    width: 90vw;
+    max-width: 100%;
+    max-height: 90vh;
+  }
+
+  .data-detail__form-header,
+  .data-detail__form-content,
+  .data-detail__form-footer {
+    padding: var(--spacing-md);
+  }
+
+  .data-detail__form-footer {
+    flex-direction: column-reverse;
+  }
+
+  .data-detail__form-footer .btn {
+    width: 100%;
+  }
+}
+
+/* ============================================================
+   深色模式支持
+   ============================================================ */
+
+.data-detail {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.data-detail__header,
+.data-detail__table-wrapper,
+.data-detail__form-container {
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+/* ============================================================
+   打印样式
+   ============================================================ */
+
+@media print {
+  .data-detail__header-right,
+  .data-detail__form-modal,
+  .message {
+    display: none !important;
+  }
+}

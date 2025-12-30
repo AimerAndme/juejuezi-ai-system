@@ -33,10 +33,7 @@
             </div>
           </div>
         </div>
-        <div class="app-button">
-          <span class="btn-text">开始咨询</span>
-          <span class="btn-icon">→</span>
-        </div>
+        <AppButton text="开始咨询" variant="primary" size="large" />
       </div>
 
       <div class="app-card mine-card" @click="navigateTo('/mine-agent')">
@@ -62,10 +59,7 @@
             </div>
           </div>
         </div>
-        <div class="app-button">
-          <span class="btn-text">专家咨询</span>
-          <span class="btn-icon">→</span>
-        </div>
+        <AppButton text="专家咨询" variant="primary" size="large" />
       </div>
 
       <div class="app-card super-card" @click="navigateTo('/super-agent')">
@@ -91,10 +85,7 @@
             </div>
           </div>
         </div>
-        <div class="app-button">
-          <span class="btn-text">立即使用</span>
-          <span class="btn-icon">→</span>
-        </div>
+        <AppButton text="立即使用" variant="primary" size="large" />
       </div>
 
       <div class="app-card file-card" @click="navigateTo('/file-center')">
@@ -120,10 +111,33 @@
             </div>
           </div>
         </div>
-        <div class="app-button">
-          <span class="btn-text">进入中心</span>
-          <span class="btn-icon">→</span>
+        <AppButton text="进入中心" variant="primary" size="large" />
+      </div>
+
+      <div class="app-card data-card" @click="navigateTo('/data-center')">
+        <div class="card-glow"></div>
+        <div class="card-header">
+          <div class="app-icon data-icon">📊</div>
+          <div class="app-title">数据中心</div>
         </div>
+        <div class="app-info">
+          <div class="app-desc">矿山地质数据管理平台，支持多维数据统一管理</div>
+          <div class="feature-list">
+            <div class="feature-item">
+              <span class="feature-icon">🏔️</span>
+              <span class="feature-text">矿区与煤层管理</span>
+            </div>
+            <div class="feature-item">
+              <span class="feature-icon">🔩</span>
+              <span class="feature-text">钻孔与巷道数据</span>
+            </div>
+            <div class="feature-item">
+              <span class="feature-icon">📈</span>
+              <span class="feature-text">储量统计分析</span>
+            </div>
+          </div>
+        </div>
+        <AppButton text="进入中心" variant="primary" size="large" />
       </div>
     </div>
 
@@ -141,6 +155,7 @@
 import { useRouter } from 'vue-router'
 import { useHead } from '@vueuse/head'
 import AppFooter from '../components/AppFooter.vue'
+import AppButton from '../components/AppButton.vue'
 import StarryBackground from '../components/StarryBackground.vue'
 
 // 设置页面标题和元数据
@@ -322,6 +337,10 @@ const navigateTo = (path) => {
   animation-delay: 0.4s;
 }
 
+.data-card {
+  animation-delay: 0.5s;
+}
+
 .card-glow {
   position: absolute;
   top: -50%;
@@ -408,6 +427,12 @@ const navigateTo = (path) => {
   border: 2px solid white;
 }
 
+.data-icon {
+  background: linear-gradient(135deg, #74b9ff, #0984e3);
+  box-shadow: 0 0 20px rgba(9, 132, 227, 0.5);
+  border: 2px solid white;
+}
+
 .app-title {
   font-family: var(--font-family-title);
   font-size: 1.5rem;
@@ -465,63 +490,7 @@ const navigateTo = (path) => {
   font-weight: 500;
 }
 
-.app-button {
-  background: var(--primary-color);
-  color: white;
-  padding: 14px 32px;
-  border-radius: 10px;
-  font-weight: 500;
-  transition: all 0.3s ease;
-  margin-top: auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  overflow: hidden;
-  border: 1px solid var(--primary-color);
-  box-shadow: var(--shadow-medium);
-  width: 100%;
-}
-
-.app-button::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.3),
-    transparent
-  );
-  transition: left 0.7s;
-}
-
-.app-button:hover {
-  background: var(--primary-color-hover);
-  box-shadow: var(--shadow-heavy);
-  transform: scale(1.05);
-}
-
-.app-button:hover::before {
-  left: 100%;
-}
-
-.btn-text {
-  margin-right: 8px;
-  letter-spacing: 1px;
-}
-
-.btn-icon {
-  font-size: 1.2rem;
-  transition: transform 0.3s;
-}
-
-.app-button:hover .btn-icon {
-  transform: translateX(4px);
-}
+/* 移除旧的 .app-button 样式，使用 AppButton 组件代替 */
 
 /* 背景圆圈动画 */
 .cyber-circles {

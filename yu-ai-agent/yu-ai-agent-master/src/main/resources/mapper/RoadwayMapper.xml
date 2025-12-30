@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yupi.yuaiagent.mapper.RoadwayMapper">
+    <resultMap id="BaseResultMap" type="com.yupi.yuaiagent.domin.entity.Roadway">
+        <id column="roadway_id" property="roadwayId"/>
+        <result column="area_id" property="areaId"/>
+        <result column="name" property="name"/>
+        <result column="start_point" property="startPoint"/>
+        <result column="end_point" property="endPoint"/>
+        <result column="roadway_type" property="roadwayType"/>
+        <result column="cross_section" property="crossSection"/>
+        <result column="status" property="status"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.yupi.yuaiagent.domin.entity.Roadway">
+        INSERT INTO agent.roadway (roadway_id, area_id, name, start_point, end_point, roadway_type, cross_section, status)
+        VALUES (#{roadwayId}, #{areaId}, #{name}, #{startPoint}, #{endPoint}, #{roadwayType}, #{crossSection}, #{status})
+    </insert>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT roadway_id, area_id, name, start_point, end_point, roadway_type, cross_section, status
+        FROM agent.roadway WHERE roadway_id = #{roadwayId}
+    </select>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT roadway_id, area_id, name, start_point, end_point, roadway_type, cross_section, status FROM agent.roadway
+    </select>
+
+    <select id="selectByAreaId" resultMap="BaseResultMap">
+        SELECT roadway_id, area_id, name, start_point, end_point, roadway_type, cross_section, status
+        FROM agent.roadway WHERE area_id = #{areaId}
+    </select>
+
+    <update id="update" parameterType="com.yupi.yuaiagent.domin.entity.Roadway">
+        UPDATE agent.roadway SET area_id = #{areaId}, name = #{name}, start_point = #{startPoint}, end_point = #{endPoint},
+        roadway_type = #{roadwayType}, cross_section = #{crossSection}, status = #{status}
+        WHERE roadway_id = #{roadwayId}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM agent.roadway WHERE roadway_id = #{roadwayId}
+    </delete>
+</mapper>

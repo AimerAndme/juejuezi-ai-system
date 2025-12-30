@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yupi.yuaiagent.mapper.LithologyLogMapper">
+    <resultMap id="BaseResultMap" type="com.yupi.yuaiagent.domin.entity.LithologyLog">
+        <id column="log_id" property="logId"/>
+        <result column="hole_id" property="holeId"/>
+        <result column="from_depth" property="fromDepth"/>
+        <result column="to_depth" property="toDepth"/>
+        <result column="rock_type" property="rockType"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.yupi.yuaiagent.domin.entity.LithologyLog" useGeneratedKeys="true" keyProperty="logId">
+        INSERT INTO agent.lithology_log (hole_id, from_depth, to_depth, rock_type)
+        VALUES (#{holeId}, #{fromDepth}, #{toDepth}, #{rockType})
+    </insert>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT log_id, hole_id, from_depth, to_depth, rock_type FROM agent.lithology_log WHERE log_id = #{logId}
+    </select>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT log_id, hole_id, from_depth, to_depth, rock_type FROM agent.lithology_log
+    </select>
+
+    <select id="selectByHoleId" resultMap="BaseResultMap">
+        SELECT log_id, hole_id, from_depth, to_depth, rock_type FROM agent.lithology_log WHERE hole_id = #{holeId}
+    </select>
+
+    <update id="update" parameterType="com.yupi.yuaiagent.domin.entity.LithologyLog">
+        UPDATE agent.lithology_log SET hole_id = #{holeId}, from_depth = #{fromDepth}, to_depth = #{toDepth}, rock_type = #{rockType}
+        WHERE log_id = #{logId}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM agent.lithology_log WHERE log_id = #{logId}
+    </delete>
+</mapper>
