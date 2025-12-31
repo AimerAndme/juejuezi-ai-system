@@ -39,8 +39,10 @@ public class IntentRecognitionNode implements NodeAction {
                 1. 闲聊：日常无业务关联的对话（如问候、闲聊家常、无关话题调侃等），输出：chat
                 2. 矿山专业领域知识问答：关于矿山开采技术、设备原理、安全规范、地质勘探、矿山工程等专业知识的提问，输出：ragChat
                 3. 公司规章制度问答和软件技术类问答：涉及开发技术啊、公司考勤、奖惩、岗位职责、审批流程、福利待遇等制度相关的咨询，输出：ragChat
-                4. 现场业务数据问答：关于矿山现场生产数据、设备运行数据、安全指标数据的查询/统计，需支持表单输出的需求，输出：dbChat
-                
+                4. 现场业务相关数据问答：
+                                       1、关于矿山现场生产数据、设备运行数据、安全指标数据的查询/统计，需支持表单输出的需求，
+                                       2、矿山基础信息、钻探信息、巷道工作面信息、储量统计信息、地表检测等
+                                       输出：dbChat
                 要求：仅返回匹配场景的对应单词，注意：可能存在多场景的情况，多场景返回所有涉及场景，可选结果依次为：chat、ragChat、ragChat、dbChat
                 用户输入内容为：{query}
                 """);
@@ -60,7 +62,7 @@ public class IntentRecognitionNode implements NodeAction {
             try {
                 String content = chatClient.prompt(render).call().content();
                 if (content != null && !content.isBlank()) {
-                    log.info("意图识别成功！返回数据。{}",content);
+                    log.info("意图识别成功！返回数据。{}", content);
                     return content;
                 }
             } catch (Exception e) {
