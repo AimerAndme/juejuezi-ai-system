@@ -54,7 +54,8 @@ public class MineService implements com.yupi.yuaiagent.service.IMineService {
             throw new RuntimeException("当前用户不存在对话！！");
         }
         //CompiledGraph graph = preProcessingGraphFactory.getChatInstance();
-        CompiledGraph graph = preProcessingGraphFactory.getRagChatInstance();
+        //CompiledGraph graph = preProcessingGraphFactory.getRagChatInstance();
+        CompiledGraph graph = preProcessingGraphFactory.getDBInvocationChatInstance();
         Optional<OverAllState> call = graph.call(Map.of("queryInfo", userChatVO));
         //Todo解析Rag回答的上下文
         parseRagContext(call);

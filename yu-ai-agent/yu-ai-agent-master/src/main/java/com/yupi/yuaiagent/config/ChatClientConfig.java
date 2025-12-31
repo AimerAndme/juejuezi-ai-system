@@ -8,6 +8,7 @@ import com.yupi.yuaiagent.chatmemory.RedisChatMemory;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.tool.ToolCallback;
 import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -23,16 +24,18 @@ public class ChatClientConfig {
     private final RedisChatMemory redisChatMemory;
     private final RetrievalRerankAdvisor retrievalRerankAdvisor;
     private final MyLoggerAdvisor myLoggerAdvisor;
+    private final ToolCallback[] mineControllerTools;
     @Autowired
     public ChatModel dashscopeChatModel;
     @Autowired
     public RedisTemplate redisTemplate;
 
-    public ChatClientConfig(ToolCallbackProvider toolCallbackProvider, RedisChatMemory redisChatMemory, RetrievalRerankAdvisor retrievalRerankAdvisor, MyLoggerAdvisor myLoggerAdvisor) {
+    public ChatClientConfig(ToolCallbackProvider toolCallbackProvider, RedisChatMemory redisChatMemory, RetrievalRerankAdvisor retrievalRerankAdvisor, MyLoggerAdvisor myLoggerAdvisor, ToolCallback[] mineControllerTools) {
         this.toolCallbackProvider = toolCallbackProvider;
         this.redisChatMemory = redisChatMemory;
         this.retrievalRerankAdvisor = retrievalRerankAdvisor;
         this.myLoggerAdvisor = myLoggerAdvisor;
+        this.mineControllerTools = mineControllerTools;
     }
 
     @Bean
@@ -55,6 +58,7 @@ public class ChatClientConfig {
                 .build();
     }
 
+    //记忆通用client
     @Bean
     public ChatClient memoryChatClient() {
         return ChatClient
@@ -84,6 +88,25 @@ public class ChatClientConfig {
                         retrievalRerankAdvisor,
                         MessageMemoryAdvisor.builder(redisChatMemory).build()
                 )
+                .build();
+    }
+
+    //Nltosql专用client
+    @Bean
+    public ChatClient nl2SqlChatClient() {
+        return ChatClient
+                .builder(dashscopeChatModel)
+                .defaultSystem(SYSTEM_PROMPT)
+                .build();
+    }
+
+    //DB工具调用专用client
+    @Bean
+    public ChatClient DbToolChatClient() {
+        return ChatClient
+                .builder(dashscopeChatModel)
+                .defaultSystem(SYSTEM_PROMPT)
+                .defaultToolCallbacks(mineControllerTools)
                 .build();
     }
 }

@@ -2,25 +2,21 @@ package com.yupi.yuaiagent.tools.mineControllerTools;
 
 import com.yupi.yuaiagent.domin.entity.MineArea;
 import com.yupi.yuaiagent.service.IMineAreaService;
-import io.agentscope.core.tool.Tool;
-import io.agentscope.core.tool.ToolParam;
+import org.springframework.ai.tool.annotation.Tool;
+import org.springframework.ai.tool.annotation.ToolParam;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import java.math.BigDecimal;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 //矿区信息
 @Component
+@Slf4j
 public class MineAreaControllerTool {
 
-    private static final Logger log = LoggerFactory.getLogger(MineAreaControllerTool.class);
     private final IMineAreaService service;
 
     public MineAreaControllerTool(IMineAreaService service) {
