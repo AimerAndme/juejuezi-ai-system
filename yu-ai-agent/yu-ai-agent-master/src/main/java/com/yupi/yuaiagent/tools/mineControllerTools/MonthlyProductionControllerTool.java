@@ -82,4 +82,40 @@ public class MonthlyProductionControllerTool {
             return null;
         }
     }
+
+    @Tool(name = "updateMonthlyProduction", description = "月度采出量统计：通过记录ID,块段编号,报告月份,采出量,损失量,实际回采率更新月度采出量统计信息，返回：成功数量，-1表示失败！")
+    public int update(
+            @ToolParam(description = "记录ID") Long recordId,
+            @ToolParam(description = "块段编号") String blockId,
+            @ToolParam(description = "报告月份") LocalDate reportMonth,
+            @ToolParam(description = "采出量") BigDecimal minedTonnage,
+            @ToolParam(description = "损失量") BigDecimal lossTonnage,
+            @ToolParam(description = "实际回采率") BigDecimal actualRecoveryRate
+    ) {
+        MonthlyProduction monthlyProduction = new MonthlyProduction();
+        monthlyProduction.setRecordId(recordId);
+        monthlyProduction.setBlockId(blockId);
+        monthlyProduction.setReportMonth(reportMonth);
+        monthlyProduction.setMinedTonnage(minedTonnage);
+        monthlyProduction.setLossTonnage(lossTonnage);
+        monthlyProduction.setActualRecoveryRate(actualRecoveryRate);
+        try {
+            log.info("Tool:更新月度采出量统计信息：{}", monthlyProduction);
+            return service.update(monthlyProduction);
+        } catch (Exception e) {
+            log.error("Tool:更新月度采出量统计信息失败：{}", e.getMessage());
+            return -1;
+        }
+    }
+
+    @Tool(name = "deleteMonthlyProduction", description = "月度采出量统计：通过记录ID删除月度采出量统计信息，返回：成功数量，-1表示失败！")
+    public int delete(@ToolParam(description = "记录ID") Long recordId) {
+        try {
+            log.info("Tool:删除月度采出量统计信息：{}", recordId);
+            return service.delete(recordId);
+        } catch (Exception e) {
+            log.error("Tool:删除月度采出量统计信息失败：{}", e.getMessage());
+            return -1;
+        }
+    }
 }

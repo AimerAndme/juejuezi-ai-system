@@ -79,4 +79,40 @@ public class SeamInterceptControllerTool {
             return null;
         }
     }
+
+    @Tool(name = "updateSeamIntercept", description = "见煤记录：通过记录ID,钻孔编号,煤层编号,起始深度,终止深度,真厚度更新见煤记录信息，返回：成功数量，-1表示失败！")
+    public int update(
+            @ToolParam(description = "记录ID") Long interceptId,
+            @ToolParam(description = "钻孔编号") String holeId,
+            @ToolParam(description = "煤层编号") String seamId,
+            @ToolParam(description = "起始深度") BigDecimal fromDepth,
+            @ToolParam(description = "终止深度") BigDecimal toDepth,
+            @ToolParam(description = "真厚度(m)") BigDecimal thickness
+    ) {
+        SeamIntercept seamIntercept = new SeamIntercept();
+        seamIntercept.setInterceptId(interceptId);
+        seamIntercept.setHoleId(holeId);
+        seamIntercept.setSeamId(seamId);
+        seamIntercept.setFromDepth(fromDepth);
+        seamIntercept.setToDepth(toDepth);
+        seamIntercept.setThickness(thickness);
+        try {
+            log.info("Tool:更新见煤记录信息：{}", seamIntercept);
+            return service.update(seamIntercept);
+        } catch (Exception e) {
+            log.error("Tool:更新见煤记录信息失败：{}", e.getMessage());
+            return -1;
+        }
+    }
+
+    @Tool(name = "deleteSeamIntercept", description = "见煤记录：通过记录ID删除见煤记录信息，返回：成功数量，-1表示失败！")
+    public int delete(@ToolParam(description = "记录ID") Long interceptId) {
+        try {
+            log.info("Tool:删除见煤记录信息：{}", interceptId);
+            return service.delete(interceptId);
+        } catch (Exception e) {
+            log.error("Tool:删除见煤记录信息失败：{}", e.getMessage());
+            return -1;
+        }
+    }
 }

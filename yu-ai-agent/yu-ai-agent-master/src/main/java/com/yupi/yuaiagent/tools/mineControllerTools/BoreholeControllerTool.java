@@ -88,4 +88,46 @@ public class BoreholeControllerTool {
             return null;
         }
     }
+
+    @Tool(name = "updateBorehole", description = "钻孔信息：通过钻孔编号,矿区编码,X坐标,Y坐标,Z坐标,总深度,钻探目的,钻探日期,状态更新钻孔信息，返回：成功数量，-1表示失败！")
+    public int update(
+            @ToolParam(description = "钻孔编号") String holeId,
+            @ToolParam(description = "矿区编码") String areaId,
+            @ToolParam(description = "X坐标") BigDecimal x,
+            @ToolParam(description = "Y坐标") BigDecimal y,
+            @ToolParam(description = "Z坐标") BigDecimal z,
+            @ToolParam(description = "总深度") BigDecimal totalDepth,
+            @ToolParam(description = "钻探目的") String drillPurpose,
+            @ToolParam(description = "钻探日期") LocalDate drillDate,
+            @ToolParam(description = "状态") String status
+    ) {
+        Borehole borehole = new Borehole();
+        borehole.setHoleId(holeId);
+        borehole.setAreaId(areaId);
+        borehole.setX(x);
+        borehole.setY(y);
+        borehole.setZ(z);
+        borehole.setTotalDepth(totalDepth);
+        borehole.setDrillPurpose(drillPurpose);
+        borehole.setDrillDate(drillDate);
+        borehole.setStatus(status);
+        try {
+            log.info("Tool:更新钻孔信息：{}", borehole);
+            return service.update(borehole);
+        } catch (Exception e) {
+            log.error("Tool:更新钻孔信息失败：{}", e.getMessage());
+            return -1;
+        }
+    }
+
+    @Tool(name = "deleteBorehole", description = "钻孔信息：通过钻孔编号删除钻孔信息，返回：成功数量，-1表示失败！")
+    public int delete(@ToolParam(description = "钻孔编号") String holeId) {
+        try {
+            log.info("Tool:删除钻孔信息：{}", holeId);
+            return service.delete(holeId);
+        } catch (Exception e) {
+            log.error("Tool:删除钻孔信息失败：{}", e.getMessage());
+            return -1;
+        }
+    }
 }

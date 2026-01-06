@@ -82,4 +82,42 @@ public class SubsidenceObservationControllerTool {
             return null;
         }
     }
+
+    @Tool(name = "updateSubsidenceObservation", description = "沉降观测记录：通过观测记录ID,站点编号,观测日期,初始高程,当前高程更新沉降观测记录信息，返回：成功数量，-1表示失败！")
+    public int update(
+            @ToolParam(description = "观测记录ID") Long obsId,
+            @ToolParam(description = "站点编号") String stationId,
+            @ToolParam(description = "观测日期") LocalDate obsDate,
+            @ToolParam(description = "初始高程") BigDecimal zInitial,
+            @ToolParam(description = "当前高程") BigDecimal zCurrent
+    ) {
+        SubsidenceObservation subsidenceObservation = new SubsidenceObservation();
+        subsidenceObservation.setObsId(obsId);
+        subsidenceObservation.setStationId(stationId);
+        subsidenceObservation.setObsDate(obsDate);
+        subsidenceObservation.setZInitial(zInitial);
+        subsidenceObservation.setZCurrent(zCurrent);
+        // 计算沉降量
+        if (zInitial != null && zCurrent != null) {
+            subsidenceObservation.setSubsidence(zInitial.subtract(zCurrent));
+        }
+        try {
+            log.info("Tool:更新沉降观测记录信息：{}", subsidenceObservation);
+            return service.update(subsidenceObservation);
+        } catch (Exception e) {
+            log.error("Tool:更新沉降观测记录信息失败：{}", e.getMessage());
+            return -1;
+        }
+    }
+
+    @Tool(name = "deleteSubsidenceObservation", description = "沉降观测记录：通过观测记录ID删除沉降观测记录信息，返回：成功数量，-1表示失败！")
+    public int delete(@ToolParam(description = "观测记录ID") Long obsId) {
+        try {
+            log.info("Tool:删除沉降观测记录信息：{}", obsId);
+            return service.delete(obsId);
+        } catch (Exception e) {
+            log.error("Tool:删除沉降观测记录信息失败：{}", e.getMessage());
+            return -1;
+        }
+    }
 }

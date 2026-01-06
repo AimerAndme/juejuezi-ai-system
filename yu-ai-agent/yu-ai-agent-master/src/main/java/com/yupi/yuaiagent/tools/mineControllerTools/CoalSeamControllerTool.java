@@ -84,4 +84,40 @@ public class CoalSeamControllerTool {
             return null;
         }
     }
+
+    @Tool(name = "updateCoalSeam", description = "煤层信息：通过煤层编号,煤层名称,平均厚度,平均倾角,顶板岩性,底板岩性更新煤层信息，返回：成功数量，-1表示失败！")
+    public int update(
+            @ToolParam(description = "煤层编号") String seamId,
+            @ToolParam(description = "煤层名称") String seamName,
+            @ToolParam(description = "平均厚度") BigDecimal averageThickness,
+            @ToolParam(description = "平均倾角") BigDecimal dipAngle,
+            @ToolParam(description = "顶板岩性") String roofLithology,
+            @ToolParam(description = "底板岩性") String floorLithology
+    ) {
+        CoalSeam coalSeam = new CoalSeam();
+        coalSeam.setSeamId(seamId);
+        coalSeam.setSeamName(seamName);
+        coalSeam.setAverageThickness(averageThickness);
+        coalSeam.setDipAngle(dipAngle);
+        coalSeam.setRoofLithology(roofLithology);
+        coalSeam.setFloorLithology(floorLithology);
+        try {
+            log.info("Tool:更新煤层信息：{}", coalSeam);
+            return service.update(coalSeam);
+        } catch (Exception e) {
+            log.error("Tool:更新煤层信息失败：{}", e.getMessage());
+            return -1;
+        }
+    }
+
+    @Tool(name = "deleteCoalSeam", description = "煤层信息：通过煤层编号删除煤层信息，返回：成功数量，-1表示失败！")
+    public int delete(@ToolParam(description = "煤层编号") String seamId) {
+        try {
+            log.info("Tool:删除煤层信息：{}", seamId);
+            return service.delete(seamId);
+        } catch (Exception e) {
+            log.error("Tool:删除煤层信息失败：{}", e.getMessage());
+            return -1;
+        }
+    }
 }

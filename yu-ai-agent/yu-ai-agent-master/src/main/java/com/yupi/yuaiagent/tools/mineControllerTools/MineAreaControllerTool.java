@@ -84,4 +84,36 @@ public class MineAreaControllerTool {
 //        res.put("message", result > 0 ? "删除成功" : "删除失败");
 //        return ResponseEntity.ok(res);
 //    }
+
+    @Tool(name = "updateMineArea", description = "矿区信息：通过矿区id,矿区名称，矿区坐标系统，矿区高程基准，更新矿区信息，返回：成功数量，-1表示失败！")
+    public int update(
+            @ToolParam(description = "矿区id") String areaId,
+            @ToolParam(description = "矿区名称") String areaName,
+            @ToolParam(description = "坐标系") String coordinateSystem,
+            @ToolParam(description = "高程基准") BigDecimal datumHeight
+    ) {
+        MineArea mineArea = new MineArea();
+        mineArea.setAreaId(areaId);
+        mineArea.setAreaName(areaName);
+        mineArea.setCoordinateSystem(coordinateSystem);
+        mineArea.setDatumHeight(datumHeight);
+        try {
+            log.info("Tool:更新矿区信息：{}", mineArea);
+            return service.update(mineArea);
+        } catch (Exception e) {
+            log.error("Tool:更新矿区信息失败：{}", e.getMessage());
+            return -1;
+        }
+    }
+
+    @Tool(name = "deleteMineArea", description = "矿区信息：通过矿区id删除矿区信息，返回：成功数量，-1表示失败！")
+    public int delete(@ToolParam(description = "矿区id") String areaId) {
+        try {
+            log.info("Tool:删除矿区信息：{}", areaId);
+            return service.delete(areaId);
+        } catch (Exception e) {
+            log.error("Tool:删除矿区信息失败：{}", e.getMessage());
+            return -1;
+        }
+    }
 }

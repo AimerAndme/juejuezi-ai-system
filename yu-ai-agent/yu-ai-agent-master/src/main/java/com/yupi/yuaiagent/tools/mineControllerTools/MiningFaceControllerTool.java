@@ -86,4 +86,42 @@ public class MiningFaceControllerTool {
             return null;
         }
     }
+
+    @Tool(name = "updateMiningFace", description = "采煤工作面信息：通过工作面编号,矿区编码,煤层编号,开始日期,结束日期,长度,状态更新采煤工作面信息，返回：成功数量，-1表示失败！")
+    public int update(
+            @ToolParam(description = "工作面编号") String faceId,
+            @ToolParam(description = "矿区编码") String areaId,
+            @ToolParam(description = "煤层编号") String seamId,
+            @ToolParam(description = "开始日期") LocalDate startDate,
+            @ToolParam(description = "结束日期") LocalDate endDate,
+            @ToolParam(description = "长度") BigDecimal length,
+            @ToolParam(description = "状态") String status
+    ) {
+        MiningFace miningFace = new MiningFace();
+        miningFace.setFaceId(faceId);
+        miningFace.setAreaId(areaId);
+        miningFace.setSeamId(seamId);
+        miningFace.setStartDate(startDate);
+        miningFace.setEndDate(endDate);
+        miningFace.setLength(length);
+        miningFace.setStatus(status);
+        try {
+            log.info("Tool:更新采煤工作面信息：{}", miningFace);
+            return service.update(miningFace);
+        } catch (Exception e) {
+            log.error("Tool:更新采煤工作面信息失败：{}", e.getMessage());
+            return -1;
+        }
+    }
+
+    @Tool(name = "deleteMiningFace", description = "采煤工作面信息：通过工作面编号删除采煤工作面信息，返回：成功数量，-1表示失败！")
+    public int delete(@ToolParam(description = "工作面编号") String faceId) {
+        try {
+            log.info("Tool:删除采煤工作面信息：{}", faceId);
+            return service.delete(faceId);
+        } catch (Exception e) {
+            log.error("Tool:删除采煤工作面信息失败：{}", e.getMessage());
+            return -1;
+        }
+    }
 }

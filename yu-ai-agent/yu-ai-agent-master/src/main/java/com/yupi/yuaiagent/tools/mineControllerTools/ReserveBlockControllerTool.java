@@ -85,4 +85,42 @@ public class ReserveBlockControllerTool {
             return null;
         }
     }
+
+    @Tool(name = "updateReserveBlock", description = "资源储量块段信息：通过块段编号,矿区编码,煤层编号,块段类型,地质储量,可采储量,设计回采率更新资源储量块段信息，返回：成功数量，-1表示失败！")
+    public int update(
+            @ToolParam(description = "块段编号") String blockId,
+            @ToolParam(description = "矿区编码") String areaId,
+            @ToolParam(description = "煤层编号") String seamId,
+            @ToolParam(description = "块段类型") String blockType,
+            @ToolParam(description = "地质储量") BigDecimal geologicalReserve,
+            @ToolParam(description = "可采储量") BigDecimal recoverableReserve,
+            @ToolParam(description = "设计回采率") BigDecimal recoveryRate
+    ) {
+        ReserveBlock reserveBlock = new ReserveBlock();
+        reserveBlock.setBlockId(blockId);
+        reserveBlock.setAreaId(areaId);
+        reserveBlock.setSeamId(seamId);
+        reserveBlock.setBlockType(blockType);
+        reserveBlock.setGeologicalReserve(geologicalReserve);
+        reserveBlock.setRecoverableReserve(recoverableReserve);
+        reserveBlock.setRecoveryRate(recoveryRate);
+        try {
+            log.info("Tool:更新资源储量块段信息：{}", reserveBlock);
+            return service.update(reserveBlock);
+        } catch (Exception e) {
+            log.error("Tool:更新资源储量块段信息失败：{}", e.getMessage());
+            return -1;
+        }
+    }
+
+    @Tool(name = "deleteReserveBlock", description = "资源储量块段信息：通过块段编号删除资源储量块段信息，返回：成功数量，-1表示失败！")
+    public int delete(@ToolParam(description = "块段编号") String blockId) {
+        try {
+            log.info("Tool:删除资源储量块段信息：{}", blockId);
+            return service.delete(blockId);
+        } catch (Exception e) {
+            log.error("Tool:删除资源储量块段信息失败：{}", e.getMessage());
+            return -1;
+        }
+    }
 }

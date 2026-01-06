@@ -79,4 +79,38 @@ public class SurfaceStationControllerTool {
             return null;
         }
     }
+
+    @Tool(name = "updateSurfaceStation", description = "观测站：通过站点编号,矿区编码,X坐标,Y坐标,初始高程更新观测站信息，返回：成功数量，-1表示失败！")
+    public int update(
+            @ToolParam(description = "站点编号") String stationId,
+            @ToolParam(description = "矿区编码") String areaId,
+            @ToolParam(description = "X坐标") BigDecimal x,
+            @ToolParam(description = "Y坐标") BigDecimal y,
+            @ToolParam(description = "初始高程") BigDecimal zInitial
+    ) {
+        SurfaceStation surfaceStation = new SurfaceStation();
+        surfaceStation.setStationId(stationId);
+        surfaceStation.setAreaId(areaId);
+        surfaceStation.setX(x);
+        surfaceStation.setY(y);
+        surfaceStation.setZInitial(zInitial);
+        try {
+            log.info("Tool:更新观测站信息：{}", surfaceStation);
+            return service.update(surfaceStation);
+        } catch (Exception e) {
+            log.error("Tool:更新观测站信息失败：{}", e.getMessage());
+            return -1;
+        }
+    }
+
+    @Tool(name = "deleteSurfaceStation", description = "观测站：通过站点编号删除观测站信息，返回：成功数量，-1表示失败！")
+    public int delete(@ToolParam(description = "站点编号") String stationId) {
+        try {
+            log.info("Tool:删除观测站信息：{}", stationId);
+            return service.delete(stationId);
+        } catch (Exception e) {
+            log.error("Tool:删除观测站信息失败：{}", e.getMessage());
+            return -1;
+        }
+    }
 }

@@ -81,4 +81,40 @@ public class RoadwayPointControllerTool {
             return null;
         }
     }
+
+    @Tool(name = "updateRoadwayPoint", description = "巷道中心线点信息：通过点号,矿区编码,X坐标,Y坐标,Z坐标,点类型更新巷道中心线点信息，返回：成功数量，-1表示失败！")
+    public int update(
+            @ToolParam(description = "点号") String pointId,
+            @ToolParam(description = "矿区编码") String areaId,
+            @ToolParam(description = "X坐标") BigDecimal x,
+            @ToolParam(description = "Y坐标") BigDecimal y,
+            @ToolParam(description = "Z坐标") BigDecimal z,
+            @ToolParam(description = "点类型") String pointType
+    ) {
+        RoadwayPoint roadwayPoint = new RoadwayPoint();
+        roadwayPoint.setPointId(pointId);
+        roadwayPoint.setAreaId(areaId);
+        roadwayPoint.setX(x);
+        roadwayPoint.setY(y);
+        roadwayPoint.setZ(z);
+        roadwayPoint.setPointType(pointType);
+        try {
+            log.info("Tool:更新巷道中心线点信息：{}", roadwayPoint);
+            return service.update(roadwayPoint);
+        } catch (Exception e) {
+            log.error("Tool:更新巷道中心线点信息失败：{}", e.getMessage());
+            return -1;
+        }
+    }
+
+    @Tool(name = "deleteRoadwayPoint", description = "巷道中心线点信息：通过点号删除巷道中心线点信息，返回：成功数量，-1表示失败！")
+    public int delete(@ToolParam(description = "点号") String pointId) {
+        try {
+            log.info("Tool:删除巷道中心线点信息：{}", pointId);
+            return service.delete(pointId);
+        } catch (Exception e) {
+            log.error("Tool:删除巷道中心线点信息失败：{}", e.getMessage());
+            return -1;
+        }
+    }
 }
