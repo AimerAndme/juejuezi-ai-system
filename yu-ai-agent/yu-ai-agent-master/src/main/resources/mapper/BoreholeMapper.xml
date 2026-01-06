@@ -29,7 +29,7 @@
 
     <select id="selectByAreaId" resultMap="BaseResultMap">
         SELECT hole_id, area_id, x, y, z, total_depth, drill_purpose, drill_date, status
-        FROM public.borehole WHERE area_id = #{areaId}
+        FROM agent.borehole WHERE area_id = #{areaId}
     </select>
 
     <update id="update" parameterType="com.yupi.yuaiagent.domin.entity.Borehole">

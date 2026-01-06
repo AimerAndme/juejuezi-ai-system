@@ -21,7 +21,7 @@ public class RoadwayPointControllerTool {
         this.service = service;
     }
 
-    @Tool(description = "巷道中心线点信息：通过点号,矿区编码,X坐标,Y坐标,Z坐标,点类型增加新的巷道中心线点信息，返回：成功数量，-1表示失败！")
+    @Tool(name = "addRoadwayPoint", description = "巷道中心线点信息：通过点号,矿区编码,X坐标,Y坐标,Z坐标,点类型增加新的巷道中心线点信息，返回：成功数量，-1表示失败！")
     public int add(
             @ToolParam(description = "点号") String pointId,
             @ToolParam(description = "矿区编码") String areaId,
@@ -46,7 +46,7 @@ public class RoadwayPointControllerTool {
         }
     }
 
-    @Tool(description = "巷道中心线点信息：通过点号查询巷道中心线点信息，返回：巷道中心线点信息")
+    @Tool(name = "getRoadwayPointById", description = "巷道中心线点信息：通过点号查询巷道中心线点信息，返回：巷道中心线点信息")
     public RoadwayPoint getById(@ToolParam(description = "点号") String pointId) {
         try {
             log.info("Tool:查询巷道中心线点信息：{}", pointId);
@@ -58,7 +58,7 @@ public class RoadwayPointControllerTool {
         }
     }
 
-    @Tool(description = "巷道中心线点信息：查询所有巷道中心线点信息，返回：所有巷道中心线点信息")
+    @Tool(name = "getAllRoadwayPoints", description = "巷道中心线点信息：查询所有巷道中心线点信息，返回：所有巷道中心线点信息")
     public List<RoadwayPoint> getAll() {
         try {
             log.info("Tool:查询所有巷道中心线点信息");
@@ -70,7 +70,7 @@ public class RoadwayPointControllerTool {
         }
     }
 
-    @Tool(description = "巷道中心线点信息：通过矿区编码查询巷道中心线点信息，返回：巷道中心线点信息列表")
+    @Tool(name = "getRoadwayPointsByAreaId", description = "巷道中心线点信息：通过矿区编码查询巷道中心线点信息，返回：巷道中心线点信息列表")
     public List<RoadwayPoint> getByAreaId(@ToolParam(description = "矿区编码") String areaId) {
         try {
             log.info("Tool:通过矿区编码查询巷道中心线点信息：{}", areaId);

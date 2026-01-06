@@ -23,7 +23,7 @@ public class MineAreaControllerTool {
         this.service = service;
     }
 
-    @Tool(description = "矿区信息：通过矿区id,矿区名称，矿区坐标系统，矿区高程基准，增加新的矿区信息，返回：成功数量，-1表示失败！")
+    @Tool(name = "addMineArea", description = "矿区信息：通过矿区id,矿区名称，矿区坐标系统，矿区高程基准，增加新的矿区信息，返回：成功数量，-1表示失败！")
     public int add(
             @ToolParam(description = "矿区id") String areaId,
             @ToolParam(description = "矿区名称") String areaName,
@@ -44,8 +44,7 @@ public class MineAreaControllerTool {
         }
     }
 
-
-    @Tool(description = "矿区信息：通过矿区id查询矿区信息，返回：矿区信息")
+    @Tool(name = "getMineAreaById", description = "矿区信息：通过矿区id查询矿区信息，返回：矿区信息")
     public MineArea getById(@ToolParam(description = "矿区id") String id) {
         try {
             log.info("Tool:查询矿区信息：{}", id);
@@ -57,8 +56,7 @@ public class MineAreaControllerTool {
         }
     }
 
-
-    @Tool(description = "矿区信息：查询所有矿区信息，返回：所有矿区信息")
+    @Tool(name = "getAllMineAreas", description = "矿区信息：查询所有矿区信息，返回：所有矿区信息")
     public List<MineArea> getAll() {
         try {
             log.info("Tool:查询所有矿区信息");
@@ -69,7 +67,6 @@ public class MineAreaControllerTool {
             return null;
         }
     }
-
 
 //    public ResponseEntity<Map<String, Object>> update(@RequestBody MineArea entity) {
 //        Map<String, Object> res = new HashMap<>();

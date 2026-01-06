@@ -1,5 +1,5 @@
 <template>
-  <div class="mine-agent-container" :class="{ 'dark-mode': isDarkMode }">
+  <div class="mine-agent-container">
     <div class="header">
       <div class="header-left">
         <div class="back-button" @click="goBack">返回</div>
@@ -21,13 +21,6 @@
             ></path>
           </svg>
         </a>
-        <button
-          class="theme-toggle"
-          @click="toggleTheme"
-          :title="isDarkMode ? '切换到浅色模式' : '切换到深色模式'"
-        >
-          {{ isDarkMode ? '🌞' : '🌙' }}
-        </button>
       </div>
     </div>
 
@@ -60,20 +53,7 @@ import {
   createConversation,
 } from '../api'
 
-// 主题切换
-const isDarkMode = ref(false)
 const currentLanguage = ref('zh-CN')
-
-const toggleTheme = () => {
-  isDarkMode.value = !isDarkMode.value
-  localStorage.setItem('theme', isDarkMode.value ? 'dark' : 'light')
-}
-
-// 初始化主题
-const initTheme = () => {
-  const savedTheme = localStorage.getItem('theme')
-  isDarkMode.value = savedTheme === 'dark'
-}
 
 // 设置页面标题和元数据
 useHead({
@@ -140,7 +120,6 @@ const goBack = () => {
 
 // 页面加载时恢复消息
 onMounted(async () => {
-  initTheme()
   console.log('=== onMounted 开始执行 ===')
   const userId = localStorage.getItem('userId')
   console.log('userId:', userId)
@@ -220,7 +199,7 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background: #f8f9fa;
+  background: var(--bg-color);
   position: relative;
   overflow: hidden;
   font-family: 'Inter', 'PingFang SC', -apple-system, BlinkMacSystemFont,
@@ -228,30 +207,19 @@ onBeforeUnmount(() => {
   transition: background-color 0.3s ease;
 }
 
-.mine-agent-container.dark-mode {
-  background: #1a1a1a;
-  color: #e0e0e0;
-}
-
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 32px;
-  background: #ffffff;
-  color: #333;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  padding: 16px 24px;
+  background: var(--card-bg);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-sm);
   position: sticky;
   top: 0;
   z-index: 10;
   transition: all 0.3s ease;
   pointer-events: auto;
-}
-
-.dark-mode .header {
-  background: #2d2d2d;
-  color: #e0e0e0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .header-left {
@@ -271,30 +239,20 @@ onBeforeUnmount(() => {
   cursor: pointer;
   display: flex;
   align-items: center;
-  transition: all 0.3s ease;
-  padding: 8px 16px;
-  border-radius: 8px;
-  background-color: #f0f0f0;
-  color: #333;
-  border: 1px solid #e0e0e0;
+  transition: var(--transition);
+  padding: 0.6em 1.2em;
+  border-radius: var(--radius-md);
+  background-color: var(--bg-light);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
   pointer-events: auto;
-}
-
-.dark-mode .back-button {
-  background-color: #3d3d3d;
-  color: #e0e0e0;
-  border-color: #4d4d4d;
+  font-weight: 600;
 }
 
 .back-button:hover {
-  transform: scale(1.05);
-  background-color: #e8e8e8;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.dark-mode .back-button:hover {
-  background-color: #4d4d4d;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  background-color: var(--border-color);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
 }
 
 .back-button:before {
@@ -306,82 +264,43 @@ onBeforeUnmount(() => {
   font-size: 20px;
   font-weight: 600;
   margin: 0;
-  color: #00d1b2;
+  color: var(--logo-color);
   letter-spacing: 0.5px;
 }
 
-.dark-mode .logo {
-  color: #00d1b2;
-}
-
 .language-select {
-  padding: 6px 12px;
-  border: 1px solid #e0e0e0;
-  border-radius: 6px;
-  background: #ffffff;
-  color: #333;
+  padding: 0.5em 1em;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--card-bg);
+  color: var(--text-primary);
   font-size: 14px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: var(--transition);
   outline: none;
   pointer-events: auto;
-}
-
-.dark-mode .language-select {
-  background: #3d3d3d;
-  color: #e0e0e0;
-  border-color: #4d4d4d;
+  font-weight: 500;
 }
 
 .language-select:hover {
-  border-color: #1677ff;
+  border-color: var(--primary-color);
+  box-shadow: var(--shadow-sm);
 }
 
 .github-link {
   display: flex;
   align-items: center;
-  color: #333;
-  transition: all 0.3s ease;
-  padding: 6px;
-  border-radius: 6px;
+  color: var(--text-primary);
+  transition: var(--transition);
+  padding: 8px;
+  border-radius: var(--radius-md);
   pointer-events: auto;
-}
-
-.dark-mode .github-link {
-  color: #e0e0e0;
 }
 
 .github-link:hover {
-  color: #1677ff;
+  color: var(--primary-color);
   transform: scale(1.05);
-}
-
-.theme-toggle {
-  padding: 8px 12px;
-  border: 1px solid #e0e0e0;
-  border-radius: 6px;
-  background: #ffffff;
-  font-size: 18px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: auto;
-}
-
-.dark-mode .theme-toggle {
-  background: #3d3d3d;
-  border-color: #4d4d4d;
-}
-
-.theme-toggle:hover {
-  transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.dark-mode .theme-toggle:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  background-color: var(--bg-light);
 }
 
 .content-wrapper {
@@ -392,30 +311,22 @@ onBeforeUnmount(() => {
 
 .chat-area {
   flex: 1;
-  padding: 16px;
+  padding: 24px;
   overflow: hidden;
   position: relative;
-  min-height: calc(100vh - 56px - 180px);
-  margin-bottom: 16px;
-  background: rgba(147, 210, 184, 0.1);
-  border-radius: 16px;
-  margin: 16px;
-  border: 1px solid rgba(147, 210, 184, 0.2);
-  transition: all 0.3s ease;
+  min-height: calc(100vh - 80px - 200px);
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  margin: 16px auto;
+  max-width: 1800px;
+  width: calc(100% - 16px);
+  border: 1px solid var(--card-border);
+  transition: var(--transition);
   animation: fadeIn 0.6s ease-in;
 }
 
-.dark-mode .chat-area {
-  background: rgba(147, 210, 184, 0.05);
-  border-color: rgba(147, 210, 184, 0.15);
-}
-
 .chat-area:hover {
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-}
-
-.dark-mode .chat-area:hover {
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--shadow-lg);
 }
 
 @keyframes fadeIn {
@@ -439,13 +350,13 @@ onBeforeUnmount(() => {
     padding: 12px 16px;
   }
 
-  .title {
+  .logo {
     font-size: 18px;
   }
 
   .chat-area {
-    padding: 12px;
-    min-height: calc(100vh - 48px - 160px); /* 调整计算值 */
+    padding: 16px;
+    min-height: calc(100vh - 80px - 180px);
     margin-bottom: 12px;
   }
 }
@@ -457,15 +368,16 @@ onBeforeUnmount(() => {
 
   .back-button {
     font-size: 14px;
+    padding: 0.5em 1em;
   }
 
-  .title {
+  .logo {
     font-size: 16px;
   }
 
   .chat-area {
-    padding: 8px;
-    min-height: calc(100vh - 42px - 150px); /* 再次调整计算值 */
+    padding: 12px;
+    min-height: calc(100vh - 80px - 160px);
     margin-bottom: 8px;
   }
 }

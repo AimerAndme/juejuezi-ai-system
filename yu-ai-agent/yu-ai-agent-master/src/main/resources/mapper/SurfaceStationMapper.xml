@@ -10,28 +10,28 @@
     </resultMap>
 
     <insert id="insert" parameterType="com.yupi.yuaiagent.domin.entity.SurfaceStation">
-        INSERT INTO public.surface_station (station_id, area_id, x, y, z_initial)
+        INSERT INTO agent.surface_station (station_id, area_id, x, y, z_initial)
         VALUES (#{stationId}, #{areaId}, #{x}, #{y}, #{zInitial})
     </insert>
 
     <select id="selectById" resultMap="BaseResultMap">
-        SELECT station_id, area_id, x, y, z_initial FROM public.surface_station WHERE station_id = #{stationId}
+        SELECT station_id, area_id, x, y, z_initial FROM agent.surface_station WHERE station_id = #{stationId}
     </select>
 
     <select id="selectAll" resultMap="BaseResultMap">
-        SELECT station_id, area_id, x, y, z_initial FROM public.surface_station
+        SELECT station_id, area_id, x, y, z_initial FROM agent.surface_station
     </select>
 
     <select id="selectByAreaId" resultMap="BaseResultMap">
-        SELECT station_id, area_id, x, y, z_initial FROM public.surface_station WHERE area_id = #{areaId}
+        SELECT station_id, area_id, x, y, z_initial FROM agent.surface_station WHERE area_id = #{areaId}
     </select>
 
     <update id="update" parameterType="com.yupi.yuaiagent.domin.entity.SurfaceStation">
-        UPDATE public.surface_station SET area_id = #{areaId}, x = #{x}, y = #{y}, z_initial = #{zInitial}
+        UPDATE agent.surface_station SET area_id = #{areaId}, x = #{x}, y = #{y}, z_initial = #{zInitial}
         WHERE station_id = #{stationId}
     </update>
 
     <delete id="deleteById">
-        DELETE FROM public.surface_station WHERE station_id = #{stationId}
+        DELETE FROM agent.surface_station WHERE station_id = #{stationId}
     </delete>
 </mapper>

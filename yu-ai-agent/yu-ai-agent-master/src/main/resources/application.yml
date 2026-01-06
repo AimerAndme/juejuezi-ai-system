@@ -7,7 +7,7 @@ spring:
   application:
     name: yu-ai-agent
   profiles:
-    active: gsdn
+    active: gs
   datasource:
     # 连接 URL：格式 jdbc:postgresql://主机:端口/数据库名?参数
     url: jdbc:postgresql://localhost:5432/sdagent?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf8
@@ -125,8 +125,11 @@ search-api:
   api-key: GCTKUebFQ9d6WN9hxquXbZWG
 # 修改日志级别，查看 Spring AI 更多调用细节
 logging:
+  file:
+    name: E:\编程学习\项目\yv-ai\logs\myapp.log # 指定日志文件名和路径
   level:
     org.springframework.ai: DEBUG
+    root: info
 embedding:
   api:
     url: https://dashscope.aliyuncs.com/compatible-mode/v1

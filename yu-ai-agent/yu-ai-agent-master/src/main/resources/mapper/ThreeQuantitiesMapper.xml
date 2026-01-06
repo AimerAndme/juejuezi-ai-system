@@ -11,31 +11,31 @@
     </resultMap>
 
     <insert id="insert" parameterType="com.yupi.yuaiagent.domin.entity.ThreeQuantities" useGeneratedKeys="true" keyProperty="recordId">
-        INSERT INTO public.three_quantities (area_id, calc_date, development_reserve, preparation_reserve, mining_reserve)
+        INSERT INTO agent.three_quantities (area_id, calc_date, development_reserve, preparation_reserve, mining_reserve)
         VALUES (#{areaId}, #{calcDate}, #{developmentReserve}, #{preparationReserve}, #{miningReserve})
     </insert>
 
     <select id="selectById" resultMap="BaseResultMap">
         SELECT record_id, area_id, calc_date, development_reserve, preparation_reserve, mining_reserve
-        FROM public.three_quantities WHERE record_id = #{recordId}
+        FROM agent.three_quantities WHERE record_id = #{recordId}
     </select>
 
     <select id="selectAll" resultMap="BaseResultMap">
-        SELECT record_id, area_id, calc_date, development_reserve, preparation_reserve, mining_reserve FROM public.three_quantities
+        SELECT record_id, area_id, calc_date, development_reserve, preparation_reserve, mining_reserve FROM agent.three_quantities
     </select>
 
     <select id="selectByAreaId" resultMap="BaseResultMap">
         SELECT record_id, area_id, calc_date, development_reserve, preparation_reserve, mining_reserve
-        FROM public.three_quantities WHERE area_id = #{areaId}
+        FROM agent.three_quantities WHERE area_id = #{areaId}
     </select>
 
     <update id="update" parameterType="com.yupi.yuaiagent.domin.entity.ThreeQuantities">
-        UPDATE public.three_quantities SET area_id = #{areaId}, calc_date = #{calcDate},
+        UPDATE agent.three_quantities SET area_id = #{areaId}, calc_date = #{calcDate},
         development_reserve = #{developmentReserve}, preparation_reserve = #{preparationReserve}, mining_reserve = #{miningReserve}
         WHERE record_id = #{recordId}
     </update>
 
     <delete id="deleteById">
-        DELETE FROM public.three_quantities WHERE record_id = #{recordId}
+        DELETE FROM agent.three_quantities WHERE record_id = #{recordId}
     </delete>
 </mapper>

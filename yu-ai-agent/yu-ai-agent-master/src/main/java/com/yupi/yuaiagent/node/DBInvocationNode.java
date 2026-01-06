@@ -31,7 +31,10 @@ public class DBInvocationNode implements NodeAction {
         }
         String sql = (String) nl2SqlResult.get();
         PromptTemplate promptTemplate = new PromptTemplate("""
-                请将SQL语句转换为数据库查询语句，调用数据库操作的Tools，并返回调用意图与结果的整体内容。
+                请将SQL语句转换为数据库查询语句：
+                1、首先调用字段元数据查询tools，查询数据库字段和对应的注释解释
+                2、调用数据库操作的Tools，并返回调用意图与结果的整体内容。
+                返回结果要求：最终生成结果需要包含字段、字段解释和对应的具体数据量！
                 sql语句为：{sql}
                 """);
         promptTemplate.add("sql", sql);

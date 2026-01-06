@@ -60,11 +60,13 @@ const handleLogout = async () => {
       <div class="header-right">
         <nav class="nav-menu">
           <router-link to="/" class="nav-item">首页</router-link>
-          <router-link to="/love-master" class="nav-item">恋爱大师</router-link>
+          <!-- 隐藏恋爱大师功能 -->
+          <!-- <router-link to="/love-master" class="nav-item">恋爱大师</router-link> -->
           <router-link to="/mine-agent" class="nav-item">矿山专家</router-link>
-          <router-link to="/super-agent" class="nav-item"
+          <!-- 隐藏超级智能体功能 -->
+          <!-- <router-link to="/super-agent" class="nav-item"
             >超级智能体</router-link
-          >
+          > -->
         </nav>
 
         <select class="language-select" v-model="currentLanguage">

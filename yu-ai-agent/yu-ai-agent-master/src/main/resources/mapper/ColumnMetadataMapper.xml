@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yupi.yuaiagent.mapper.ColumnMetadataMapper">
+    
+    <resultMap id="BaseResultMap" type="com.yupi.yuaiagent.domin.entity.ColumnMetadata">
+        <result column="column_name" property="columnName"/>
+        <result column="column_comment" property="columnComment"/>
+    </resultMap>
+    
+    <select id="selectColumnMetadata" resultMap="BaseResultMap">
+        SELECT 
+            a.attname AS column_name,           -- 字段名 
+            col_description(a.attrelid, a.attnum) AS column_comment -- 字段注释 
+        FROM 
+            pg_attribute a 
+        JOIN 
+            pg_class c ON a.attrelid = c.oid -- 关联表信息 
+        JOIN 
+            pg_namespace n ON c.relnamespace = n.oid -- 关联模式信息 
+        WHERE 
+            c.relname = #{tableName} -- 表名 
+            AND n.nspname = #{schemaName} -- 模式名 
+            AND a.attnum > 0
+            AND NOT a.attisdropped;
+    </select>
+</mapper>

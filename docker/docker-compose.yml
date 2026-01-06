@@ -58,145 +58,164 @@ services:
       # - ELASTICSEARCH_SSL_VERIFICATIONMODE=none  # 测试环境可关闭证书验证
     volumes:
       - kib_data:/usr/share/kibana/data  # 持久化 Kibana 数据
-    # 重要：确保 Kibana 容器能访问到你的 ES 实例（网络互通）
-    #network_mode: "host"  # 直接使用主机网络，避免端口/网络隔离问题（新手推荐）
-#  mysql:
-#    container_name: mysql
-#    image: mysql:8
-#    restart: always
-#    ports:
-#      - "3306:3306"
-#    environment:
-#      MYSQL_ROOT_PASSWORD: PaiSmart2025
-#    volumes:
-#      - mysql-data:/var/lib/mysql
-#      - /data/docker/mysql/conf:/etc/mysql/conf.d
-#    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --explicit_defaults_for_timestamp=true --lower_case_table_names=1
-#    healthcheck:
-#      start_period: 5s
-#      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-#      timeout: 5s
-#      retries: 5
-#
-#  minio:
-#    container_name: minio
-#    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
-#    restart: always
-#    ports:
-#      - "19000:19000"
-#      - "19001:19001"
-#    volumes:
-#      - minio-data:/data
-#      - /data/docker/minio/config:/root/.minio
-#    environment:
-#      MINIO_ROOT_USER: admin
-#      MINIO_ROOT_PASSWORD: PaiSmart2025
-#    command: server /data --console-address ":19001" -address ":19000"
-#
-#  redis:
-#    image: redis
-#    container_name: redis
-#    restart: always
-#    ports:
-#      - "6379:6379"
-#    volumes:
-#      - redis-data:/data
-#      - /data/docker/redis:/logs
-#    healthcheck:
-#      start_period: 5s
-#      test: ["CMD", "redis-cli", "ping"]
-#      interval: 5s
-#      timeout: 5s
-#      retries: 5
-#    command: redis-server --bind 0.0.0.0 --port 6379 --requirepass PaiSmart2025 --appendonly yes
-#
-#  kafka:
-#    image: bitnami/kafka:latest
-#    container_name: kafka
-#    restart: always
-#    ports:
-#      - "9092:9092"
-#      - "9093:9093"
-#    environment:
-#      - KAFKA_CFG_NODE_ID=0
-#      - KAFKA_CFG_PROCESS_ROLES=controller,broker
-#      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
-#      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@localhost:9093
-#
-#      # 监听器配置
-#      - KAFKA_CFG_LISTENERS=CONTROLLER://:9093,PLAINTEXT://:9092
-#      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092
-#      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
-#
-#    volumes:
-#      - kafka-data:/bitnami/kafka
-#    command:
-#      - sh
-#      - -c
-#      - |
-#        # 启动 Kafka（使用 bitnami 完整初始化流程）
-#        /opt/bitnami/scripts/kafka/run.sh &
-#
-#        # 等待 Kafka 完全启动（更可靠的检测方式）
-#        echo "Waiting for Kafka to start..."
-#        while ! kafka-topics.sh --bootstrap-server localhost:9092 --list 2>/dev/null; do
-#          sleep 2
-#        done
-#
-#        # 创建第一个主题（忽略已存在的错误）
-#        echo "Creating topic: file-processing"
-#        kafka-topics.sh --create \
-#          --bootstrap-server localhost:9092 \
-#          --replication-factor 1 \
-#          --partitions 1 \
-#          --topic file-processing 2>/dev/null || true
-#
-#        # 创建第二个主题 vectorization
-#        echo "Creating topic: vectorization"
-#        kafka-topics.sh --create \
-#          --bootstrap-server localhost:9092 \
-#          --replication-factor 1 \
-#          --partitions 1 \
-#          --topic vectorization 2>/dev/null || true
-#        # 保持容器运行
-#        tail -f /dev/null
-#    healthcheck:
-#      test:
-#        [
-#          "CMD-SHELL",
-#          "kafka-topics.sh --bootstrap-server localhost:9092 --list || exit 1",
-#        ]
-#      interval: 30s
-#      timeout: 10s
-#      retries: 5
-#      start_period: 60s
-  # pgvector-db:
-  #   # 选择包含pgvector的镜像（ankane/pgvector是社区常用镜像，内置pgvector）
-  #   image: pgvector/pgvector:pg16  # 镜像标签格式：pgvector版本-pg版本（推荐pg14+/15+）
-  #   container_name: pgvector-container
-  #   restart: always  # 容器异常退出时自动重启
-  #   environment:
-  #     # 数据库基础配置（按需修改）
-  #     POSTGRES_USER: postgres          # 数据库用户名
-  #     POSTGRES_PASSWORD: postgres  # 数据库密码
-  #     POSTGRES_DB: vectordb          # 初始化创建的数据库名
-  #     POSTGRES_INITDB_ARGS: "--encoding=UTF8 --lc-collate=C --lc-ctype=C"  # 字符集配置
-  #   ports:
-  #     - "5432:5432"  # 宿主机端口:容器内端口（宿主机端口可自定义，如5433:5432）
-  #   volumes:
-  #     # 数据持久化：将容器内PostgreSQL数据目录挂载到宿主机
-  #     - pgvector-data:/var/lib/postgresql/data
-  #     # 可选：挂载自定义配置文件（如需调整postgresql.conf）
-  #     # - ./postgresql.conf:/var/lib/postgresql/data/postgresql.conf
-      
-  #
+      # 重要：确保 Kibana 容器能访问到你的 ES 实例（网络互通）
+      #network_mode: "host"  # 直接使用主机网络，避免端口/网络隔离问题（新手推荐）
+      #  mysql:
+      #    container_name: mysql
+      #    image: mysql:8
+      #    restart: always
+      #    ports:
+      #      - "3306:3306"
+      #    environment:
+      #      MYSQL_ROOT_PASSWORD: PaiSmart2025
+      #    volumes:
+      #      - mysql-data:/var/lib/mysql
+      #      - /data/docker/mysql/conf:/etc/mysql/conf.d
+      #    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --explicit_defaults_for_timestamp=true --lower_case_table_names=1
+      #    healthcheck:
+      #      start_period: 5s
+      #      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      #      timeout: 5s
+      #      retries: 5
+      #
+      #  minio:
+      #    container_name: minio
+      #    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
+      #    restart: always
+      #    ports:
+      #      - "19000:19000"
+      #      - "19001:19001"
+      #    volumes:
+      #      - minio-data:/data
+      #      - /data/docker/minio/config:/root/.minio
+      #    environment:
+      #      MINIO_ROOT_USER: admin
+      #      MINIO_ROOT_PASSWORD: PaiSmart2025
+      #    command: server /data --console-address ":19001" -address ":19000"
+      #
+      #  redis:
+      #    image: redis
+      #    container_name: redis
+      #    restart: always
+      #    ports:
+      #      - "6379:6379"
+      #    volumes:
+      #      - redis-data:/data
+      #      - /data/docker/redis:/logs
+      #    healthcheck:
+      #      start_period: 5s
+      #      test: ["CMD", "redis-cli", "ping"]
+      #      interval: 5s
+      #      timeout: 5s
+      #      retries: 5
+      #    command: redis-server --bind 0.0.0.0 --port 6379 --requirepass PaiSmart2025 --appendonly yes
+      #
+      #  kafka:
+      #    image: bitnami/kafka:latest
+      #    container_name: kafka
+      #    restart: always
+      #    ports:
+      #      - "9092:9092"
+      #      - "9093:9093"
+      #    environment:
+      #      - KAFKA_CFG_NODE_ID=0
+      #      - KAFKA_CFG_PROCESS_ROLES=controller,broker
+      #      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      #      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@localhost:9093
+      #
+      #      # 监听器配置
+      #      - KAFKA_CFG_LISTENERS=CONTROLLER://:9093,PLAINTEXT://:9092
+      #      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092
+      #      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      #
+      #    volumes:
+      #      - kafka-data:/bitnami/kafka
+      #    command:
+      #      - sh
+      #      - -c
+      #      - |
+      #        # 启动 Kafka（使用 bitnami 完整初始化流程）
+      #        /opt/bitnami/scripts/kafka/run.sh &
+      #
+      #        # 等待 Kafka 完全启动（更可靠的检测方式）
+      #        echo "Waiting for Kafka to start..."
+      #        while ! kafka-topics.sh --bootstrap-server localhost:9092 --list 2>/dev/null; do
+      #          sleep 2
+      #        done
+      #
+      #        # 创建第一个主题（忽略已存在的错误）
+      #        echo "Creating topic: file-processing"
+      #        kafka-topics.sh --create \
+      #          --bootstrap-server localhost:9092 \
+      #          --replication-factor 1 \
+      #          --partitions 1 \
+      #          --topic file-processing 2>/dev/null || true
+      #
+      #        # 创建第二个主题 vectorization
+      #        echo "Creating topic: vectorization"
+      #        kafka-topics.sh --create \
+      #          --bootstrap-server localhost:9092 \
+      #          --replication-factor 1 \
+      #          --partitions 1 \
+      #          --topic vectorization 2>/dev/null || true
+      #        # 保持容器运行
+      #        tail -f /dev/null
+      #    healthcheck:
+      #      test:
+      #        [
+      #          "CMD-SHELL",
+      #          "kafka-topics.sh --bootstrap-server localhost:9092 --list || exit 1",
+      #        ]
+      #      interval: 30s
+      #      timeout: 10s
+      #      retries: 5
+      #      start_period: 60s
+      # pgvector-db:
+      #   # 选择包含pgvector的镜像（ankane/pgvector是社区常用镜像，内置pgvector）
+      #   image: pgvector/pgvector:pg16  # 镜像标签格式：pgvector版本-pg版本（推荐pg14+/15+）
+      #   container_name: pgvector-container
+      #   restart: always  # 容器异常退出时自动重启
+      #   environment:
+      #     # 数据库基础配置（按需修改）
+      #     POSTGRES_USER: postgres          # 数据库用户名
+      #     POSTGRES_PASSWORD: postgres  # 数据库密码
+      #     POSTGRES_DB: vectordb          # 初始化创建的数据库名
+      #     POSTGRES_INITDB_ARGS: "--encoding=UTF8 --lc-collate=C --lc-ctype=C"  # 字符集配置
+      #   ports:
+      #     - "5432:5432"  # 宿主机端口:容器内端口（宿主机端口可自定义，如5433:5432）
+      #   volumes:
+      #     # 数据持久化：将容器内PostgreSQL数据目录挂载到宿主机
+      #     - pgvector-data:/var/lib/postgresql/data
+      #     # 可选：挂载自定义配置文件（如需调整postgresql.conf）
+      #     # - ./postgresql.conf:/var/lib/postgresql/data/postgresql.conf
 
+  #
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:8.15.0 # 请确认版本
+    container_name: filebeat
+    user: root # Filebeat 需要 root 权限读取日志和访问宿主机信息
+    restart: unless-stopped
+    volumes:
+      # 挂载宿主机日志目录到容器内 (示例：系统日志和 Docker 日志)
+      - /var/log:/var/log:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      # 挂载 Filebeat 配置文件
+      - ./filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      # 挂载 Filebeat 内部数据目录，用于存储采集状态，保证持久化
+      - filebeat_data:/usr/share/filebeat/data
+    #    networks:
+    #      - elk # 与 ES 和 Kibana 在同一网络
+    depends_on:
+      - agent-es # 确保 ES 先启动
+    command: [ "filebeat", "-e", "-strict.perms=false" ] # 启动命令，-e 输出到标准错误，-strict.perms=false 允许 root 用户运行
 volumes:
-#  redis-data:
-#  mysql-data:
-#  minio-data:
-#  kafka-data:
+  #  redis-data:
+  #  mysql-data:
+  #  minio-data:
+  #  kafka-data:
   # pgvector-data:
+  filebeat_data: # Filebeat 状态数据卷
   kib_data:
     driver: local
+
   # es-data:

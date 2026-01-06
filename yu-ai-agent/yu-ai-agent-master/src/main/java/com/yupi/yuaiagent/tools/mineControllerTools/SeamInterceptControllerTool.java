@@ -21,7 +21,7 @@ public class SeamInterceptControllerTool {
         this.service = service;
     }
 
-    @Tool(description = "见煤记录：通过钻孔编号,煤层编号,起始深度,终止深度,真厚度增加新的见煤记录信息，返回：成功数量，-1表示失败！")
+    @Tool(name = "addSeamIntercept", description = "见煤记录：通过钻孔编号,煤层编号,起始深度,终止深度,真厚度增加新的见煤记录信息，返回：成功数量，-1表示失败！")
     public int add(
             @ToolParam(description = "钻孔编号") String holeId,
             @ToolParam(description = "煤层编号") String seamId,
@@ -44,7 +44,7 @@ public class SeamInterceptControllerTool {
         }
     }
 
-    @Tool(description = "见煤记录：通过记录ID查询见煤记录信息，返回：见煤记录信息")
+    @Tool(name = "getSeamInterceptById", description = "见煤记录：通过记录ID查询见煤记录信息，返回：见煤记录信息")
     public SeamIntercept getById(@ToolParam(description = "记录ID") Long interceptId) {
         try {
             log.info("Tool:查询见煤记录信息：{}", interceptId);
@@ -56,7 +56,7 @@ public class SeamInterceptControllerTool {
         }
     }
 
-    @Tool(description = "见煤记录：查询所有见煤记录信息，返回：所有见煤记录信息")
+    @Tool(name = "getAllSeamIntercepts", description = "见煤记录：查询所有见煤记录信息，返回：所有见煤记录信息")
     public List<SeamIntercept> getAll() {
         try {
             log.info("Tool:查询所有见煤记录信息");
@@ -68,7 +68,7 @@ public class SeamInterceptControllerTool {
         }
     }
 
-    @Tool(description = "见煤记录：通过钻孔编号查询见煤记录信息，返回：见煤记录信息列表")
+    @Tool(name = "getSeamInterceptsByHoleId", description = "见煤记录：通过钻孔编号查询见煤记录信息，返回：见煤记录信息列表")
     public List<SeamIntercept> getByHoleId(@ToolParam(description = "钻孔编号") String holeId) {
         try {
             log.info("Tool:按钻孔查询见煤记录信息：{}", holeId);

@@ -22,7 +22,7 @@ public class MiningFaceControllerTool {
         this.service = service;
     }
 
-    @Tool(description = "采煤工作面信息：通过工作面编号,矿区编码,煤层编号,开始日期,结束日期,长度,状态增加新的采煤工作面信息，返回：成功数量，-1表示失败！")
+    @Tool(name = "addMiningFace", description = "采煤工作面信息：通过工作面编号,矿区编码,煤层编号,开始日期,结束日期,长度,状态增加新的采煤工作面信息，返回：成功数量，-1表示失败！")
     public int add(
             @ToolParam(description = "工作面编号") String faceId,
             @ToolParam(description = "矿区编码") String areaId,
@@ -49,7 +49,8 @@ public class MiningFaceControllerTool {
         }
     }
 
-    @Tool(description = "采煤工作面信息：通过工作面编号查询采煤工作面信息，返回：采煤工作面信息")
+
+    @Tool(name = "getMiningFaceById", description = "采煤工作面信息：通过工作面编号查询采煤工作面信息，返回：采煤工作面信息")
     public MiningFace getById(@ToolParam(description = "工作面编号") String faceId) {
         try {
             log.info("Tool:查询采煤工作面信息：{}", faceId);
@@ -61,7 +62,8 @@ public class MiningFaceControllerTool {
         }
     }
 
-    @Tool(description = "采煤工作面信息：查询所有采煤工作面信息，返回：所有采煤工作面信息")
+
+    @Tool(name = "getAllMiningFaces", description = "采煤工作面信息：查询所有采煤工作面信息，返回：所有采煤工作面信息")
     public List<MiningFace> getAll() {
         try {
             log.info("Tool:查询所有采煤工作面信息");
@@ -73,7 +75,7 @@ public class MiningFaceControllerTool {
         }
     }
 
-    @Tool(description = "采煤工作面信息：通过矿区编码查询采煤工作面信息，返回：采煤工作面信息列表")
+    @Tool(name = "getMiningFacesByAreaId", description = "采煤工作面信息：通过矿区编码查询采煤工作面信息，返回：采煤工作面信息列表")
     public List<MiningFace> getByAreaId(@ToolParam(description = "矿区编码") String areaId) {
         try {
             log.info("Tool:通过矿区编码查询采煤工作面信息：{}", areaId);

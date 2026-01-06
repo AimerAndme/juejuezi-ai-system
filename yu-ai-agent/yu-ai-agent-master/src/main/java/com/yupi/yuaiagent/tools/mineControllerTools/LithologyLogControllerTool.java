@@ -21,7 +21,7 @@ public class LithologyLogControllerTool {
         this.service = service;
     }
 
-    @Tool(description = "岩性分层信息：通过钻孔编号,起始深度,终止深度,岩石类型增加新的岩性分层信息，返回：成功数量，-1表示失败！")
+    @Tool(name = "addLithologyLog", description = "岩性分层信息：通过钻孔编号,起始深度,终止深度,岩石类型增加新的岩性分层信息，返回：成功数量，-1表示失败！")
     public int add(
             @ToolParam(description = "钻孔编号") String holeId,
             @ToolParam(description = "起始深度") BigDecimal fromDepth,
@@ -43,7 +43,7 @@ public class LithologyLogControllerTool {
     }
 
 
-    @Tool(description = "岩性分层信息：通过记录ID查询岩性分层信息，返回：岩性分层信息")
+    @Tool(name = "getLithologyLogById", description = "岩性分层信息：通过记录ID查询岩性分层信息，返回：岩性分层信息")
     public LithologyLog getById(@ToolParam(description = "记录ID") Long logId) {
         try {
             log.info("Tool:查询岩性分层信息：{}", logId);
@@ -56,7 +56,7 @@ public class LithologyLogControllerTool {
     }
 
 
-    @Tool(description = "岩性分层信息：查询所有岩性分层信息，返回：所有岩性分层信息")
+    @Tool(name = "getAllLithologyLogs", description = "岩性分层信息：查询所有岩性分层信息，返回：所有岩性分层信息")
     public List<LithologyLog> getAll() {
         try {
             log.info("Tool:查询所有岩性分层信息");
@@ -68,7 +68,7 @@ public class LithologyLogControllerTool {
         }
     }
 
-    @Tool(description = "岩性分层信息：通过钻孔编号查询岩性分层信息，返回：岩性分层信息列表")
+    @Tool(name = "getLithologyLogsByHoleId", description = "岩性分层信息：通过钻孔编号查询岩性分层信息，返回：岩性分层信息列表")
     public List<LithologyLog> getByHoleId(@ToolParam(description = "钻孔编号") String holeId) {
         try {
             log.info("Tool:通过钻孔编号查询岩性分层信息：{}", holeId);

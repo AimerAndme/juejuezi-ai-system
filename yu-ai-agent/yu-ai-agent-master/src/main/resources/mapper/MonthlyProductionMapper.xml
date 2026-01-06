@@ -11,31 +11,31 @@
     </resultMap>
 
     <insert id="insert" parameterType="com.yupi.yuaiagent.domin.entity.MonthlyProduction" useGeneratedKeys="true" keyProperty="recordId">
-        INSERT INTO public.monthly_production (block_id, report_month, mined_tonnage, loss_tonnage, actual_recovery_rate)
+        INSERT INTO agent.monthly_production (block_id, report_month, mined_tonnage, loss_tonnage, actual_recovery_rate)
         VALUES (#{blockId}, #{reportMonth}, #{minedTonnage}, #{lossTonnage}, #{actualRecoveryRate})
     </insert>
 
     <select id="selectById" resultMap="BaseResultMap">
         SELECT record_id, block_id, report_month, mined_tonnage, loss_tonnage, actual_recovery_rate
-        FROM public.monthly_production WHERE record_id = #{recordId}
+        FROM agent.monthly_production WHERE record_id = #{recordId}
     </select>
 
     <select id="selectAll" resultMap="BaseResultMap">
-        SELECT record_id, block_id, report_month, mined_tonnage, loss_tonnage, actual_recovery_rate FROM public.monthly_production
+        SELECT record_id, block_id, report_month, mined_tonnage, loss_tonnage, actual_recovery_rate FROM agent.monthly_production
     </select>
 
     <select id="selectByBlockId" resultMap="BaseResultMap">
         SELECT record_id, block_id, report_month, mined_tonnage, loss_tonnage, actual_recovery_rate
-        FROM public.monthly_production WHERE block_id = #{blockId}
+        FROM agent.monthly_production WHERE block_id = #{blockId}
     </select>
 
     <update id="update" parameterType="com.yupi.yuaiagent.domin.entity.MonthlyProduction">
-        UPDATE public.monthly_production SET block_id = #{blockId}, report_month = #{reportMonth},
+        UPDATE agent.monthly_production SET block_id = #{blockId}, report_month = #{reportMonth},
         mined_tonnage = #{minedTonnage}, loss_tonnage = #{lossTonnage}, actual_recovery_rate = #{actualRecoveryRate}
         WHERE record_id = #{recordId}
     </update>
 
     <delete id="deleteById">
-        DELETE FROM public.monthly_production WHERE record_id = #{recordId}
+        DELETE FROM agent.monthly_production WHERE record_id = #{recordId}
     </delete>
 </mapper>

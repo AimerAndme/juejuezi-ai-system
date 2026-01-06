@@ -1,7 +1,9 @@
 package com.yupi.yuaiagent.tools.mineControllerTools;
 
 import com.yupi.yuaiagent.domin.entity.CoalSeam;
+import com.yupi.yuaiagent.domin.entity.ColumnMetadata;
 import com.yupi.yuaiagent.service.ICoalSeamService;
+import com.yupi.yuaiagent.service.IColumnMetadataService;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
 import lombok.extern.slf4j.Slf4j;
@@ -16,12 +18,14 @@ import java.util.List;
 public class CoalSeamControllerTool {
 
     private final ICoalSeamService service;
+    private final IColumnMetadataService columnMetadataService;
 
-    public CoalSeamControllerTool(ICoalSeamService service) {
+    public CoalSeamControllerTool(ICoalSeamService service, IColumnMetadataService columnMetadataService) {
         this.service = service;
+        this.columnMetadataService = columnMetadataService;
     }
 
-    @Tool(description = "煤层信息：通过煤层编号,煤层名称,平均厚度,平均倾角,顶板岩性,底板岩性增加新的煤层信息，返回：成功数量，-1表示失败！")
+    @Tool(name = "addCoalSeam", description = "煤层信息：通过煤层编号,煤层名称,平均厚度,平均倾角,顶板岩性,底板岩性增加新的煤层信息，返回：成功数量，-1表示失败！")
     public int add(
             @ToolParam(description = "煤层编号") String seamId,
             @ToolParam(description = "煤层名称") String seamName,
@@ -46,8 +50,7 @@ public class CoalSeamControllerTool {
         }
     }
 
-
-    @Tool(description = "煤层信息：通过煤层编号查询煤层信息，返回：煤层信息")
+    @Tool(name = "getCoalSeamById", description = "煤层信息：通过煤层编号查询煤层信息，返回：煤层信息")
     public CoalSeam getById(@ToolParam(description = "煤层编号") String seamId) {
         try {
             log.info("Tool:查询煤层信息：{}", seamId);
@@ -59,8 +62,7 @@ public class CoalSeamControllerTool {
         }
     }
 
-
-    @Tool(description = "煤层信息：查询所有煤层信息，返回：所有煤层信息")
+    @Tool(name = "getAllCoalSeams", description = "煤层信息：查询所有煤层信息，返回：所有煤层信息")
     public List<CoalSeam> getAll() {
         try {
             log.info("Tool:查询所有煤层信息");
@@ -68,6 +70,17 @@ public class CoalSeamControllerTool {
             return list;
         } catch (Exception e) {
             log.error("Tool:查询所有煤层信息失败：{}", e.getMessage());
+            return null;
+        }
+    }
+
+    @Tool(description = "煤层信息：查询煤层表的字段名和对应的注释信息")
+    public List<ColumnMetadata> getCoalSeamColumnMetadata() {
+        try {
+            log.info("Tool:查询煤层表的字段元数据");
+            return columnMetadataService.getColumnMetadata("coal_seam", "agent");
+        } catch (Exception e) {
+            log.error("Tool:查询煤层表的字段元数据失败：{}", e.getMessage());
             return null;
         }
     }

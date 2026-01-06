@@ -22,7 +22,7 @@ public class BoreholeControllerTool {
         this.service = service;
     }
 
-    @Tool(description = "钻孔信息：通过钻孔编号,矿区编码,X坐标,Y坐标,Z坐标,总深度,钻探目的,钻探日期,状态增加新的钻孔信息，返回：成功数量，-1表示失败！")
+    @Tool(name = "addBorehole", description = "钻孔信息：通过钻孔编号,矿区编码,X坐标,Y坐标,Z坐标,总深度,钻探目的,钻探日期,状态增加新的钻孔信息，返回：成功数量，-1表示失败！")
     public int add(
             @ToolParam(description = "钻孔编号") String holeId,
             @ToolParam(description = "矿区编码") String areaId,
@@ -53,7 +53,7 @@ public class BoreholeControllerTool {
         }
     }
 
-    @Tool(description = "钻孔信息：通过钻孔编号查询钻孔信息，返回：钻孔信息")
+    @Tool(name = "getBoreholeById", description = "钻孔信息：通过钻孔编号查询钻孔信息，返回：钻孔信息")
     public Borehole getById(@ToolParam(description = "钻孔编号") String holeId) {
         try {
             log.info("Tool:查询钻孔信息：{}", holeId);
@@ -65,7 +65,7 @@ public class BoreholeControllerTool {
         }
     }
 
-    @Tool(description = "钻孔信息：查询所有钻孔信息，返回：所有钻孔信息")
+    @Tool(name = "getAllBoreholes", description = "钻孔信息：查询所有钻孔信息，返回：所有钻孔信息")
     public List<Borehole> getAll() {
         try {
             log.info("Tool:查询所有钻孔信息");
@@ -77,7 +77,7 @@ public class BoreholeControllerTool {
         }
     }
 
-    @Tool(description = "钻孔信息：通过矿区编码查询钻孔信息，返回：钻孔信息列表")
+    @Tool(name = "getBoreholesByAreaId", description = "钻孔信息：通过矿区编码查询钻孔信息，返回：钻孔信息列表")
     public List<Borehole> getByAreaId(@ToolParam(description = "矿区编码") String areaId) {
         try {
             log.info("Tool:通过矿区编码查询钻孔信息：{}", areaId);

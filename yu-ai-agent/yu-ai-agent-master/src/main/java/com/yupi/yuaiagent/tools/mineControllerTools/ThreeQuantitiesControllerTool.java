@@ -2,9 +2,9 @@ package com.yupi.yuaiagent.tools.mineControllerTools;
 
 import com.yupi.yuaiagent.domin.entity.ThreeQuantities;
 import com.yupi.yuaiagent.service.IThreeQuantitiesService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -22,7 +22,7 @@ public class ThreeQuantitiesControllerTool {
         this.service = service;
     }
 
-    @Tool(description = "三量动态台账：通过矿区编码,计算日期,开拓煤量,准备煤量,回采煤量增加新的三量动态台账信息，返回：成功数量，-1表示失败！")
+    @Tool(name = "addThreeQuantities", description = "三量动态台账：通过矿区编码,计算日期,开拓煤量,准备煤量,回采煤量增加新的三量动态台账信息，返回：成功数量，-1表示失败！")
     public int add(
             @ToolParam(description = "矿区编码") String areaId,
             @ToolParam(description = "计算日期") LocalDate calcDate,
@@ -45,7 +45,7 @@ public class ThreeQuantitiesControllerTool {
         }
     }
 
-    @Tool(description = "三量动态台账：通过记录ID查询三量动态台账信息，返回：三量动态台账信息")
+    @Tool(name = "getThreeQuantitiesById", description = "三量动态台账：通过记录ID查询三量动态台账信息，返回：三量动态台账信息")
     public ThreeQuantities getById(@ToolParam(description = "记录ID") Long recordId) {
         try {
             log.info("Tool:查询三量动态台账信息：{}", recordId);
@@ -57,7 +57,7 @@ public class ThreeQuantitiesControllerTool {
         }
     }
 
-    @Tool(description = "三量动态台账：查询所有三量动态台账信息，返回：所有三量动态台账信息")
+    @Tool(name = "getAllThreeQuantities", description = "三量动态台账：查询所有三量动态台账信息，返回：所有三量动态台账信息")
     public List<ThreeQuantities> getAll() {
         try {
             log.info("Tool:查询所有三量动态台账信息");
@@ -69,7 +69,7 @@ public class ThreeQuantitiesControllerTool {
         }
     }
 
-    @Tool(description = "三量动态台账：通过矿区编码查询三量动态台账信息，返回：三量动态台账信息列表")
+    @Tool(name = "getThreeQuantitiesByAreaId", description = "三量动态台账：通过矿区编码查询三量动态台账信息，返回：三量动态台账信息列表")
     public List<ThreeQuantities> getByAreaId(@ToolParam(description = "矿区编码") String areaId) {
         try {
             log.info("Tool:按矿区查询三量动态台账信息：{}", areaId);

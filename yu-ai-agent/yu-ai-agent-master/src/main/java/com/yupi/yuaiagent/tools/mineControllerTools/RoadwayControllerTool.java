@@ -21,7 +21,7 @@ public class RoadwayControllerTool {
         this.service = service;
     }
 
-    @Tool(description = "巷道基本信息：通过巷道编号,矿区编码,巷道名称,起点编号,终点编号,巷道类型,断面面积,状态增加新的巷道基本信息，返回：成功数量，-1表示失败！")
+    @Tool(name = "addRoadway", description = "巷道基本信息：通过巷道编号,矿区编码,巷道名称,起点编号,终点编号,巷道类型,断面面积,状态增加新的巷道基本信息，返回：成功数量，-1表示失败！")
     public int add(
             @ToolParam(description = "巷道编号") String roadwayId,
             @ToolParam(description = "矿区编码") String areaId,
@@ -50,7 +50,7 @@ public class RoadwayControllerTool {
         }
     }
 
-    @Tool(description = "巷道基本信息：通过巷道编号查询巷道基本信息，返回：巷道基本信息")
+    @Tool(name = "getRoadwayById", description = "巷道基本信息：通过巷道编号查询巷道基本信息，返回：巷道基本信息")
     public Roadway getById(@ToolParam(description = "巷道编号") String roadwayId) {
         try {
             log.info("Tool:查询巷道基本信息：{}", roadwayId);
@@ -62,7 +62,7 @@ public class RoadwayControllerTool {
         }
     }
 
-    @Tool(description = "巷道基本信息：查询所有巷道基本信息，返回：所有巷道基本信息")
+    @Tool(name = "getAllRoadways", description = "巷道基本信息：查询所有巷道基本信息，返回：所有巷道基本信息")
     public List<Roadway> getAll() {
         try {
             log.info("Tool:查询所有巷道基本信息");
@@ -74,7 +74,7 @@ public class RoadwayControllerTool {
         }
     }
 
-    @Tool(description = "巷道基本信息：通过矿区编码查询巷道基本信息，返回：巷道基本信息列表")
+    @Tool(name = "getRoadwaysByAreaId", description = "巷道基本信息：通过矿区编码查询巷道基本信息，返回：巷道基本信息列表")
     public List<Roadway> getByAreaId(@ToolParam(description = "矿区编码") String areaId) {
         try {
             log.info("Tool:按矿区查询巷道基本信息：{}", areaId);

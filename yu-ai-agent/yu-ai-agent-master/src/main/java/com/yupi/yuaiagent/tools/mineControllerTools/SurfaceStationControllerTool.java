@@ -21,7 +21,7 @@ public class SurfaceStationControllerTool {
         this.service = service;
     }
 
-    @Tool(description = "观测站：通过站点编号,矿区编码,X坐标,Y坐标,初始高程增加新的观测站信息，返回：成功数量，-1表示失败！")
+    @Tool(name = "addSurfaceStation", description = "观测站：通过站点编号,矿区编码,X坐标,Y坐标,初始高程增加新的观测站信息，返回：成功数量，-1表示失败！")
     public int add(
             @ToolParam(description = "站点编号") String stationId,
             @ToolParam(description = "矿区编码") String areaId,
@@ -44,7 +44,7 @@ public class SurfaceStationControllerTool {
         }
     }
 
-    @Tool(description = "观测站：通过站点编号查询观测站信息，返回：观测站信息")
+    @Tool(name = "getSurfaceStationById", description = "观测站：通过站点编号查询观测站信息，返回：观测站信息")
     public SurfaceStation getById(@ToolParam(description = "站点编号") String stationId) {
         try {
             log.info("Tool:查询观测站信息：{}", stationId);
@@ -56,7 +56,7 @@ public class SurfaceStationControllerTool {
         }
     }
 
-    @Tool(description = "观测站：查询所有观测站信息，返回：所有观测站信息")
+    @Tool(name = "getAllSurfaceStations", description = "观测站：查询所有观测站信息，返回：所有观测站信息")
     public List<SurfaceStation> getAll() {
         try {
             log.info("Tool:查询所有观测站信息");
@@ -68,7 +68,7 @@ public class SurfaceStationControllerTool {
         }
     }
 
-    @Tool(description = "观测站：通过矿区编码查询观测站信息，返回：观测站信息列表")
+    @Tool(name = "getSurfaceStationsByAreaId", description = "观测站：通过矿区编码查询观测站信息，返回：观测站信息列表")
     public List<SurfaceStation> getByAreaId(@ToolParam(description = "矿区编码") String areaId) {
         try {
             log.info("Tool:按矿区查询观测站信息：{}", areaId);

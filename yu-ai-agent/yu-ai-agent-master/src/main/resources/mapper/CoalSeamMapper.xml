@@ -17,7 +17,7 @@
 
     <select id="selectById" resultMap="BaseResultMap">
         SELECT seam_id, seam_name, average_thickness, dip_angle, roof_lithology, floor_lithology
-        FROM public.coal_seam WHERE seam_id = #{seamId}
+        FROM agent.coal_seam WHERE seam_id = #{seamId}
     </select>
 
     <select id="selectAll" resultMap="BaseResultMap">

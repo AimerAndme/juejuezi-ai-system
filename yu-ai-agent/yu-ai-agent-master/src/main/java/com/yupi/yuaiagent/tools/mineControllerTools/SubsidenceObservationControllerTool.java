@@ -22,7 +22,7 @@ public class SubsidenceObservationControllerTool {
         this.service = service;
     }
 
-    @Tool(description = "沉降观测记录：通过站点编号,观测日期,初始高程,当前高程增加新的沉降观测记录信息，返回：成功数量，-1表示失败！")
+    @Tool(name = "addSubsidenceObservation", description = "沉降观测记录：通过站点编号,观测日期,初始高程,当前高程增加新的沉降观测记录信息，返回：成功数量，-1表示失败！")
     public int add(
             @ToolParam(description = "站点编号") String stationId,
             @ToolParam(description = "观测日期") LocalDate obsDate,
@@ -47,7 +47,7 @@ public class SubsidenceObservationControllerTool {
         }
     }
 
-    @Tool(description = "沉降观测记录：通过观测记录ID查询沉降观测记录信息，返回：沉降观测记录信息")
+    @Tool(name = "getSubsidenceObservationById", description = "沉降观测记录：通过观测记录ID查询沉降观测记录信息，返回：沉降观测记录信息")
     public SubsidenceObservation getById(@ToolParam(description = "观测记录ID") Long obsId) {
         try {
             log.info("Tool:查询沉降观测记录信息：{}", obsId);
@@ -59,7 +59,7 @@ public class SubsidenceObservationControllerTool {
         }
     }
 
-    @Tool(description = "沉降观测记录：查询所有沉降观测记录信息，返回：所有沉降观测记录信息")
+    @Tool(name = "getAllSubsidenceObservations", description = "沉降观测记录：查询所有沉降观测记录信息，返回：所有沉降观测记录信息")
     public List<SubsidenceObservation> getAll() {
         try {
             log.info("Tool:查询所有沉降观测记录信息");
@@ -71,7 +71,7 @@ public class SubsidenceObservationControllerTool {
         }
     }
 
-    @Tool(description = "沉降观测记录：通过站点编号查询沉降观测记录信息，返回：沉降观测记录信息列表")
+    @Tool(name = "getSubsidenceObservationsByStationId", description = "沉降观测记录：通过站点编号查询沉降观测记录信息，返回：沉降观测记录信息列表")
     public List<SubsidenceObservation> getByStationId(@ToolParam(description = "站点编号") String stationId) {
         try {
             log.info("Tool:按站点查询沉降观测记录信息：{}", stationId);
