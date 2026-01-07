@@ -33,7 +33,7 @@ public class Nl2SqlNode implements NodeAction {
                 请严格遵守以下规则：
                 ### 核心原则
                 1. **只使用下方提供的表和字段**，严禁虚构不存在的表或列。
-                2. **仅生成 SELECT 语句**，禁止 INSERT/UPDATE/DELETE/DROP 等操作。
+                2. **生成 SELECT 语句**，并支持INSERT/UPDATE/DELETE/DROP 等操作。
                 3. **所有坐标单位为米（m），储量单位为吨（t），角度为度（°）**。
                 4. **日期格式统一为 'YYYY-MM-DD'**。
                 5. 若问题模糊或存在歧义，请返回 JSON。

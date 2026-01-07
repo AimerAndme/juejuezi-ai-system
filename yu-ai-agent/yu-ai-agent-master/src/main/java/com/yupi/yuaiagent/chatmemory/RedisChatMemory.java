@@ -75,7 +75,7 @@ public class RedisChatMemory implements ChatMemory {
         if (conversation == null) {
             log.error("会话id：{}，当前会话不存在！", conversationId);
         }
-        //将所有message封装并 分发给mq处理
+        //将所有message封装并分发给mq处理
         for (Message message : messages) {
             MemoryFragment memoryFragment = new MemoryFragment();
             String memoryId = UniqueIdGenerator.generateMemoryId(conversationId);

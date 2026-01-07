@@ -214,6 +214,22 @@
             <version>4.4.0</version>
         </dependency>
         <dependency>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>pdfbox</artifactId>
+            <version>3.0.2</version> <!-- 或者使用 2.0.x 系列的稳定版，如 2.0.32 -->
+        </dependency>
+        <!-- 处理某些图片格式可能需要的额外依赖 -->
+        <dependency>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>jbig2-imageio</artifactId>
+            <version>3.0.4</version> <!-- 版本号可能需要根据pdfbox主版本调整 -->
+        </dependency>
+        <dependency>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>pdfbox-tools</artifactId>
+            <version>3.0.2</version> <!-- 如果需要使用命令行工具或某些高级功能 -->
+        </dependency>
+        <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>1.18.36</version>

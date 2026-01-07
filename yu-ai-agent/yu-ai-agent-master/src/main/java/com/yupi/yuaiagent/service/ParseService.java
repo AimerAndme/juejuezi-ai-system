@@ -5,6 +5,7 @@ import com.yupi.yuaiagent.domin.constant.EmbeddingModelConstant;
 import com.yupi.yuaiagent.domin.entity.DocumentVector;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.pdfbox.Loader;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.AutoDetectParser;
@@ -154,9 +155,8 @@ public class ParseService {
             fileStream.reset();
             org.apache.pdfbox.pdmodel.PDDocument document = null;
             try {
-                document = org.apache.pdfbox.pdmodel.PDDocument.load(fileStream,
-                        org.apache.pdfbox.io.MemoryUsageSetting.setupTempFileOnly());
-
+                byte[] pdfBytes = fileStream.readAllBytes(); // Java 11+ 提供的便捷方法
+                document = Loader.loadPDF(pdfBytes);
                 org.apache.pdfbox.text.PDFTextStripper stripper =
                         new org.apache.pdfbox.text.PDFTextStripper();
 

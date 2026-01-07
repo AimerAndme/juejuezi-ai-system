@@ -123,6 +123,7 @@ onMounted(async () => {
   console.log('=== onMounted 开始执行 ===')
   const userId = localStorage.getItem('userId')
   console.log('userId:', userId)
+  let hasHistoricalMessages = false
 
   if (userId) {
     try {
@@ -159,6 +160,7 @@ onMounted(async () => {
             const isUser = msg.msgType === 1
             addMessage(msg.msgContent, isUser, '')
           })
+          hasHistoricalMessages = true
         }
       }
     } catch (error) {
@@ -179,12 +181,14 @@ onMounted(async () => {
     }
   }
 
-  // 添加欢迎消息
-  console.log('添加欢迎消息')
-  addMessage(
-    '您好，我是AI矿山专家。我可以为您解答各种矿山技术问题，提供专业的矿业建议，请问有什么可以帮助您的吗？',
-    false
-  )
+  // 只有当没有历史消息时才添加欢迎消息
+  if (!hasHistoricalMessages) {
+    console.log('添加欢迎消息')
+    addMessage(
+      '您好，我是AI矿山专家。我可以为您解答各种矿山技术问题，提供专业的矿业建议，请问有什么可以帮助您的吗？',
+      false
+    )
+  }
   console.log('=== onMounted 执行完毕 ===')
 })
 
