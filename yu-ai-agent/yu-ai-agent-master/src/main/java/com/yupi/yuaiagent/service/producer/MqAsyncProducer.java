@@ -8,6 +8,8 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Map;
+
 /**
  * 非核心记忆消息生产者：发送到 RabbitMQ 队列
  */
@@ -44,13 +46,13 @@ public class MqAsyncProducer {
         }
     }
 
-    public void sendFileParseFragment(String fileMd5) {
+    public void sendFileParseFragment(String fileMd5, String userId) {
         CorrelationData correlationData = new CorrelationData(fileMd5);
         try {
             rabbitTemplate.convertAndSend(
                     RabbitMQConfig.FILE_EXCHANGE,
                     RabbitMQConfig.FILE_ROUTING_KEY,
-                    fileMd5,
+                    Map.of("fileMd5", fileMd5, "userId", userId),
                     correlationData);
             log.info("文件解析向量化任务提交成功，fileMd5：{}", fileMd5);
         } catch (Exception e) {

@@ -12,6 +12,7 @@ import org.springframework.retry.annotation.EnableRetry;
         // 为了便于大家开发调试和部署，取消数据库自动配置，需要使用 PgVector 时把 DataSourceAutoConfiguration.class 删除
 //        DataSourceAutoConfiguration.class
 })
+@EnableRetry
 @MapperScan("com.yupi.yuaiagent.mapper")
 public class YuAiAgentApplication {
 

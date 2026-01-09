@@ -101,6 +101,13 @@
                 📦
               </button>
               <button
+                @click="viewImages(file)"
+                class="btn-icon btn-images"
+                title="查看图片"
+              >
+                🖼️
+              </button>
+              <button
                 @click="startEdit(file)"
                 class="btn-icon btn-edit"
                 title="重命名"
@@ -315,6 +322,14 @@ const viewVectors = (file) => {
 const viewEsDoc = (file) => {
   router.push({
     path: '/es-doc-manage',
+    query: { fileMd5: file.fileMd5 },
+  })
+}
+
+// 查看图片
+const viewImages = (file) => {
+  router.push({
+    path: '/image-manage',
     query: { fileMd5: file.fileMd5 },
   })
 }
@@ -728,6 +743,10 @@ input:checked + .slider:before {
 
 .btn-es:hover {
   background: #e1f5fe;
+}
+
+.btn-images:hover {
+  background: #fce4ec;
 }
 
 .btn-delete:hover {

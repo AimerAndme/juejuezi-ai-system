@@ -89,6 +89,15 @@ const routes = [
     },
   },
   {
+    path: '/image-manage',
+    name: 'ImageManage',
+    component: () => import('../views/FileImageManage.vue'),
+    meta: {
+      title: '文件图片管理 - 鱼皑AI超级智能体应用平台',
+      description: '查看和管理文件中提取的图片数据',
+    },
+  },
+  {
     path: '/data-center',
     name: 'DataCenter',
     component: () => import('../views/DataCenter.vue'),

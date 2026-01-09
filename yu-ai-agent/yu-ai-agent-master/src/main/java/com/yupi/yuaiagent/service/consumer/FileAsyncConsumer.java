@@ -1,5 +1,7 @@
 package com.yupi.yuaiagent.service.consumer;
 
+import com.alibaba.dashscope.exception.NoApiKeyException;
+import com.alibaba.dashscope.exception.UploadFileException;
 import com.rabbitmq.client.Channel;
 import com.yupi.yuaiagent.config.RabbitMQConfig;
 import com.yupi.yuaiagent.domin.constant.FileConstant;
@@ -9,6 +11,7 @@ import com.yupi.yuaiagent.exception.ErrorCode;
 import com.yupi.yuaiagent.mapper.FileUploadMapper;
 import com.yupi.yuaiagent.service.ParseService;
 import com.yupi.yuaiagent.service.VectorizationService;
+import com.yupi.yuaiagent.util.PDFContentExtractor;
 import com.yupi.yuaiagent.utils.FileUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +25,7 @@ import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Map;
 import java.util.Objects;
 
 @Slf4j
@@ -32,16 +36,19 @@ public class FileAsyncConsumer {
     private final FileUploadMapper fileUploadMapper;
     private final VectorizationService vectorizationService;
     private final ParseService parseService;
+    private final PDFContentExtractor pdfContentExtractor;
 
     @RabbitListener(
             queues = RabbitMQConfig.FILE_ASYNC_QUEUE,
             ackMode = "MANUAL"
     )
     public void consumeFile(
-            String fileMd5,
+            Map<String, String> fileInfo,
             Channel channel,
             @Header(AmqpHeaders.DELIVERY_TAG) Long deliveryTag
     ) {
+        String fileMd5 = fileInfo.get("fileMd5");
+        String userId = fileInfo.get("userId");
         //文件信息校验
         FileUpload fileUpload = fileUploadMapper.selectByFileMd5(fileMd5);
         if (Objects.isNull(fileUpload) || !fileUpload.getIsPublic()) {
@@ -86,12 +93,20 @@ public class FileAsyncConsumer {
      * @param fileUpload
      * @return
      */
-    private InputStream downloadFileByFileMd5(FileUpload fileUpload) {
+    private InputStream downloadFileByFileMd5(FileUpload fileUpload) throws IOException, NoApiKeyException, UploadFileException {
         String fileName = fileUpload.getFileMd5() + "_" + fileUpload.getFileName();
         String filePath = FileUtils.findFileByName(FileConstant.FILE_UPLOAD_SAVE_DIR_, fileName); // 替换为你的文件路径
+        String imagesPath = FileConstant.IMAGES_UPLOAD_SAVE_DIR_;
         if (filePath == null) {
             log.error("文件不存在");
             throw new RuntimeException("文件不存在");
+        }
+        //判断文件类型
+        if (fileName.endsWith(".pdf")) {
+            //如果是PDF文件，进行pdf的处理,
+            String s = pdfContentExtractor.extractMixedContentWithVlm(fileUpload, filePath, imagesPath, imagesPath);
+            log.info("文件：{}，已成功处理，", filePath);
+            return new ByteArrayInputStream(s.getBytes());
         }
         // 使用 try-with-resources 确保 InputStream 被正确关闭
         try {

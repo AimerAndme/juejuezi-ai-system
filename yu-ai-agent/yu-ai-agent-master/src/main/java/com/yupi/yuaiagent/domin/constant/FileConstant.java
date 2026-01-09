@@ -13,4 +13,8 @@ public interface FileConstant {
      * 文件保存目录
      */
     String FILE_UPLOAD_SAVE_DIR_ = System.getProperty("user.dir") + "/upload/files";
+    /**
+     * 文件保存目录
+     */
+    String IMAGES_UPLOAD_SAVE_DIR_ = System.getProperty("user.dir") + "/upload/images";
 }

@@ -21,7 +21,7 @@ spring:
     redis:
       host: localhost  # Redis服务器地址
       port: 6379       # 端口
-#      password:  # 密码（无密码可省略）
+      #      password:  # 密码（无密码可省略）
       database: 1      # 数据库编号（默认0）
       timeout: 2000ms  # 连接超时时间
 
@@ -34,6 +34,9 @@ spring:
         #  api-key: sk-da831ca6d01e4b8aaa04c1705d35f990
         options:
           model: qwen-plus
+      image:
+        options:
+          model: qwen3-vl-plus
     ollama:
       base-url: http://localhost:11434
       chat:
@@ -85,7 +88,7 @@ mybatis:
   type-handlers-package: com.yupi.yuaiagent.handler
   configuration:
     map-underscore-to-camel-case: true  # 下划线转驼峰命名（适配 PG 表字段）
-   # log-impl: org.apache.ibatis.logging.stdout.StdOutImpl  # 显示 MyBatis SQL（开发用）
+    # log-impl: org.apache.ibatis.logging.stdout.StdOutImpl  # 显示 MyBatis SQL（开发用）
 
 server:
   port: 8123

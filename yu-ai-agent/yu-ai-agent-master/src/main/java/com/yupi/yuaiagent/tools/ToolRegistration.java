@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 /**
  * 集中的工具注册类
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @AllArgsConstructor
 public class ToolRegistration {
     private final MineAreaControllerTool mineAreaControllerTool;

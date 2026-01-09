@@ -29,6 +29,6 @@ public class FileParseService implements IFileParseService {
             log.error("当前文件不匹配！无法解析向量化");
             throw new BusinessException(ErrorCode.FILE_PARSE_ERROR);
         }
-        mqAsyncProducer.sendFileParseFragment(fileMd5);
+        mqAsyncProducer.sendFileParseFragment(fileMd5,userId);
     }
 }

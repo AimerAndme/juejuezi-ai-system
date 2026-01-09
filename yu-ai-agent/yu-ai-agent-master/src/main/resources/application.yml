@@ -21,13 +21,13 @@ spring:
       idle-timeout: 600000 # 空闲连接超时时间（ms）
       max-lifetime: 1800000 # 连接最大存活时间（ms）
       connection-test-query: SELECT 1 # PG 心跳检测 SQL（HikariCP 会自动适配，可选）
-#  data:
-#    redis:
-#      host: 8.137.79.174 # Redis服务器地址
-#      port: 6379 # 端口
-#      password: redis123 # 密码（无密码可省略）
-#      database: 1 # 数据库编号（默认0）
-#      timeout: 2000ms # 连接超时时间
+  #  data:
+  #    redis:
+  #      host: 8.137.79.174 # Redis服务器地址
+  #      port: 6379 # 端口
+  #      password: redis123 # 密码（无密码可省略）
+  #      database: 1 # 数据库编号（默认0）
+  #      timeout: 2000ms # 连接超时时间
 
   # 临时注释掉，便于大家开发调试和部署（实际填写 PgVector 数据库信息）
   #  datasource:
@@ -42,6 +42,9 @@ spring:
         #  api-key: sk-da831ca6d01e4b8aaa04c1705d35f990
         options:
           model: qwen-plus
+      image:
+        options:
+          model: qwen3-vl-plus
 
     ollama:
       base-url: http://localhost:11434
@@ -138,6 +141,7 @@ embedding:
     batch-size: 10  # 单次请求最大行数（DashScope限制为10）
     dimension: 2048  # 指定向量维度
 # File Upload Configuration
+
 file:
   upload:
     chunk-size: 20971520 # 2MB per chunk
