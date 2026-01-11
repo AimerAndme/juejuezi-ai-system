@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yupi.yuaiagent.mapper.FileExtractedImagesMapper">
+    <resultMap id="BaseResultMap" type="com.yupi.yuaiagent.domin.entity.FileExtractedImages">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="file_md5" property="fileMd5"/>
+        <result column="image_path" property="imagePath"/>
+        <result column="page_number" property="pageNumber"/>
+        <result column="extraction_bbox" property="extractionBbox" typeHandler="com.yupi.yuaiagent.handler.JsonbTypeHandler"/>
+        <result column="vl_model_name" property="vlModelName"/>
+        <result column="vl_model_version" property="vlModelVersion"/>
+        <result column="vl_result_text" property="vlResultText"/>
+        <result column="vl_result_json" property="vlResultJson" typeHandler="com.yupi.yuaiagent.handler.JsonbTypeHandler"/>
+        <result column="vl_processing_status" property="vlProcessingStatus"/>
+        <result column="vl_processed_at" property="vlProcessedAt"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.yupi.yuaiagent.domin.entity.FileExtractedImages">
+        INSERT INTO file_extracted_images (user_id, file_md5, image_path, page_number, extraction_bbox, vl_model_name, vl_model_version, vl_result_text, vl_result_json, vl_processing_status, vl_processed_at)
+        VALUES (#{userId}, #{fileMd5}, #{imagePath}, #{pageNumber}, #{extractionBbox,typeHandler=com.yupi.yuaiagent.handler.JsonbTypeHandler}, #{vlModelName}, #{vlModelVersion}, #{vlResultText}, #{vlResultJson,typeHandler=com.yupi.yuaiagent.handler.JsonbTypeHandler}, #{vlProcessingStatus}, #{vlProcessedAt})
+    </insert>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT id, user_id, file_md5, image_path, page_number, extraction_bbox, vl_model_name, vl_model_version, vl_result_text, vl_result_json, vl_processing_status, vl_processed_at, created_at, updated_at FROM file_extracted_images WHERE id = #{id}
+    </select>
+
+    <select id="selectByFileMd5" resultMap="BaseResultMap">
+        SELECT id, user_id, file_md5, image_path, page_number, extraction_bbox, vl_model_name, vl_model_version, vl_result_text, vl_result_json, vl_processing_status, vl_processed_at, created_at, updated_at FROM file_extracted_images WHERE file_md5 = #{fileMd5}
+    </select>
+
+    <select id="selectByUserId" resultMap="BaseResultMap">
+        SELECT id, user_id, file_md5, image_path, page_number, extraction_bbox, vl_model_name, vl_model_version, vl_result_text, vl_result_json, vl_processing_status, vl_processed_at, created_at, updated_at FROM file_extracted_images WHERE user_id = #{userId}
+    </select>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT id, user_id, file_md5, image_path, page_number, extraction_bbox, vl_model_name, vl_model_version, vl_result_text, vl_result_json, vl_processing_status, vl_processed_at, created_at, updated_at FROM file_extracted_images
+    </select>
+
+    <update id="update" parameterType="com.yupi.yuaiagent.domin.entity.FileExtractedImages">
+        UPDATE file_extracted_images SET user_id = #{userId}, file_md5 = #{fileMd5}, image_path = #{imagePath}, page_number = #{pageNumber}, extraction_bbox = #{extractionBbox,typeHandler=com.yupi.yuaiagent.handler.JsonbTypeHandler}, vl_model_name = #{vlModelName}, vl_model_version = #{vlModelVersion}, vl_result_text = #{vlResultText}, vl_result_json = #{vlResultJson,typeHandler=com.yupi.yuaiagent.handler.JsonbTypeHandler}, vl_processing_status = #{vlProcessingStatus}, vl_processed_at = #{vlProcessedAt}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM file_extracted_images WHERE id = #{id}
+    </delete>
+
+    <delete id="deleteByFileMd5">
+        DELETE FROM file_extracted_images WHERE file_md5 = #{fileMd5}
+    </delete>
+</mapper>
