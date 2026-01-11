@@ -7,7 +7,7 @@ spring:
   application:
     name: yu-ai-agent
   profiles:
-    active: gs
+    active: gsdn
   datasource:
     # 连接 URL：格式 jdbc:postgresql://主机:端口/数据库名?参数
     url: jdbc:postgresql://localhost:5432/sdagent?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf8

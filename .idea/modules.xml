@@ -3,6 +3,8 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/lv-ai.iml" filepath="$PROJECT_DIR$/.idea/lv-ai.iml" />
+      <module fileurl="file://$PROJECT_DIR$/yu-ai-agent/lv-image-search-mcp-server/src/main/main.iml" filepath="$PROJECT_DIR$/yu-ai-agent/lv-image-search-mcp-server/src/main/main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/yu-ai-agent/lv-image-search-mcp-server/src/test/test.iml" filepath="$PROJECT_DIR$/yu-ai-agent/lv-image-search-mcp-server/src/test/test.iml" />
     </modules>
   </component>
 </project>

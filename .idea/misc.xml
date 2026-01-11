@@ -4,9 +4,8 @@
   <component name="MavenProjectsManager">
     <option name="originalFiles">
       <list>
-        <option value="$PROJECT_DIR$/yu-ai-agent/yu-ai-agent-master/pom.xml" />
-        <option value="$PROJECT_DIR$/yu-ai-agent/yu-image-search-mcp-server/pom.xml" />
         <option value="$PROJECT_DIR$/yu-ai-agent/lv-image-search-mcp-server/pom.xml" />
+        <option value="$PROJECT_DIR$/yu-ai-agent/yu-ai-agent-master/pom.xml" />
       </list>
     </option>
   </component>

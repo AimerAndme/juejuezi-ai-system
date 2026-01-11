@@ -120,7 +120,7 @@ public class EmbeddingClient {
                 return null;
             }
             // 输出结果
-            log.info("文本：{}向量化完成！", text);
+            log.info("文本：向量化完成！");
             result = textEmbeddingResult.getOutput().getEmbeddings().get(0).getEmbedding();
             return result.stream().mapToDouble(Double::doubleValue).toArray();
         } catch (NoApiKeyException e) {

@@ -2,11 +2,15 @@ package com.yupi.yuaiagent.util;
 
 import com.alibaba.dashscope.exception.NoApiKeyException;
 import com.alibaba.dashscope.exception.UploadFileException;
+import com.yupi.yuaiagent.aspect.ExecutionTimeMonitor;
 import com.yupi.yuaiagent.client.VlmClient;
+import com.yupi.yuaiagent.domin.constant.FileConstant;
 import com.yupi.yuaiagent.domin.entity.FileExtractedImages;
 import com.yupi.yuaiagent.domin.entity.FileUpload;
 import com.yupi.yuaiagent.service.IFileExtractedImagesService;
+import jakarta.annotation.Resource;
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -18,6 +22,7 @@ import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.pdfbox.text.TextPosition;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
 import javax.imageio.ImageIO;
@@ -25,6 +30,8 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
 
 @Slf4j
 @Component
@@ -33,6 +40,9 @@ public class PDFContentExtractor {
 
     private final IFileExtractedImagesService fileExtractedImagesService;
     private final VlmClient vlmClient;
+
+    @Resource(name = "pdfPageExecutor")
+    private ThreadPoolTaskExecutor pdfPageExecutor;
 
     /**
      * 检测和提取页面上的表格内容
@@ -147,7 +157,7 @@ public class PDFContentExtractor {
             if (!outputDir.exists()) {
                 outputDir.mkdirs();
             }
-
+            
             int imageCounter = 0;
             for (int i = 0; i < pageCount; i++) {
                 PDPage page = document.getPage(i);
@@ -285,8 +295,178 @@ public class PDFContentExtractor {
      * @return 包含混合内容、图片URL列表和表格内容列表的 MixedContentResult
      * @throws IOException
      */
+    @ExecutionTimeMonitor
     public String extractMixedContentWithVlm(FileUpload fileUpload, String pdfPath, String imageOutputDir, String baseUrl) throws IOException, NoApiKeyException, UploadFileException {
+        long startTime = System.currentTimeMillis();
         String userId = fileUpload.getUserId();
+        String fileMd5 = fileUpload.getFileMd5();
+        String fileName = fileUpload.getFileName();
+        File pdfFile = new File(pdfPath);
+
+        try (PDDocument document = Loader.loadPDF(pdfFile)) {
+            int pageCount = document.getNumberOfPages();
+
+            File outputDir = new File(imageOutputDir);
+            if (!outputDir.exists()) {
+                outputDir.mkdirs();
+            }
+
+            List<CompletableFuture<PageProcessResult>> futures = new ArrayList<>();
+
+            for (int i = 0; i < pageCount; i++) {
+                final int pageIndex = i;
+                CompletableFuture<PageProcessResult> future = CompletableFuture.supplyAsync(() -> {
+                    try {
+                        return processPage(document, pageIndex, fileMd5, userId, outputDir, baseUrl);
+                    } catch (Exception e) {
+                        log.error("处理第 {} 页失败: {}", pageIndex + 1, e.getMessage(), e);
+                        PageProcessResult errorResult = new PageProcessResult();
+                        errorResult.setPageIndex(pageIndex);
+                        errorResult.setPageContent("");
+                        errorResult.setImageUrls(new ArrayList<>());
+                        errorResult.setTableContents(new ArrayList<>());
+                        return errorResult;
+                    }
+                }, pdfPageExecutor);
+                futures.add(future);
+            }
+
+            CompletableFuture<Void> allFutures = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
+
+            try {
+                allFutures.get();
+            } catch (Exception e) {
+                log.error("等待页面处理完成时发生异常: {}", e.getMessage(), e);
+            }
+
+            StringBuilder mixedContent = new StringBuilder();
+            List<String> allImageUrls = new ArrayList<>();
+            List<String> allTableContents = new ArrayList<>();
+
+            for (CompletableFuture<PageProcessResult> future : futures) {
+                try {
+                    PageProcessResult result = future.get();
+                    mixedContent.append(result.getPageContent());
+                    allImageUrls.addAll(result.getImageUrls());
+                    allTableContents.addAll(result.getTableContents());
+                } catch (Exception e) {
+                    log.error("获取页面处理结果失败: {}", e.getMessage(), e);
+                }
+            }
+
+            long endTime = System.currentTimeMillis();
+            long executionTime = endTime - startTime;
+            log.info("PDF处理完成 - 文件: {}, 总页数: {}, 提取图片数: {}, 提取表格数: {}, 耗时: {}ms", fileName, pageCount, allImageUrls.size(), allTableContents.size(), executionTime);
+            return mixedContent.toString();
+        } catch (IOException e) {
+            long endTime = System.currentTimeMillis();
+            long executionTime = endTime - startTime;
+            log.error("PDF处理失败 - 文件: {}, 耗时: {}ms, 异常: {}", fileName, executionTime, e.getMessage());
+            throw e;
+        }
+    }
+
+    private PageProcessResult processPage(PDDocument document, int pageIndex, String fileMd5, String userId, File outputDir, String baseUrl) throws IOException, NoApiKeyException, UploadFileException {
+        PageProcessResult result = new PageProcessResult();
+        result.setPageIndex(pageIndex);
+        result.setImageUrls(new ArrayList<>());
+        result.setTableContents(new ArrayList<>());
+
+        PDPage page = document.getPage(pageIndex);
+        StringBuilder pageContent = new StringBuilder();
+
+        PDFTextStripper stripper = new PDFTextStripper();
+        stripper.setStartPage(pageIndex + 1);
+        stripper.setEndPage(pageIndex + 1);
+        String pageText = "";
+        try {
+            pageText = stripper.getText(document);
+        } catch (Exception e) {
+            log.warn("提取第 {} 页文本时出错，可能是字体或PDF格式问题: {}", pageIndex + 1, e.getMessage());
+        }
+        pageContent.append(pageText);
+
+        PDResources resources = page.getResources();
+        int imageCounter = 0;
+        if (resources != null && resources.getXObjectNames() != null) {
+            for (Object xObjectKey : resources.getXObjectNames()) {
+                PDXObject xObject = resources.getXObject((org.apache.pdfbox.cos.COSName) xObjectKey);
+
+                if (xObject instanceof PDImageXObject) {
+                    PDImageXObject image = (PDImageXObject) xObject;
+
+                    String suffix = image.getSuffix();
+                    if (suffix == null) {
+                        suffix = "png";
+                    }
+                    String imageFileName = fileMd5 + FileConstant.IMAGES_UPLOADS_PREFIX + (pageIndex + 1) + "_" + (imageCounter++) + "." + suffix;
+                    File imageFile = new File(outputDir, imageFileName);
+
+                    BufferedImage awtImage = null;
+                    try {
+                        awtImage = image.getImage();
+                    } catch (IOException e) {
+                        log.warn("无法提取图片数据，可能是由于ICC颜色空间问题: {}", e.getMessage());
+                        continue;
+                    }
+                    if (awtImage != null) {
+                        try {
+                            ImageIO.write(awtImage, suffix.toUpperCase(), imageFile);
+                            log.debug("成功保存图片到: {}", imageFile.getAbsolutePath());
+                        } catch (IOException e) {
+                            log.error("保存图片失败: {}", imageFile.getAbsolutePath(), e);
+                            continue;
+                        }
+
+                        String imageUrl = baseUrl + "/" + imageFileName;
+                        result.getImageUrls().add(imageUrl);
+
+                        log.info("开始图片转文字: {}", imageUrl);
+                        String imageText = image2Text(imageUrl);
+
+                        try {
+                            FileExtractedImages fileExtractedImages = new FileExtractedImages();
+                            fileExtractedImages
+                                    .setFileMd5(fileMd5)
+                                    .setUserId(userId)
+                                    .setImagePath(imageUrl)
+                                    .setPageNumber(pageIndex + 1)
+                                    .setVlModelName("vlm")
+                                    .setVlModelVersion("1.0")
+                                    .setVlResultText(imageText);
+                            fileExtractedImagesService.addFileExtractedImages(fileExtractedImages);
+                            log.info("图片转文字成功入库: {}", imageFileName);
+                        } catch (Exception e) {
+                            log.error("图片信息入库失败: {}", imageFileName, e);
+                            throw new RuntimeException("图片信息入库失败: " + imageFileName, e);
+                        }
+
+                        pageContent.append("\n[当前位置图片替换为图片描述: ").append(imageText).append("]\n");
+                    } else {
+                        log.warn("无法获取图片数据，请检查图片格式是否正确");
+                    }
+                }
+            }
+        }
+
+        List<String> pageTables = detectAndExtractTables(document, pageIndex);
+        int tableCounter = 0;
+        for (String tableContent : pageTables) {
+            String tablePlaceholder = "[TABLE_" + (tableCounter++) + ": " + tableContent.substring(0, Math.min(50, tableContent.length())) + "...]";
+            result.getTableContents().add(tableContent);
+            pageContent.append("\n").append(tablePlaceholder).append("\n");
+        }
+
+        result.setPageContent(pageContent.toString());
+        return result;
+    }
+
+    @ExecutionTimeMonitor
+    public String extractMixedContentWithVlmSerial(FileUpload fileUpload, String pdfPath, String imageOutputDir, String baseUrl) throws IOException, NoApiKeyException, UploadFileException {
+        long startTime = System.currentTimeMillis();
+        String userId = fileUpload.getUserId();
+        String fileMd5 = fileUpload.getFileMd5();
+        String fileName = fileUpload.getFileName();
         File pdfFile = new File(pdfPath);
         StringBuilder mixedContent = new StringBuilder();
         List<String> imageUrls = new ArrayList<>();
@@ -306,21 +486,18 @@ public class PDFContentExtractor {
             for (int i = 0; i < pageCount; i++) {
                 PDPage page = document.getPage(i);
 
-                // 提取页面文本
                 PDFTextStripper stripper = new PDFTextStripper();
                 stripper.setStartPage(i + 1);
                 stripper.setEndPage(i + 1);
                 String pageText = "";
                 try {
                     pageText = stripper.getText(document);
-                } catch (IOException e) {
-                    log.warn("提取第 {} 页文本时出错，可能是字体问题: {}", i + 1, e.getMessage());
-                    // 继续处理下一页
+                } catch (Exception e) {
+                    log.warn("提取第 {} 页文本时出错，可能是字体或PDF格式问题: {}", i + 1, e.getMessage());
                     continue;
                 }
-                // 添加页面文本到混合内容
                 mixedContent.append(pageText);
-                // 获取页面资源并查找图片
+
                 PDResources resources = page.getResources();
                 if (resources != null && resources.getXObjectNames() != null) {
                     for (Object xObjectKey : resources.getXObjectNames()) {
@@ -333,43 +510,37 @@ public class PDFContentExtractor {
                             if (suffix == null) {
                                 suffix = "png";
                             }
-                            //图片名称
-                            String imageFileName = "extracted_image_page_" + (i + 1) + "_" + (imageCounter++) + "." + suffix;
+                            String imageFileName = fileMd5 + FileConstant.IMAGES_UPLOADS_PREFIX + (i + 1) + "_" + (imageCounter++) + "." + suffix;
                             File imageFile = new File(outputDir, imageFileName);
 
-                            // 读取图片数据
                             BufferedImage awtImage = null;
                             try {
                                 awtImage = image.getImage();
-                            } catch (IOException e) {
+                            } catch (Exception e) {
                                 log.warn("无法提取图片数据，可能是由于ICC颜色空间问题: {}", e.getMessage());
-                                continue; // 跳过这个图片对象，继续处理其他图片
+                                continue;
                             }
                             if (awtImage != null) {
-                                // 保存图片到本地
                                 try {
                                     ImageIO.write(awtImage, suffix.toUpperCase(), imageFile);
                                     log.debug("成功保存图片到: {}", imageFile.getAbsolutePath());
                                 } catch (IOException e) {
                                     log.error("保存图片失败: {}", imageFile.getAbsolutePath(), e);
-                                    continue; // 跳过此图片的后续处理
+                                    continue;
                                 }
 
-                                // 生成图片URL
                                 String imageUrl = baseUrl + "/" + imageFileName;
                                 imageUrls.add(imageUrl);
 
-                                //建表：保存对应的文件id，图片id，大模型识别内容
-                                //1、视觉模型提取文字
                                 log.info("开始图片转文字: {}", imageUrl);
                                 String imageText = image2Text(imageUrl);
-                                //2、数据库入库
+
                                 try {
                                     FileExtractedImages fileExtractedImages = new FileExtractedImages();
                                     fileExtractedImages
-                                            .setFileMd5(fileUpload.getFileMd5())
+                                            .setFileMd5(fileMd5)
                                             .setUserId(userId)
-                                            .setImagePath(imageFileName)
+                                            .setImagePath(imageUrl)
                                             .setPageNumber(i + 1)
                                             .setVlModelName("vlm")
                                             .setVlModelVersion("1.0")
@@ -378,19 +549,17 @@ public class PDFContentExtractor {
                                     log.info("图片转文字成功入库: {}", imageFileName);
                                 } catch (Exception e) {
                                     log.error("图片信息入库失败: {}", imageFileName, e);
-                                    // 根据项目规范，落库失败需要抛出异常以触发重试
                                     throw new RuntimeException("图片信息入库失败: " + imageFileName, e);
                                 }
-                                //3、保存 图片在文本中插入图片占位符，保持位置信息
+
                                 mixedContent.append("\n[当前位置图片替换为图片描述: ").append(imageText).append("]\n");
-                                System.out.println("Extracted image to: " + imageFile.getAbsolutePath() + ", URL: " + imageUrl);
                             } else {
-                                System.out.println("Could not extract image data for object: " + xObjectKey);
+                                log.warn("无法获取图片数据，请检查图片格式是否正确");
                             }
                         }
                     }
                 }
-                // 尝试检测和提取表格
+
                 List<String> pageTables = detectAndExtractTables(document, i);
                 for (String tableContent : pageTables) {
                     String tablePlaceholder = "[TABLE_" + (tableCounter++) + ": " + tableContent.substring(0, Math.min(50, tableContent.length())) + "...]";
@@ -399,12 +568,15 @@ public class PDFContentExtractor {
                 }
             }
         } catch (IOException | NoApiKeyException | UploadFileException e) {
-            // 只捕获IO异常，其他异常如数据库异常应该向上传播
-            log.error("处理PDF文档时发生IO异常: ", e);
+            long endTime = System.currentTimeMillis();
+            long executionTime = endTime - startTime;
+            log.error("PDF处理失败 - 文件: {}, 耗时: {}ms, 异常: {}", fileName, executionTime, e.getMessage());
             throw e;
         }
+        long endTime = System.currentTimeMillis();
+        long executionTime = endTime - startTime;
+        log.info("PDF处理完成 - 文件: {}, 总页数: {}, 提取图片数: {}, 提取表格数: {}, 耗时: {}ms", fileName, mixedContent.length() > 0 ? "已处理" : "未处理", imageUrls.size(), tableContents.size(), executionTime);
         return mixedContent.toString();
-        // return new MixedContentResult(mixedContent.toString(), imageUrls, tableContents);
     }
 
     @Retryable(
@@ -459,6 +631,14 @@ public class PDFContentExtractor {
         public List<TextPosition> getTextPositions() {
             return textPositions;
         }
+    }
+
+    @Data
+    static class PageProcessResult {
+        private int pageIndex;
+        private String pageContent;
+        private List<String> imageUrls;
+        private List<String> tableContents;
     }
 
     /**

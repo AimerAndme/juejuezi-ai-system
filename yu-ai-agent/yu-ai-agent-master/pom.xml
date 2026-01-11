@@ -232,7 +232,7 @@
         <dependency>
             <groupId>org.apache.pdfbox</groupId>
             <artifactId>pdfbox</artifactId>
-            <version>3.0.2</version> <!-- 或者使用 2.0.x 系列的稳定版，如 2.0.32 -->
+            <version>3.0.3</version> <!-- 或者使用 2.0.x 系列的稳定版，如 2.0.32 -->
         </dependency>
         <!-- 处理某些图片格式可能需要的额外依赖 -->
         <dependency>

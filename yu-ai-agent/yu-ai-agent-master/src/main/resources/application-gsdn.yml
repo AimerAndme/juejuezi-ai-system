@@ -5,7 +5,7 @@ spring:
   # 临时注释掉，便于大家开发调试和部署（实际填写 PgVector 数据库信息）
   datasource:
     # 连接 URL：格式 jdbc:postgresql://主机:端口/数据库名?参数
-    url: jdbc:postgresql://192.168.5.4:5432/sdagent?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf8
+    url: jdbc:postgresql://192.168.5.9:5432/sdagent?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf8
     username: postgres  # PG 用户名（替换为你的实际账号）
     password: postgres    # PG 密码（替换为你的实际密码）
 
@@ -19,36 +19,14 @@ spring:
 
   data:
     redis:
-      host: 192.168.5.4  # Redis服务器地址
+      host: 192.168.5.9  # Redis服务器地址
       port: 6379       # 端口
-#      password:  # 密码（无密码可省略）
+      #      password:  # 密码（无密码可省略）
       database: 1      # 数据库编号（默认0）
       timeout: 2000ms  # 连接超时时间
 
-
-  ai:
-    dashscope:
-      # 需要替换为你自己的 key
-      api-key: sk-da831ca6d01e4b8aaa04c1705d35f990
-      chat:
-        #  api-key: sk-da831ca6d01e4b8aaa04c1705d35f990
-        options:
-          model: qwen-plus
-    ollama:
-      base-url: http://localhost:11434
-      chat:
-        model: deepseek-r1:1.5b
-    # 临时注释掉，便于大家开发调试和部署（实际需要启动 MCP 服务）
-    mcp:
-      client:
-        sse:
-          connections:
-            server1:
-              url: http://localhost:8127
-        stdio:
-          servers-configuration: classpath:mcp-servers.json
   rabbitmq:
-    host: 192.168.5.4 # 你的 RabbitMQ 地址
+    host: 192.168.5.9 # 你的 RabbitMQ 地址
     port: 5672
     username: zsr # 用户名（生产环境建议修改）
     password: 123456 # 密码
@@ -64,7 +42,7 @@ spring:
           multiplier: 2 # 重试间隔倍数：每次翻倍（1s→2s→4s）
   # Elasticsearch 配置
   elasticsearch:
-    uris: http://192.168.5.4:9200
+    uris: http://192.168.5.9:9200
     username: elastic     # 安装后生成的默认用户
     password: es123456 # 密码（ES启动时生成）
     #password: PaiSmart2025   # 密码（ES启动时生成）
@@ -85,7 +63,7 @@ mybatis:
   type-handlers-package: com.yupi.yuaiagent.handler
   configuration:
     map-underscore-to-camel-case: true  # 下划线转驼峰命名（适配 PG 表字段）
-   # log-impl: org.apache.ibatis.logging.stdout.StdOutImpl  # 显示 MyBatis SQL（开发用）
+    # log-impl: org.apache.ibatis.logging.stdout.StdOutImpl  # 显示 MyBatis SQL（开发用）
 
 server:
   port: 8123
@@ -112,3 +90,12 @@ knife4j:
 search-api:
   # 需要替换为你自己的 key
   api-key: GCTKUebFQ9d6WN9hxquXbZWG
+file:
+  upload:
+    chunk-size: 20971520 # 2MB per chunk
+    temp-dir: E:\代码学习\实战项目\juejuezi-ai-system\upload/temp
+    final-dir: E:\代码学习\实战项目\juejuezi-ai-system\upload/files
+  parsing:
+    chunk-size: 512 # 每个文本块的最大字符数
+    buffer-size: 8192    # 8KB 缓冲区
+    max-memory-threshold: 0.8  # 80% 内存阈值

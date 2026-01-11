@@ -1,8 +1,11 @@
 package com.yupi.yuaiagent.controller;
 
+import com.yupi.yuaiagent.domin.constant.FileConstant;
+import com.yupi.yuaiagent.domin.entity.FileExtractedImages;
 import com.yupi.yuaiagent.domin.entity.FileUpload;
 import com.yupi.yuaiagent.mapper.ChunkInfoMapper;
 import com.yupi.yuaiagent.mapper.DocumentVectorMapper;
+import com.yupi.yuaiagent.mapper.FileExtractedImagesMapper;
 import com.yupi.yuaiagent.mapper.FileUploadMapper;
 import com.yupi.yuaiagent.util.FileUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -23,13 +26,15 @@ public class FileManageController {
     private final FileUploadMapper fileUploadMapper;
     private final ChunkInfoMapper chunkInfoMapper;
     private final DocumentVectorMapper documentVectorMapper;
+    private final FileExtractedImagesMapper fileExtractedImagesMapper;
     @Value("${file.upload.final-dir:./upload/files}")
     private String finalDir;
 
-    public FileManageController(FileUploadMapper fileUploadMapper, ChunkInfoMapper chunkInfoMapper, DocumentVectorMapper documentVectorMapper) {
+    public FileManageController(FileUploadMapper fileUploadMapper, ChunkInfoMapper chunkInfoMapper, DocumentVectorMapper documentVectorMapper, FileExtractedImagesMapper fileExtractedImagesMapper) {
         this.fileUploadMapper = fileUploadMapper;
         this.chunkInfoMapper = chunkInfoMapper;
         this.documentVectorMapper = documentVectorMapper;
+        this.fileExtractedImagesMapper = fileExtractedImagesMapper;
     }
 
     /**
@@ -106,16 +111,26 @@ public class FileManageController {
 
             // 删除数据库记录
             chunkInfoMapper.deleteByFileMd5(fileMd5);
+            log.info("[文件管理-删除] 删除数据库分片记录");
             fileUploadMapper.deleteByFileMd5(fileMd5);
+            log.info("[文件管理-删除] 删除数据库文件记录");
             documentVectorMapper.deleteByFileMd5(fileMd5);
+            log.info("[文件管理-删除] 删除文件向量记录");
             // 删除物理文件
             String filePath = finalDir + File.separator + fileMd5 + "_" + fileUpload.getFileName();
+            List<FileExtractedImages> fileExtractedImages = fileExtractedImagesMapper.selectByFileMd5(fileMd5);
+            for (FileExtractedImages fileExtractedImage : fileExtractedImages) {
+                String imagePath = fileExtractedImage.getImagePath();
+                FileUtils.deleteFileOrDirectory(new File(imagePath));
+                log.info("[文件管理-删除] 删除图片文件, path={}", imagePath);
+            }
+            fileExtractedImagesMapper.deleteByFileMd5(fileMd5);
+            log.info("[文件管理-删除] 删除文件, path={}", filePath);
             File file = new File(filePath);
             if (file.exists()) {
                 file.delete();
                 log.info("[文件管理-删除] 物理文件已删除, path={}", filePath);
             }
-
             result.put("code", 200);
             result.put("message", "删除成功");
             log.info("[文件管理-删除] 删除成功");
