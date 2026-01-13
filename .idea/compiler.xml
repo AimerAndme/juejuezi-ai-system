@@ -17,7 +17,7 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
-          <entry name="F:/Java/maven_repo/org/projectlombok/lombok/1.18.36/lombok-1.18.36.jar" />
+          <entry name="D:/java/apache-maven-3.8.8-bin/apache-maven-3.8.8/mvn_repo/org/projectlombok/lombok/1.18.36/lombok-1.18.36.jar" />
         </processorPath>
         <module name="lv-ai-agent" />
       </profile>

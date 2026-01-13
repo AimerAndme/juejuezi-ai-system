@@ -116,6 +116,33 @@ const routes = [
       description: '矿山数据详情管理页面',
     },
   },
+  {
+    path: '/evaluation',
+    name: 'EvaluationCenter',
+    component: () => import('../views/EvaluationCenter.vue'),
+    meta: {
+      title: 'RAG评估中心 - 鱼皑AI超级智能体应用平台',
+      description: '专业的RAG系统质量评估平台',
+    },
+  },
+  {
+    path: '/evaluation/dataset',
+    name: 'EvaluationDataset',
+    component: () => import('../views/EvaluationDataset.vue'),
+    meta: {
+      title: '数据集管理 - 鱼皑AI超级智能体应用平台',
+      description: '创建和管理RAG评估数据集',
+    },
+  },
+  {
+    path: '/evaluation/dashboard',
+    name: 'EvaluationDashboard',
+    component: () => import('../views/EvaluationDashboard.vue'),
+    meta: {
+      title: '评估仪表板 - 鱼皑AI超级智能体应用平台',
+      description: '查看和分析RAG评估结果',
+    },
+  },
   // 保留旧路由以便兼容
   {
     path: '/file-upload',

@@ -119,8 +119,8 @@ public class EmbeddingClient {
                 log.error("向量化失败！结果为空");
                 return null;
             }
-            // 输出结果
-            log.info("文本：向量化完成！");
+//            // 输出结果
+//            log.info("文本：向量化完成！");
             result = textEmbeddingResult.getOutput().getEmbeddings().get(0).getEmbedding();
             return result.stream().mapToDouble(Double::doubleValue).toArray();
         } catch (NoApiKeyException e) {

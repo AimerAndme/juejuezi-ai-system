@@ -1,0 +1,36 @@
+{
+  "testCases" : [ {
+    "id" : "test_001",
+    "question" : "什么是RAG?",
+    "groundTruthAnswer" : "RAG（Retrieval-Augmented Generation）是一种结合检索和生成的AI技术，通过从知识库中检索相关信息来增强生成模型的回答质量。",
+    "relevantDocuments" : [ "doc_rag_intro.pdf", "doc_rag_architecture.pdf" ],
+    "retrievedAnswer" : "RAG（Retrieval-Augmented Generation）是一种结合检索和生成的AI技术。它通过从知识库中检索相关信息，然后将这些信息作为上下文提供给生成模型，从而增强生成模型的回答质量和准确性。",
+    "retrievedDocuments" : [ "doc_rag_intro.pdf", "doc_rag_architecture.pdf", "doc_rag_benefits.pdf" ],
+    "retrievalScore" : 0.0,
+    "generationScore" : 0.0,
+    "overallScore" : 0.0,
+    "evaluationDetails" : null
+  }, {
+    "id" : "test_002",
+    "question" : "Spring AI的主要功能是什么?",
+    "groundTruthAnswer" : "Spring AI是一个为Spring生态系统设计的AI框架，提供了与大语言模型集成的简化API，支持聊天、嵌入、RAG等功能。",
+    "relevantDocuments" : [ "doc_spring_ai_overview.pdf", "doc_spring_ai_features.pdf" ],
+    "retrievedAnswer" : "Spring AI是一个为Spring生态系统设计的AI框架，主要功能包括：提供与大语言模型集成的简化API、支持聊天对话、文本嵌入、RAG检索增强生成等功能，让开发者能够轻松在Spring应用中集成AI能力。",
+    "retrievedDocuments" : [ "doc_spring_ai_overview.pdf", "doc_spring_ai_features.pdf", "doc_spring_ai_quickstart.pdf" ],
+    "retrievalScore" : 0.0,
+    "generationScore" : 0.0,
+    "overallScore" : 0.0,
+    "evaluationDetails" : null
+  }, {
+    "id" : "test_003",
+    "question" : "如何优化向量检索的性能?",
+    "groundTruthAnswer" : "优化向量检索性能的方法包括：1）使用高效的索引算法如HNSW；2）调整向量维度；3）优化相似度计算；4）使用缓存策略；5）分片和并行检索。",
+    "relevantDocuments" : [ "doc_vector_optimization.pdf", "doc_hnsw_index.pdf", "doc_cache_strategy.pdf" ],
+    "retrievedAnswer" : "优化向量检索性能主要有以下几种方法：1）使用高效的索引算法，如HNSW（Hierarchical Navigable Small World）；2）合理调整向量维度，在精度和性能之间找到平衡；3）优化相似度计算算法；4）使用缓存策略减少重复计算；5）采用分片和并行检索技术提高吞吐量。",
+    "retrievedDocuments" : [ "doc_vector_optimization.pdf", "doc_hnsw_index.pdf", "doc_cache_strategy.pdf", "doc_parallel_search.pdf" ],
+    "retrievalScore" : 0.0,
+    "generationScore" : 0.0,
+    "overallScore" : 0.0,
+    "evaluationDetails" : null
+  } ]
+}

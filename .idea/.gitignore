@@ -6,3 +6,21 @@
 # Datasource local storage ignored files
 /dataSources/
 /dataSources.local.xml
+../rag文档/
+../upload/
+# 忽略的代码生成器配置文件
+*.log
+/gradle.xml
+/misc.xml
+/out/
+/target/
+/tmp/
+/build/
+/node_modules/
+/dist/
+/coverage/
+/report/
+/reports/
+/logs/
+/log/
+/temp

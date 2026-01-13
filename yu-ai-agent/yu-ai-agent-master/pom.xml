@@ -243,7 +243,7 @@
         <dependency>
             <groupId>org.apache.pdfbox</groupId>
             <artifactId>pdfbox-tools</artifactId>
-            <version>3.0.2</version> <!-- 如果需要使用命令行工具或某些高级功能 -->
+            <version>3.0.3</version> <!-- 如果需要使用命令行工具或某些高级功能 -->
         </dependency>
         <!-- Apache Commons IO 依赖，解决 ChecksumInputStream 缺失问题 -->
 

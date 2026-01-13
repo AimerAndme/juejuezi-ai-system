@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>RAG评估报告</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; background-color: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h1 { color: #333; border-bottom: 3px solid #4CAF50; padding-bottom: 10px; }
+        h2 { color: #555; margin-top: 30px; }
+        .info { background-color: #e7f3fe; padding: 15px; border-left: 4px solid #2196F3; margin: 20px 0; }
+        .metric-section { margin: 20px 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #4CAF50; color: white; }
+        tr:hover { background-color: #f5f5f5; }
+        .score-high { color: #4CAF50; font-weight: bold; }
+        .score-medium { color: #FF9800; font-weight: bold; }
+        .score-low { color: #f44336; font-weight: bold; }
+        .progress-bar { width: 100%; background-color: #ddd; border-radius: 5px; margin: 5px 0; }
+        .progress-fill { height: 20px; border-radius: 5px; transition: width 0.3s; }
+    </style>
+</head>
+<body>
+    <div class='container'>
+        <h1>📊 RAG系统评估报告</h1>
+        <div class='info'>
+            <p><strong>评估ID:</strong> eval_1768211914409</p>
+            <p><strong>评估时间:</strong> 2026-01-12 17:58:34</p>
+            <p><strong>测试用例数:</strong> 5</p>
+        </div>
+        <h2>📈 评估指标概览</h2>
+        <table>
+            <tr>
+                <th>指标名称</th>
+                <th>得分</th>
+                <th>进度</th>
+                <th>评级</th>
+            </tr>
+        </table>
+        <h2>📝 详细分析</h2>
+        <div class='metric-section'>
+            <h3>检索质量指标</h3>
+            <p>这些指标评估检索系统的性能：</p>
+            <ul>
+                <li><strong>Precision@K:</strong> 前K个结果中相关文档的比例</li>
+                <li><strong>Recall@K:</strong> 前K个结果覆盖了多少相关文档</li>
+                <li><strong>MRR:</strong> 第一个相关文档的排名倒数</li>
+                <li><strong>NDCG@K:</strong> 考虑排序质量的归一化指标</li>
+            </ul>
+        </div>
+        <div class='metric-section'>
+            <h3>生成质量指标</h3>
+            <p>这些指标评估生成答案的质量：</p>
+            <ul>
+                <li><strong>Faithfulness:</strong> 答案是否忠实于检索到的文档</li>
+                <li><strong>Answer Relevance:</strong> 答案是否回答了用户问题</li>
+                <li><strong>Context Precision:</strong> 检索到的文档是否包含答案</li>
+                <li><strong>Context Recall:</strong> 检索到的文档是否覆盖了所有必要信息</li>
+            </ul>
+        </div>
+        <h2>💡 改进建议</h2>
+        <div class='metric-section'>
+            <p>基于评估结果，建议关注以下方面：</p>
+            <ul>
+                <li>如果Precision@K较低，考虑优化检索算法或调整向量维度</li>
+                <li>如果Recall@K较低，考虑增加检索结果数量或优化文档切分</li>
+                <li>如果Faithfulness较低，检查提示词设计，确保模型基于上下文回答</li>
+                <li>如果Answer Relevance较低，优化检索查询或调整生成模型参数</li>
+            </ul>
+        </div>
+        <p style='text-align: center; color: #666; margin-top: 40px;'>2026-01-12 17:58:34</p>
+    </div>
+</body>
+</html>

@@ -80,6 +80,33 @@
         </div>
         <AppButton text="进入中心" variant="primary" size="large" />
       </div>
+
+      <div class="app-card eval-card" @click="navigateTo('/evaluation')">
+        <div class="card-header">
+          <div class="app-icon eval-icon">🎯</div>
+          <div class="app-title">RAG评估中心</div>
+        </div>
+        <div class="app-info">
+          <div class="app-desc">
+            专业的RAG系统质量评估平台，多维度评估检索生成效果
+          </div>
+          <div class="feature-list">
+            <div class="feature-item">
+              <span class="feature-icon">📊</span>
+              <span class="feature-text">数据集管理</span>
+            </div>
+            <div class="feature-item">
+              <span class="feature-icon">📈</span>
+              <span class="feature-text">评估指标分析</span>
+            </div>
+            <div class="feature-item">
+              <span class="feature-icon">💡</span>
+              <span class="feature-text">优化建议</span>
+            </div>
+          </div>
+        </div>
+        <AppButton text="进入中心" variant="primary" size="large" />
+      </div>
     </div>
 
     <AppFooter />
@@ -197,6 +224,10 @@ const navigateTo = (path) => {
   animation-delay: 0.3s;
 }
 
+.eval-card {
+  animation-delay: 0.4s;
+}
+
 .app-card:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow-lg);
@@ -242,6 +273,12 @@ const navigateTo = (path) => {
 
 .data-icon {
   background: linear-gradient(135deg, #0984e3, #0876cc);
+  color: white;
+  border: 2px solid var(--card-bg);
+}
+
+.eval-icon {
+  background: linear-gradient(135deg, #a29bfe, #6c5ce7);
   color: white;
   border: 2px solid var(--card-bg);
 }

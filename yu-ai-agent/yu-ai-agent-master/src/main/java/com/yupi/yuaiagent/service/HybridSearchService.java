@@ -341,6 +341,9 @@ public class HybridSearchService {
     private static Map<String, Object> getMetadata(Hit<EsDocument> hit) {
         Map<String, Object> metadata = new HashMap<>();
         metadata.put("score", hit.score());
+        if (hit.source().getId() != null) {
+            metadata.put("id", hit.source().getId());
+        }
         if (hit.source().getUserId() != null) {
             metadata.put("userId", hit.source().getUserId());
         }
