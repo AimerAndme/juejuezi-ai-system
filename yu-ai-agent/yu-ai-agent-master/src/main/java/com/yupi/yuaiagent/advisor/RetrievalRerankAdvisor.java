@@ -10,7 +10,6 @@ import com.alibaba.cloud.ai.model.RerankRequest;
 import com.alibaba.cloud.ai.model.RerankResponse;
 import com.yupi.yuaiagent.domin.context.RagRequestContext;
 import com.yupi.yuaiagent.domin.entity.RagRequestContextData;
-import com.yupi.yuaiagent.domin.entity.SearchResult;
 import com.yupi.yuaiagent.service.HybridSearchService;
 import com.yupi.yuaiagent.service.VectorizationService;
 import lombok.extern.slf4j.Slf4j;
@@ -116,7 +115,7 @@ public class RetrievalRerankAdvisor implements BaseAdvisor {
         SearchRequest searchRequestToUse = SearchRequest.from(this.searchRequest).query(userMessage.getText()).filterExpression(this.doGetFilterExpression(context)).build();
         //向量库检索
         //List<Document> documents = this.vectorStore.similaritySearch(searchRequestToUse);
-        List<Document> documents = hybridSearchService.search(userMessage.getText(), 5);
+        List<Document> documents = hybridSearchService.optimizedSearch(userMessage.getText(), 5, 1, 0.3);
         logger.debug("retrieved documents: {}", documents);
         context.put("qa_retrieved_documents", documents);
         //TODO(可优化点)放置检索信息到上下文

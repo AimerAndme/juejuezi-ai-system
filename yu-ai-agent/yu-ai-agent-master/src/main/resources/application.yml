@@ -7,7 +7,7 @@ spring:
   application:
     name: yu-ai-agent
   profiles:
-    active: gsdn
+    active: gs
   datasource:
     # 连接 URL：格式 jdbc:postgresql://主机:端口/数据库名?参数
     url: jdbc:postgresql://localhost:5432/sdagent?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf8
@@ -136,19 +136,25 @@ logging:
 embedding:
   api:
     url: https://dashscope.aliyuncs.com/compatible-mode/v1
-    key: sk-da831ca6d01e4b8aaa04c1705d35f990   # 填入通义千问API key
+    key: sk-da831ca6d01e4b8aaa04c1705d35f990 # 填入通义千问API key
     model: text-embedding-v4
-    batch-size: 10  # 单次请求最大行数（DashScope限制为10）
-    dimension: 2048  # 指定向量维度
+    batch-size: 10 # 单次请求最大行数（DashScope限制为10）
+    dimension: 2048 # 指定向量维度
 # File Upload Configuration
-
 file:
   upload:
     chunk-size: 20971520 # 2MB per chunk
     temp-dir: E:/编程学习/项目/yv-ai/upload/temp
     final-dir: E:/编程学习/项目/yv-ai/upload/files
   parsing:
-    chunk-size: 512 # 每个文本块的最大字符数
-    buffer-size: 8192    # 8KB 缓冲区
-    max-memory-threshold: 0.8  # 80% 内存阈值
+    #语义参数（单位：字符数）
+    chunk-size: 500 # 分片大小（字符数），默认500
+    overlap-size: 100 # 分片重叠大小（字符数），默认100
+    buffer-size: 8192 # 缓冲区大小（bytes），默认8KB
+    max-memory-threshold: 0.8 # 最大内存使用阈值，默认80%
+    split-strategy: semantic # 分片策略：token（基于token）、semantic（基于语义）、fixed（固定字符数）
+    min-chunk-size: 100 # 最小分片大小（字符数），防止过小的分片
+    max-chunk-size: 1000 # 最大分片大小（字符数），防止过大的分片
+    keep-separator: true # 是否保留分隔符
+    trim-whitespace: true # 是否修剪空白字符
 

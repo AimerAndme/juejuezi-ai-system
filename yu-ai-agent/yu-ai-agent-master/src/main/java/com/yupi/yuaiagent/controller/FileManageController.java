@@ -1,12 +1,13 @@
 package com.yupi.yuaiagent.controller;
 
-import com.yupi.yuaiagent.domin.constant.FileConstant;
 import com.yupi.yuaiagent.domin.entity.FileExtractedImages;
 import com.yupi.yuaiagent.domin.entity.FileUpload;
 import com.yupi.yuaiagent.mapper.ChunkInfoMapper;
 import com.yupi.yuaiagent.mapper.DocumentVectorMapper;
 import com.yupi.yuaiagent.mapper.FileExtractedImagesMapper;
 import com.yupi.yuaiagent.mapper.FileUploadMapper;
+import com.yupi.yuaiagent.service.ElasticsearchService;
+import com.yupi.yuaiagent.service.HybridSearchService;
 import com.yupi.yuaiagent.util.FileUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,18 +24,22 @@ import java.util.Map;
 @RequestMapping("/files/manage")
 public class FileManageController {
 
+    private final ElasticsearchService elasticsearchService;
     private final FileUploadMapper fileUploadMapper;
     private final ChunkInfoMapper chunkInfoMapper;
     private final DocumentVectorMapper documentVectorMapper;
     private final FileExtractedImagesMapper fileExtractedImagesMapper;
+    private final HybridSearchService hybridSearchService;
     @Value("${file.upload.final-dir:./upload/files}")
     private String finalDir;
 
-    public FileManageController(FileUploadMapper fileUploadMapper, ChunkInfoMapper chunkInfoMapper, DocumentVectorMapper documentVectorMapper, FileExtractedImagesMapper fileExtractedImagesMapper) {
+    public FileManageController(ElasticsearchService elasticsearchService, FileUploadMapper fileUploadMapper, ChunkInfoMapper chunkInfoMapper, DocumentVectorMapper documentVectorMapper, FileExtractedImagesMapper fileExtractedImagesMapper, HybridSearchService hybridSearchService) {
+        this.elasticsearchService = elasticsearchService;
         this.fileUploadMapper = fileUploadMapper;
         this.chunkInfoMapper = chunkInfoMapper;
         this.documentVectorMapper = documentVectorMapper;
         this.fileExtractedImagesMapper = fileExtractedImagesMapper;
+        this.hybridSearchService = hybridSearchService;
     }
 
     /**
@@ -93,7 +98,6 @@ public class FileManageController {
         Map<String, Object> result = new HashMap<>();
 
         try {
-            // 查询文件信息
             FileUpload fileUpload = fileUploadMapper.selectByFileMd5(fileMd5);
             if (fileUpload == null) {
                 result.put("code", 404);
@@ -101,7 +105,6 @@ public class FileManageController {
                 return result;
             }
 
-            // 验证权限
             if (!fileUpload.getUserId().equals(userId)) {
                 log.warn("[文件管理-删除] 权限不足, userId={}", userId);
                 result.put("code", 403);
@@ -109,14 +112,18 @@ public class FileManageController {
                 return result;
             }
 
-            // 删除数据库记录
             chunkInfoMapper.deleteByFileMd5(fileMd5);
             log.info("[文件管理-删除] 删除数据库分片记录");
             fileUploadMapper.deleteByFileMd5(fileMd5);
             log.info("[文件管理-删除] 删除数据库文件记录");
             documentVectorMapper.deleteByFileMd5(fileMd5);
             log.info("[文件管理-删除] 删除文件向量记录");
-            // 删除物理文件
+            elasticsearchService.deleteByFileMd5(fileMd5);
+            log.info("[文件管理-删除] 删除文件ES向量记录");
+
+            hybridSearchService.invalidateDocumentCache(fileMd5);
+            log.info("[文件管理-删除] 使文档缓存失效, fileMd5={}", fileMd5);
+
             String filePath = finalDir + File.separator + fileMd5 + "_" + fileUpload.getFileName();
             List<FileExtractedImages> fileExtractedImages = fileExtractedImagesMapper.selectByFileMd5(fileMd5);
             for (FileExtractedImages fileExtractedImage : fileExtractedImages) {

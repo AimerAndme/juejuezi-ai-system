@@ -1,6 +1,5 @@
 package com.yupi.yuaiagent.service;
 
-
 import com.yupi.yuaiagent.domin.constant.EmbeddingModelConstant;
 import com.yupi.yuaiagent.domin.entity.DocumentVector;
 import lombok.RequiredArgsConstructor;
@@ -27,10 +26,14 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class ParseService {
+
     private final IDocumentVectorService documentVectorService;
 
     @Value("${file.parsing.chunk-size}")
     private int chunkSize;
+
+    @Value("${file.parsing.overlap-size}")
+    private int overlapSize;
 
     @Value("${file.parsing.buffer-size}")
     private int bufferSize;
@@ -38,30 +41,73 @@ public class ParseService {
     @Value("${file.parsing.max-memory-threshold}")
     private double maxMemoryThreshold;
 
+    @Value("${file.parsing.split-strategy}")
+    private String splitStrategy;
+
+    @Value("${file.parsing.min-chunk-size}")
+    private int minChunkSize;
+
+    @Value("${file.parsing.max-chunk-size}")
+    private int maxChunkSize;
+
+    @Value("${file.parsing.keep-separator}")
+    private boolean keepSeparator;
+
+    @Value("${file.parsing.trim-whitespace}")
+    private boolean trimWhitespace;
+
     /**
      * 解析文件并保存文本内容到数据库
      *
-     * @param fileMd5    文件的MD5哈希值，用于唯一标识文件
+     * @param fileMd5 文件的MD5哈希值，用于唯一标识文件
      * @param fileStream 文件输入流，用于读取文件内容
-     * @param userId     上传用户ID
-     * @param orgTag     组织标签
-     * @param isPublic   是否公开
-     * @throws IOException   如果文件读取过程中发生错误
+     * @param userId 上传用户ID
+     * @param orgTag 组织标签
+     * @param isPublic 是否公开
+     * @throws IOException 如果文件读取过程中发生错误
      * @throws TikaException 如果文件解析过程中发生错误
      */
     public void parseAndSave(String fileMd5, InputStream fileStream,
-                             String userId, String orgTag, boolean isPublic) throws IOException, TikaException {
+            String userId, String orgTag, boolean isPublic) throws IOException, TikaException {
         log.info("开始解析文件，fileMd5: {}, userId: {}, orgTag: {}, isPublic: {}",
                 fileMd5, userId, orgTag, isPublic);
-        // 使用 Apache Tika 提取文档内容
+        log.info("分片配置: 策略={}, 分片大小={}, 重叠大小={}, 最小分片={}, 最大分片={}",
+                splitStrategy, chunkSize, overlapSize, minChunkSize, maxChunkSize);
+
         String textContent = extractText(fileStream);
-        log.info("成功提取文档内容");
-        // TODO使用的Token分词器，可优化点，将文本内容分割为固定大小的块
-        TokenTextSplitter tokenTextSplitter = new TokenTextSplitter();
-        List<Document> split = tokenTextSplitter.split(new Document(textContent));
-        List<String> chunks = split.stream().map(Document::getText).toList();
-        //::List<String> chunks = splitTextIntoChunks(textContent, chunkSize);
-        log.info("文档分割成功");
+        log.info("成功提取文档内容，长度: {} 字符", textContent.length());
+
+        List<String> chunks;
+
+        switch (splitStrategy.toLowerCase()) {
+            case "semantic":
+                log.info("使用语义分片策略");
+                chunks = semanticSplit(textContent);
+                break;
+            case "fixed":
+                log.info("使用固定字符数分片策略");
+                chunks = splitTextIntoChunks(textContent, chunkSize * 2);
+                break;
+            case "token":
+            default:
+                log.info("使用Token分片策略");
+                TokenTextSplitter tokenTextSplitter = new TokenTextSplitter(
+                        chunkSize,
+                        overlapSize,
+                        minChunkSize,
+                        maxChunkSize,
+                        keepSeparator
+                );
+                List<Document> split = tokenTextSplitter.split(new Document(textContent));
+                chunks = split.stream().map(Document::getText).toList();
+                break;
+        }
+
+        log.info("文档分割成功，共 {} 个分片", chunks.size());
+        log.info("分片大小统计: 平均={} 字符, 最小={} 字符, 最大={} 字符",
+                chunks.stream().mapToInt(String::length).average().orElse(0),
+                chunks.stream().mapToInt(String::length).min().orElse(0),
+                chunks.stream().mapToInt(String::length).max().orElse(0));
         // 保存每个文本块到数据库
         saveChunksWithSemantics(fileMd5, chunks, userId, orgTag, isPublic);
         log.info("文档：{}，分割分片已入库", fileMd5);
@@ -71,9 +117,9 @@ public class ParseService {
     /**
      * 兼容旧版本的解析方法
      *
-     * @param fileMd5    文件的MD5哈希值
+     * @param fileMd5 文件的MD5哈希值
      * @param fileStream 文件输入流
-     * @throws IOException   如果文件读取过程中发生错误
+     * @throws IOException 如果文件读取过程中发生错误
      * @throws TikaException 如果文件解析过程中发生错误
      */
     public void parseAndSave(String fileMd5, InputStream fileStream) throws IOException, TikaException {
@@ -86,7 +132,7 @@ public class ParseService {
      *
      * @param fileStream 文件输入流
      * @return 文件的文本内容
-     * @throws IOException   如果文件读取过程中发生错误
+     * @throws IOException 如果文件读取过程中发生错误
      * @throws TikaException 如果文件解析过程中发生错误
      */
     private String extractText(InputStream fileStream) throws IOException, TikaException {
@@ -120,8 +166,8 @@ public class ParseService {
 
             if (e.getCause() != null && e.getCause() instanceof IOException) {
                 IOException ioException = (IOException) e.getCause();
-                if (ioException.getMessage() != null &&
-                        ioException.getMessage().contains("Missing descendant font dictionary")) {
+                if (ioException.getMessage() != null
+                        && ioException.getMessage().contains("Missing descendant font dictionary")) {
                     log.warn("PDF字体字典缺失，尝试使用宽松模式解析");
                     return cleanTextContent(extractTextWithLenientMode(bufferedStream));
                 }
@@ -157,8 +203,8 @@ public class ParseService {
             try {
                 byte[] pdfBytes = fileStream.readAllBytes(); // Java 11+ 提供的便捷方法
                 document = Loader.loadPDF(pdfBytes);
-                org.apache.pdfbox.text.PDFTextStripper stripper =
-                        new org.apache.pdfbox.text.PDFTextStripper();
+                org.apache.pdfbox.text.PDFTextStripper stripper
+                        = new org.apache.pdfbox.text.PDFTextStripper();
 
                 stripper.setSortByPosition(true);
 
@@ -201,8 +247,8 @@ public class ParseService {
             memoryUsage = (double) usedMemory / maxMemory;
 
             if (memoryUsage > maxMemoryThreshold) {
-                throw new RuntimeException("内存不足，无法处理大文件。当前使用率: " +
-                        String.format("%.2f%%", memoryUsage * 100));
+                throw new RuntimeException("内存不足，无法处理大文件。当前使用率: "
+                        + String.format("%.2f%%", memoryUsage * 100));
             }
         }
     }
@@ -210,7 +256,7 @@ public class ParseService {
     /**
      * 将文本内容分割成固定大小的块
      *
-     * @param text      原始文本内容
+     * @param text 原始文本内容
      * @param chunkSize 每个块的大小
      * @return 分割后的文本块列表
      */
@@ -222,6 +268,174 @@ public class ParseService {
             log.debug("文本块: {}", chunk);
         }
         return chunks;
+    }
+
+    /**
+     * 智能语义分片，结合句子、段落和重叠窗口
+     *
+     * @param text 原始文本
+     * @return 分片列表
+     */
+    private List<String> semanticSplit(String text) {
+        List<String> chunks = new ArrayList<>();
+
+        int targetChunkSize = chunkSize;
+        int overlapSizeChars = overlapSize;
+
+        log.debug("语义分片参数: 目标大小={}, 重叠大小={}", targetChunkSize, overlapSizeChars);
+
+        String[] paragraphs = text.split("\n\n+");
+        StringBuilder currentChunk = new StringBuilder();
+
+        for (String paragraph : paragraphs) {
+            paragraph = paragraph.trim();
+            if (paragraph.isEmpty()) {
+                continue;
+            }
+
+            if (paragraph.length() > maxChunkSize) {
+                if (!currentChunk.isEmpty()) {
+                    chunks.add(currentChunk.toString().trim());
+                    currentChunk = new StringBuilder();
+                }
+                chunks.addAll(splitLongParagraphWithSemantics(paragraph, targetChunkSize, overlapSizeChars));
+            } else if (currentChunk.length() + paragraph.length() + 2 > targetChunkSize) {
+                if (!currentChunk.isEmpty()) {
+                    chunks.add(currentChunk.toString().trim());
+                }
+                currentChunk = new StringBuilder(paragraph);
+            } else {
+                if (!currentChunk.isEmpty()) {
+                    currentChunk.append("\n\n");
+                }
+                currentChunk.append(paragraph);
+            }
+        }
+
+        if (!currentChunk.isEmpty()) {
+            chunks.add(currentChunk.toString().trim());
+        }
+
+        chunks = addOverlap(chunks, overlapSizeChars);
+
+        chunks = chunks.stream()
+                .filter(chunk -> chunk.length() >= minChunkSize)
+                .toList();
+
+        return chunks;
+    }
+
+    /**
+     * 分割长段落，保持句子完整性
+     */
+    private List<String> splitLongParagraphWithSemantics(String paragraph, int targetSize, int overlapSize) {
+        List<String> chunks = new ArrayList<>();
+
+        String[] sentences = paragraph.split("(?<=[。！？；，、：])|(?<=[.!?;,:])\\s+");
+        StringBuilder currentChunk = new StringBuilder();
+
+        for (String sentence : sentences) {
+            sentence = sentence.trim();
+            if (sentence.isEmpty()) {
+                continue;
+            }
+
+            if (sentence.length() > maxChunkSize) {
+                if (currentChunk.length() > 0) {
+                    chunks.add(currentChunk.toString().trim());
+                    currentChunk = new StringBuilder();
+                }
+                chunks.addAll(splitLongSentenceWithSemantics(sentence, targetSize));
+            } else if (currentChunk.length() + sentence.length() + 1 > targetSize) {
+                if (currentChunk.length() > 0) {
+                    chunks.add(currentChunk.toString().trim());
+                }
+                currentChunk = new StringBuilder(sentence);
+            } else {
+                if (currentChunk.length() > 0) {
+                    currentChunk.append(" ");
+                }
+                currentChunk.append(sentence);
+            }
+        }
+
+        if (currentChunk.length() > 0) {
+            chunks.add(currentChunk.toString().trim());
+        }
+
+        return chunks;
+    }
+
+    /**
+     * 分割超长句子，在词边界分割
+     */
+    private List<String> splitLongSentenceWithSemantics(String sentence, int targetSize) {
+        List<String> chunks = new ArrayList<>();
+
+        String[] words = sentence.split("\\s+");
+        StringBuilder currentChunk = new StringBuilder();
+
+        for (String word : words) {
+            word = word.trim();
+            if (word.isEmpty()) {
+                continue;
+            }
+
+            if (currentChunk.length() + word.length() + 1 > targetSize) {
+                if (currentChunk.length() > 0) {
+                    chunks.add(currentChunk.toString().trim());
+                }
+                currentChunk = new StringBuilder(word);
+            } else {
+                if (currentChunk.length() > 0) {
+                    currentChunk.append(" ");
+                }
+                currentChunk.append(word);
+            }
+        }
+
+        if (currentChunk.length() > 0) {
+            chunks.add(currentChunk.toString().trim());
+        }
+
+        return chunks;
+    }
+
+    /**
+     * 添加重叠窗口
+     */
+    private List<String> addOverlap(List<String> chunks, int overlapSize) {
+        if (chunks.size() <= 1 || overlapSize <= 0) {
+            return chunks;
+        }
+
+        List<String> chunksWithOverlap = new ArrayList<>();
+
+        for (int i = 0; i < chunks.size(); i++) {
+            StringBuilder chunkWithOverlap = new StringBuilder();
+
+            if (i > 0) {
+                String prevChunk = chunks.get(i - 1);
+                String prevOverlap = getLastNChars(prevChunk, overlapSize);
+                if (!prevOverlap.isEmpty()) {
+                    chunkWithOverlap.append(prevOverlap).append("\n\n");
+                }
+            }
+
+            chunkWithOverlap.append(chunks.get(i));
+
+            if (i < chunks.size() - 1) {
+                String nextChunk = chunks.get(i + 1);
+                String nextOverlap = getFirstNChars(nextChunk, overlapSize);
+                if (!nextOverlap.isEmpty()) {
+                    chunkWithOverlap.append("\n\n").append(nextOverlap);
+                }
+            }
+
+            chunksWithOverlap.add(chunkWithOverlap.toString());
+        }
+
+        return chunksWithOverlap;
     }
 
     /**
@@ -247,8 +461,7 @@ public class ParseService {
                 // 按句子分割长段落
                 List<String> sentenceChunks = splitLongParagraph(paragraph, chunkSize);
                 chunks.addAll(sentenceChunks);
-            }
-            // 如果添加这个段落会超过chunk大小
+            } // 如果添加这个段落会超过chunk大小
             else if (currentChunk.length() + paragraph.length() > chunkSize) {
                 // 保存当前chunk
                 if (currentChunk.length() > 0) {
@@ -256,8 +469,7 @@ public class ParseService {
                 }
                 // 开始新chunk
                 currentChunk = new StringBuilder(paragraph);
-            }
-            // 可以添加到当前chunk
+            } // 可以添加到当前chunk
             else {
                 if (currentChunk.length() > 0) {
                     currentChunk.append("\n\n");
@@ -377,36 +589,94 @@ public class ParseService {
     }
 
     private String getLastNChars(String text, int n) {
-        if (text.length() <= n)
+        if (text.length() <= n) {
             return text;
+        }
 
-        // 在词边界截取
         String substr = text.substring(Math.max(0, text.length() - n));
-        int spaceIndex = substr.indexOf(' ');
-        return spaceIndex > 0 ? substr.substring(spaceIndex + 1) : substr;
+
+        int splitIndex = -1;
+
+        int[] punctuationIndices = {
+            substr.indexOf('。'),
+            substr.indexOf('！'),
+            substr.indexOf('？'),
+            substr.indexOf('；'),
+            substr.indexOf('，'),
+            substr.indexOf('、'),
+            substr.indexOf('：'),
+            substr.indexOf('.'),
+            substr.indexOf('!'),
+            substr.indexOf('?'),
+            substr.indexOf(';'),
+            substr.indexOf(','),
+            substr.indexOf(':'),
+            substr.indexOf(' ')
+        };
+
+        for (int index : punctuationIndices) {
+            if (index > 0 && (splitIndex == -1 || index < splitIndex)) {
+                splitIndex = index;
+            }
+        }
+
+        if (splitIndex > 0) {
+            return substr.substring(splitIndex + 1).trim();
+        }
+
+        return substr;
     }
 
     private String getFirstNChars(String text, int n) {
-        if (text.length() <= n)
+        if (text.length() <= n) {
             return text;
+        }
 
-        // 在词边界截取
         String substr = text.substring(0, n);
-        int lastSpace = substr.lastIndexOf(' ');
-        return lastSpace > 0 ? substr.substring(0, lastSpace) : substr;
+
+        int splitIndex = -1;
+
+        int[] punctuationIndices = {
+            substr.lastIndexOf('。'),
+            substr.lastIndexOf('！'),
+            substr.lastIndexOf('？'),
+            substr.lastIndexOf('；'),
+            substr.lastIndexOf('，'),
+            substr.lastIndexOf('、'),
+            substr.lastIndexOf('：'),
+            substr.lastIndexOf('.'),
+            substr.lastIndexOf('!'),
+            substr.lastIndexOf('?'),
+            substr.lastIndexOf(';'),
+            substr.lastIndexOf(','),
+            substr.lastIndexOf(':'),
+            substr.lastIndexOf(' ')
+        };
+
+        for (int index : punctuationIndices) {
+            if (index > 0 && (splitIndex == -1 || index > splitIndex)) {
+                splitIndex = index;
+            }
+        }
+
+        if (splitIndex > 0) {
+            return substr.substring(0, splitIndex).trim();
+        }
+
+        return substr;
     }
 
     /**
      * 将文本块保存到数据库
      *
-     * @param fileMd5  文件的 MD5 哈希值
-     * @param chunks   文本块列表
-     * @param userId   上传用户ID
-     * @param orgTag   组织标签
+     * @param fileMd5 文件的 MD5 哈希值
+     * @param chunks 文本块列表
+     * @param userId 上传用户ID
+     * @param orgTag 组织标签
      * @param isPublic 是否公开
      */
     private void saveChunks(String fileMd5, List<String> chunks,
-                            String userId, String orgTag, boolean isPublic) {
+            String userId, String orgTag, boolean isPublic) {
 
     }
 
@@ -415,7 +685,7 @@ public class ParseService {
      */
     @Transactional
     private void saveChunksWithSemantics(String fileMd5, List<String> chunks,
-                                         String userId, String orgTag, boolean isPublic) {
+            String userId, String orgTag, boolean isPublic) {
         if (chunks.isEmpty()) {
             log.error("需要保存的文档分片列表为空");
             return;
@@ -442,6 +712,7 @@ public class ParseService {
     }
 
     private static class StreamingContentHandler extends BodyContentHandler {
+
         private static final int MAX_CHUNK_SIZE = 1024 * 1024; // 1MB chunks
         private final StringBuilder content = new StringBuilder();
 
