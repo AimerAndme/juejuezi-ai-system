@@ -67,7 +67,7 @@ class HybridSearchServiceTest {
         );
 
         assertNotNull(cachedResult);
-        assertEquals(2, cachedResult.getDocuments().size());
+        assertEquals(2, cachedResult.getDocumentsAsList().size());
         assertEquals("传感器安装", cachedResult.getOriginalQuery());
         assertEquals(10, cachedResult.getTopK());
         assertEquals(0, cachedResult.getStrategy());

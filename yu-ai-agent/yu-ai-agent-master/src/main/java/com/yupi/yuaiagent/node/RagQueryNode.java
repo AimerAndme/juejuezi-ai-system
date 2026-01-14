@@ -44,7 +44,7 @@ public class RagQueryNode implements NodeAction {
             log.error(" ragChatClient 输出结果为空");
             return Map.of("chatResult", "");
         }
-        log.info(" ragChatClient 输出结果为：{}", content);
+        log.info(" ragChatClient 输出");
         return Map.of("chatResult", content);
     }
 }

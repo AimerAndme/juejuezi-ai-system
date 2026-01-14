@@ -33,7 +33,7 @@ public class RagRequestContextFilter implements Filter {
             chain.doFilter(request, response);
 
         } finally {
-            log.info("Rag问答详情内容：{}", RagRequestContext.get());
+            log.info("Rag问答详情内容");
             // 4. 【关键】请求结束必须清理！
             RagRequestContext.clear();
         }

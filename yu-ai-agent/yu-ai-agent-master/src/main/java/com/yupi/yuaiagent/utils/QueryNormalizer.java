@@ -68,6 +68,10 @@ public class QueryNormalizer {
 
         normalized = MULTIPLE_SPACES.matcher(normalized).replaceAll(" ");
 
+        normalized = PUNCTUATION.matcher(normalized).replaceAll("");
+
+        normalized = CHINESE_PUNCTUATION.matcher(normalized).replaceAll("");
+
         normalized = normalized.toLowerCase();
 
         normalized = normalized.trim();

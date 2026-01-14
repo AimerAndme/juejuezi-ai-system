@@ -120,10 +120,10 @@ public class FileManageController {
             log.info("[文件管理-删除] 删除文件向量记录");
             elasticsearchService.deleteByFileMd5(fileMd5);
             log.info("[文件管理-删除] 删除文件ES向量记录");
-
+            
             hybridSearchService.invalidateDocumentCache(fileMd5);
             log.info("[文件管理-删除] 使文档缓存失效, fileMd5={}", fileMd5);
-
+            
             String filePath = finalDir + File.separator + fileMd5 + "_" + fileUpload.getFileName();
             List<FileExtractedImages> fileExtractedImages = fileExtractedImagesMapper.selectByFileMd5(fileMd5);
             for (FileExtractedImages fileExtractedImage : fileExtractedImages) {

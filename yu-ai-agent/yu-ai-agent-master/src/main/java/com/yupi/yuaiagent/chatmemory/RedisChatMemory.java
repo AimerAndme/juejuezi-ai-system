@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * 基于 Redis 的对话记忆存储实现
@@ -31,9 +32,13 @@ import java.util.concurrent.TimeUnit;
 @Service
 @Slf4j
 public class RedisChatMemory implements ChatMemory {
+
     // Redis 键前缀，避免键冲突
     private static final String KEY_PREFIX = "chat:memory:";
-    private static final Integer LIMIT_MESSAGES = 10;//包含问与答
+    private static final String SUMMARY_KEY_PREFIX = "chat:summary:";
+    private static final String SUMMARY_LIST_KEY_PREFIX = "chat:summary:list:";
+    private static final String MESSAGE_COUNT_KEY_PREFIX = "chat:message:count:";
+    private static final Integer LIMIT_MESSAGES = 10;
     private final RedisTemplate<String, Object> redisTemplate;
     @Autowired
     MqAsyncProducer memoryAsyncProducer;
@@ -49,18 +54,19 @@ public class RedisChatMemory implements ChatMemory {
     /**
      * 添加单条消息到对话历史
      *
-     * @param userID  对话 ID
+     * @param userID 对话 ID
      * @param message 消息对象
      */
     @Override
     public void add(String userID, Message message) {
         add(userID, List.of(message));
     }
+
     /**
      * 添加多条消息到对话历史
      *
      * @param conversationId 对话 ID
-     * @param messages       消息列表
+     * @param messages 消息列表
      */
     @Override
     public void add(String conversationId, List<Message> messages) {
@@ -236,7 +242,147 @@ public class RedisChatMemory implements ChatMemory {
     private String getRedisKey(String conversationId) {
         return KEY_PREFIX + conversationId;
     }
+
+    /**
+     * 保存对话摘要到 Redis
+     *
+     * @param conversationId 对话 ID
+     * @param summary 摘要内容
+     */
+    public void saveSummary(String conversationId, String summary) {
+        String key = SUMMARY_KEY_PREFIX + conversationId;
+        redisTemplate.opsForValue().set(key, summary, 7L, TimeUnit.DAYS);
+        log.debug("已保存对话 [{}] 的摘要", conversationId);
+    }
+
+    /**
+     * 从 Redis 获取对话摘要
+     *
+     * @param conversationId 对话 ID
+     * @return 摘要内容，不存在则返回 null
+     */
+    public String getSummary(String conversationId) {
+        String key = SUMMARY_KEY_PREFIX + conversationId;
+        Object summary = redisTemplate.opsForValue().get(key);
+        if (summary != null) {
+            log.debug("已获取对话 [{}] 的摘要", conversationId);
+        }
+        return summary != null ? summary.toString() : null;
+    }
+
+    /**
+     * 清除对话摘要
+     *
+     * @param conversationId 对话 ID
+     */
+    public void clearSummary(String conversationId) {
+        String key = SUMMARY_KEY_PREFIX + conversationId;
+        redisTemplate.delete(key);
+        log.debug("已清除对话 [{}] 的摘要", conversationId);
+    }
+
+    /**
+     * 添加摘要到摘要列表
+     *
+     * @param conversationId 对话 ID
+     * @param newSummary 新摘要内容
+     * @param maxSummaries 最大摘要数量
+     */
+    public void addSummaryToList(String conversationId, String newSummary, int maxSummaries) {
+        String key = SUMMARY_LIST_KEY_PREFIX + conversationId;
+        List<String> summaries = getSummaryList(conversationId);
+
+        summaries.add(newSummary);
+        
+               while (summaries.size() > maxSummaries) {
+            summaries.remove(0);
+            log.info("会话id：{}，已丢弃最旧的摘要", conversationId);
+        }
+        
+        redisTemplate.delete(key);
+        redisTemplate.opsForList().rightPushAll(key, summaries);
+               redisTemplate.expire(key, 7, TimeUnit.DAYS);
+
+        log.info("会话id：{}，当前摘要数量：{}", conversationId, summaries.size());
+    }
+
+    /**
+     * 获取摘要列表
+     *
+     * @param conversationId 对话 ID
+     * @return 摘要列表
+     */
+    public List<String> getSummaryList(String conversationId) {
+        String key = SUMMARY_LIST_KEY_PREFIX + conversationId;
+        Long size = redisTemplate.opsForList().size(key);
+        if (size == null || size == 0) {
+                   return new ArrayList<>();
+        }
+                
+                 objects = redisTemplate.opsForList().range(key, 0, -1);
+        return objects.stream()
+                .map(Object::toString)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 清除摘要列表
+     *
+     * @param conversationId 对话 ID
+     */
+    public void clearSummaryList(String conversationId) {
+        String key = SUMMARY_LIST_KEY_PREFIX + conversationId;
+        redisTemplate.delete(key);
+        log.debug("已清除对话 [{}] 的摘要列表", conversationId);
+    }
+
+    /**
+     * 增加消息计数
+     *
+     * @param conversationId 对话 ID
+     * @return 增加后的消息计数
+     */
+    public long incrementMessageCount(String conversationId) {
+        String key = MESSAGE_COUNT_KEY_PREFIX + conversationId;
+        Long count = redisTemplate.opsForValue().increment(key);
+        redisTemplate.expire(key, 7, TimeUnit.DAYS);
+        log.debug("会话id：{}，消息计数：{}", conversationId, count);
+        return count != null ? count : 1L;
+    }
+
+    /**
+     * 获取消息计数
+     *
+     * @param conversationId 对话 ID
+     * @return 消息计数
+     */
+    public long getMessageCount(String conversationId) {
+        String key = MESSAGE_COUNT_KEY_PREFIX + conversationId;
+        Object count = redisTemplate.opsForValue().get(key);
+        return count != null ? Long.parseLong(count.toString()) : 0L;
+    }
+
+    /**
+     * 获取上次摘要生成时的消息数
+     *
+     * @param conversationId 对话 ID
+     * @return 上次摘要生成时的消息数
+     */
+    public long getLastSummaryMessageCount(String conversationId) {
+        String key = MESSAGE_COUNT_KEY_PREFIX + conversationId + ":last_summary";
+        Object count = redisTemplate.opsForValue().get(key);
+        return count != null ? Long.parseLong(count.toString()) : 0L;
+    }
+
+    /**
+     * 更新上次摘要生成时的消息数
+     *
+     * @param conversationId 对话 ID
+     * @param count 消息数
+     */
+    public void updateLastSummaryMessageCount(String conversationId, long count) {
+        String key = MESSAGE_COUNT_KEY_PREFIX + conversationId + ":last_summary";
+        redisTemplate.opsForValue().set(key, count, 7, TimeUnit.DAYS);
+        log.debug("会话id：{}，上次摘要生成时的消息数已更新为：{}", conversationId, count);
+    }
 }
-
-
-

@@ -132,7 +132,9 @@ logging:
     name: E:\编程学习\项目\yv-ai\logs\myapp.log # 指定日志文件名和路径
   level:
     org.springframework.ai: DEBUG
+    com.yupi.yuaiagent: DEBUG
     root: info
+
 embedding:
   api:
     url: https://dashscope.aliyuncs.com/compatible-mode/v1

@@ -12,9 +12,8 @@ import com.yupi.yuaiagent.mapper.FileUploadMapper;
 import com.yupi.yuaiagent.model.CacheStatistics;
 import com.yupi.yuaiagent.model.CachedSearchResult;
 import com.yupi.yuaiagent.utils.QueryNormalizer;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.ai.document.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -27,10 +26,10 @@ import java.util.stream.Collectors;
 /**
  * 混合搜索服务，结合文本匹配和向量相似度搜索 支持权限过滤，确保用户只能搜索其有权限访问的文档
  */
-@Service
-public class HybridSearchService {
 
-    private static final Logger logger = LoggerFactory.getLogger(HybridSearchService.class);
+@Service
+@Slf4j
+public class HybridSearchService {
 
     private static final String DOC_VERSION_PREFIX = "doc:version:";
     private static final String SEARCH_CACHE_PREFIX = "search:";
@@ -38,14 +37,13 @@ public class HybridSearchService {
 
     private final FileUploadMapper fileUploadMapper;
     private final VectorizationService vectorizationService;
+    private final CacheStatistics cacheStatistics = new CacheStatistics();
     @Autowired
     private ElasticsearchClient esClient;
     @Autowired
     private EmbeddingClient embeddingClient;
     @Autowired(required = false)
     private RedisTemplate<String, Object> redisTemplate;
-
-    private final CacheStatistics cacheStatistics = new CacheStatistics();
 
     public HybridSearchService(FileUploadMapper fileUploadMapper, VectorizationService vectorizationService) {
         this.fileUploadMapper = fileUploadMapper;
@@ -62,27 +60,27 @@ public class HybridSearchService {
      * @return 搜索结果列表
      */
 //    public List<SearchResult> searchWithPermission(String query, String userId, int topK) {
-//        logger.debug("开始带权限搜索，查询: {}, 用户ID: {}", query, userId);
+//        log.debug("开始带权限搜索，查询: {}, 用户ID: {}", query, userId);
 //
 //        try {
 //            // 获取用户有效的组织标签（包含层级关系）
 //            List<String> userEffectiveTags = getUserEffectiveOrgTags(userId);
-//            logger.debug("用户 {} 的有效组织标签: {}", userId, userEffectiveTags);
+//            log.debug("用户 {} 的有效组织标签: {}", userId, userEffectiveTags);
 //
 //            // 获取用户的数据库ID用于权限过滤
 //            String userDbId = getUserDbId(userId);
-//            logger.debug("用户 {} 的数据库ID: {}", userId, userDbId);
+//            log.debug("用户 {} 的数据库ID: {}", userId, userDbId);
 //
 //            // 生成查询向量
 //            final List<Float> queryVector = embedToVectorList(query);
 //
 //            // 如果向量生成失败，仅使用文本匹配
 //            if (queryVector == null) {
-//                logger.warn("向量生成失败，仅使用文本匹配进行搜索");
+//                log.warn("向量生成失败，仅使用文本匹配进行搜索");
 //                return textOnlySearchWithPermission(query, userDbId, userEffectiveTags, topK);
 //            }
 //
-//            logger.debug("向量生成成功，开始执行混合搜索 KNN");
+//            log.debug("向量生成成功，开始执行混合搜索 KNN");
 //
 //            SearchResponse<EsDocument> response = esClient.search(s -> {
 //                s.index("knowledge_base");
@@ -135,13 +133,13 @@ public class HybridSearchService {
 //                return s;
 //            }, EsDocument.class);
 //
-//            logger.debug("Elasticsearch查询执行完成，命中数量: {}, 最大分数: {}",
+//            log.debug("Elasticsearch查询执行完成，命中数量: {}, 最大分数: {}",
 //                    response.hits().total().value(), response.hits().maxScore());
 //
 //            List<SearchResult> results = response.hits().hits().stream()
 //                    .map(hit -> {
 //                        assert hit.source() != null;
-//                        logger.debug("搜索结果 - 文件: {}, 块: {}, 分数: {}, 内容: {}",
+//                        log.debug("搜索结果 - 文件: {}, 块: {}, 分数: {}, 内容: {}",
 //                                hit.source().getFileMd5(), hit.source().getChunkId(), hit.score(),
 //                                hit.source().getTextContent().substring(0, Math.min(50, hit.source().getTextContent().length())));
 //                        return new SearchResult(
@@ -156,27 +154,28 @@ public class HybridSearchService {
 //                    })
 //                    .toList();
 //
-//            logger.debug("返回搜索结果数量: {}", results.size());
+//            log.debug("返回搜索结果数量: {}", results.size());
 //            attachFileNames(results);
 //            return results;
 //        } catch (Exception e) {
-//            logger.error("带权限的搜索失败", e);
+//            log.error("带权限的搜索失败", e);
 //            // 发生异常时尝试使用纯文本搜索作为后备方案
 //            try {
-//                logger.info("尝试使用纯文本搜索作为后备方案");
+//                log.info("尝试使用纯文本搜索作为后备方案");
 //                return textOnlySearchWithPermission(query, getUserDbId(userId), getUserEffectiveOrgTags(userId), topK);
 //            } catch (Exception fallbackError) {
-//                logger.error("后备搜索也失败", fallbackError);
+//                log.error("后备搜索也失败", fallbackError);
 //                return Collections.emptyList();
 //            }
 //        }
 //    }
+
     /**
      * 仅使用文本匹配的带权限搜索方法
      */
 //    private List<SearchResult> textOnlySearchWithPermission(String query, String userDbId, List<String> userEffectiveTags, int topK) {
 //        try {
-//            logger.debug("开始执行纯文本搜索，用户数据库ID: {}, 标签: {}", userDbId, userEffectiveTags);
+//            log.debug("开始执行纯文本搜索，用户数据库ID: {}, 标签: {}", userDbId, userEffectiveTags);
 //
 //            SearchResponse<EsDocument> response = esClient.search(s -> s
 //                            .index("knowledge_base")
@@ -238,13 +237,13 @@ public class HybridSearchService {
 //                    EsDocument.class
 //            );
 //
-//            logger.debug("纯文本查询执行完成，命中数量: {}, 最大分数: {}",
+//            log.debug("纯文本查询执行完成，命中数量: {}, 最大分数: {}",
 //                    response.hits().total().value(), response.hits().maxScore());
 //
 //            List<SearchResult> results = response.hits().hits().stream()
 //                    .map(hit -> {
 //                        assert hit.source() != null;
-//                        logger.debug("纯文本搜索结果 - 文件: {}, 块: {}, 分数: {}, 内容: {}",
+//                        log.debug("纯文本搜索结果 - 文件: {}, 块: {}, 分数: {}, 内容: {}",
 //                                hit.source().getFileMd5(), hit.source().getChunkId(), hit.score(),
 //                                hit.source().getTextContent().substring(0, Math.min(50, hit.source().getTextContent().length())));
 //                        return new SearchResult(
@@ -259,11 +258,11 @@ public class HybridSearchService {
 //                    })
 //                    .toList();
 //
-//            logger.debug("返回纯文本搜索结果数量: {}", results.size());
+//            log.debug("返回纯文本搜索结果数量: {}", results.size());
 //            attachFileNames(results);
 //            return results;
 //        } catch (Exception e) {
-//            logger.error("纯文本搜索失败", e);
+//            log.error("纯文本搜索失败", e);
 //            return new ArrayList<>();
 //        }
 //    }
@@ -289,15 +288,15 @@ public class HybridSearchService {
      */
     public List<Document> search(String query, int topK) {
         try {
-            logger.debug("开始混合检索，查询: {}, topK: {}", query, topK);
-            logger.warn("使用了没有权限过滤的搜索方法，建议使用 searchWithPermission 方法");
+            log.debug("开始混合检索，查询: {}, topK: {}", query, topK);
+            log.warn("使用了没有权限过滤的搜索方法，建议使用 searchWithPermission 方法");
 
             // 生成查询向量
             final List<Double> queryVector = vectorizationService.embedToVectorList(query);
 
             // 如果向量生成失败，仅使用文本匹配
             if (queryVector == null) {
-                logger.warn("向量生成失败，仅使用文本匹配进行搜索");
+                log.warn("向量生成失败，仅使用文本匹配进行搜索");
                 return textOnlySearch(query, topK);
             }
             List<Float> floatList = queryVector.stream().map(Double::floatValue).collect(Collectors.toList());
@@ -318,13 +317,13 @@ public class HybridSearchService {
                 s.rescore(r -> r
                         .windowSize(recallK)
                         .query(rq -> rq
-                        .queryWeight(0.5d)
-                        .rescoreQueryWeight(0.5d)
-                        .query(rqq -> rqq.match(m -> m
-                        .field("textContent")
-                        .query(query)
-                        .operator(Operator.And)
-                ))
+                                .queryWeight(0.5d)
+                                .rescoreQueryWeight(0.5d)
+                                .query(rqq -> rqq.match(m -> m
+                                        .field("textContent")
+                                        .query(query)
+                                        .operator(Operator.And)
+                                ))
                         )
                 );
                 s.size(topK);
@@ -334,7 +333,7 @@ public class HybridSearchService {
             return response.hits().hits().stream()
                     .map(hit -> {
                         if (hit.source() == null) {
-                            logger.warn("命中结果的 source 为空，跳过该记录");
+                            log.warn("命中结果的 source 为空，跳过该记录");
                             return null;  // 或抛出异常
                         }
                         Map<String, Object> metadata = getMetadata(hit);
@@ -351,13 +350,13 @@ public class HybridSearchService {
                     })
                     .toList();
         } catch (Exception e) {
-            logger.error("搜索失败", e);
+            log.error("搜索失败", e);
             // 发生异常时尝试使用纯文本搜索作为后备方案
             try {
-                logger.info("尝试使用纯文本搜索作为后备方案");
+                log.info("尝试使用纯文本搜索作为后备方案");
                 return textOnlySearch(query, topK);
             } catch (Exception fallbackError) {
-                logger.error("后备搜索也失败", fallbackError);
+                log.error("后备搜索也失败", fallbackError);
                 throw new RuntimeException("搜索完全失败", fallbackError);
             }
         }
@@ -368,14 +367,14 @@ public class HybridSearchService {
      */
     private List<Document> textOnlySearch(String query, int topK) throws Exception {
         SearchResponse<EsDocument> response = esClient.search(s -> s
-                .index("knowledge_base")
-                .query(q -> q
-                .match(m -> m
-                .field("textContent")
-                .query(query)
-                )
-                )
-                .size(topK),
+                        .index("knowledge_base")
+                        .query(q -> q
+                                .match(m -> m
+                                        .field("textContent")
+                                        .query(query)
+                                )
+                        )
+                        .size(topK),
                 EsDocument.class
         );
 
@@ -400,20 +399,20 @@ public class HybridSearchService {
     /**
      * 优化版混合搜索，支持多种策略提高检索质量
      *
-     * @param query 查询字符串
-     * @param topK 返回结果数量
+     * @param query    查询字符串
+     * @param topK     返回结果数量
      * @param strategy 检索策略：0-平衡策略，1-文本优先，2-向量优先，3-严格匹配
      * @param minScore 最小相关性分数阈值，低于此分数的结果将被过滤
      * @return 搜索结果列表
      */
     public List<Document> optimizedSearch(String query, int topK, int strategy, double minScore) {
         try {
-            logger.debug("优化版混合检索，查询: {}, topK: {}, 策略: {}, 最小分数: {}", query, topK, strategy, minScore);
+            log.debug("优化版混合检索，查询: {}, topK: {}, 策略: {}, 最小分数: {}", query, topK, strategy, minScore);
 
             final List<Double> queryVector = vectorizationService.embedToVectorList(query);
 
             if (queryVector == null) {
-                logger.warn("向量生成失败，仅使用文本匹配进行搜索");
+                log.warn("向量生成失败，仅使用文本匹配进行搜索");
                 return textOnlySearch(query, topK);
             }
 
@@ -463,13 +462,13 @@ public class HybridSearchService {
                 s.rescore(r -> r
                         .windowSize(recallK)
                         .query(rq -> rq
-                        .queryWeight(finalQueryWeight)
-                        .rescoreQueryWeight(finalRescoreQueryWeight)
-                        .query(rqq -> rqq.match(m -> m
-                        .field("textContent")
-                        .query(query)
-                        .operator(operator)
-                ))
+                                .queryWeight(finalQueryWeight)
+                                .rescoreQueryWeight(finalRescoreQueryWeight)
+                                .query(rqq -> rqq.match(m -> m
+                                        .field("textContent")
+                                        .query(query)
+                                        .operator(operator)
+                                ))
                         )
                 );
 
@@ -481,7 +480,7 @@ public class HybridSearchService {
                     .filter(hit -> hit.score() >= minScore)
                     .map(hit -> {
                         if (hit.source() == null) {
-                            logger.warn("命中结果的 source 为空，跳过该记录");
+                            log.warn("命中结果的 source 为空，跳过该记录");
                             return null;
                         }
                         Map<String, Object> metadata = getMetadata(hit);
@@ -493,16 +492,16 @@ public class HybridSearchService {
                     .filter(Objects::nonNull)
                     .toList();
 
-            logger.debug("检索完成，返回 {} 个结果（过滤后）", results.size());
+            log.debug("检索完成，返回 {} 个结果（过滤后）", results.size());
             return results;
 
         } catch (Exception e) {
-            logger.error("优化版搜索失败", e);
+            log.error("优化版搜索失败", e);
             try {
-                logger.info("尝试使用纯文本搜索作为后备方案");
+                log.info("尝试使用纯文本搜索作为后备方案");
                 return textOnlySearch(query, topK);
             } catch (Exception fallbackError) {
-                logger.error("后备搜索也失败", fallbackError);
+                log.error("后备搜索也失败", fallbackError);
                 throw new RuntimeException("搜索完全失败", fallbackError);
             }
         }
@@ -515,7 +514,7 @@ public class HybridSearchService {
 //        try {
 //            List<float[]> vecs = embeddingClient.embed(List.of(text));
 //            if (vecs == null || vecs.isEmpty()) {
-//                logger.warn("生成的向量为空");
+//                log.warn("生成的向量为空");
 //                return null;
 //            }
 //            float[] raw = vecs.get(0);
@@ -525,7 +524,7 @@ public class HybridSearchService {
 //            }
 //            return list;
 //        } catch (Exception e) {
-//            logger.error("生成向量失败", e);
+//            log.error("生成向量失败", e);
 //            return null;
 //        }
 //    }
@@ -533,30 +532,30 @@ public class HybridSearchService {
 //     * 获取用户的有效组织标签（包含层级关系）
 //     */
 //    private List<String> getUserEffectiveOrgTags(String userId) {
-//        logger.debug("获取用户有效组织标签，用户ID: {}", userId);
+//        log.debug("获取用户有效组织标签，用户ID: {}", userId);
 //        try {
 //            // 获取用户名
 //            User user;
 //            try {
 //                Long userIdLong = Long.parseLong(userId);
-//                logger.debug("解析用户ID为Long: {}", userIdLong);
+//                log.debug("解析用户ID为Long: {}", userIdLong);
 //                user = userRepository.findById(userIdLong)
 //                    .orElseThrow(() -> new CustomException("User not found with ID: " + userId, HttpStatus.NOT_FOUND));
-//                logger.debug("通过ID找到用户: {}", user.getUsername());
+//                log.debug("通过ID找到用户: {}", user.getUsername());
 //            } catch (NumberFormatException e) {
 //                // 如果userId不是数字格式，则假设它就是username
-//                logger.debug("用户ID不是数字格式，作为用户名查找: {}", userId);
+//                log.debug("用户ID不是数字格式，作为用户名查找: {}", userId);
 //                user = userRepository.findByUsername(userId)
 //                    .orElseThrow(() -> new CustomException("User not found: " + userId, HttpStatus.NOT_FOUND));
-//                logger.debug("通过用户名找到用户: {}", user.getUsername());
+//                log.debug("通过用户名找到用户: {}", user.getUsername());
 //            }
 //
 //            // 通过orgTagCacheService获取用户的有效标签集合
 //            List<String> effectiveTags = orgTagCacheService.getUserEffectiveOrgTags(user.getUsername());
-//            logger.debug("用户 {} 的有效组织标签: {}", user.getUsername(), effectiveTags);
+//            log.debug("用户 {} 的有效组织标签: {}", user.getUsername(), effectiveTags);
 //            return effectiveTags;
 //        } catch (Exception e) {
-//            logger.error("获取用户有效组织标签失败: {}", e.getMessage(), e);
+//            log.error("获取用户有效组织标签失败: {}", e.getMessage(), e);
 //            return Collections.emptyList(); // 返回空列表作为默认值
 //        }
 //    }
@@ -565,27 +564,27 @@ public class HybridSearchService {
 //     * 获取用户的数据库ID用于权限过滤
 //     */
 //    private String getUserDbId(String userId) {
-//        logger.debug("获取用户数据库ID，用户ID: {}", userId);
+//        log.debug("获取用户数据库ID，用户ID: {}", userId);
 //        try {
 //            // 获取用户名
 //            User user;
 //            try {
 //                Long userIdLong = Long.parseLong(userId);
-//                logger.debug("解析用户ID为Long: {}", userIdLong);
+//                log.debug("解析用户ID为Long: {}", userIdLong);
 //                user = userRepository.findById(userIdLong)
 //                    .orElseThrow(() -> new CustomException("User not found with ID: " + userId, HttpStatus.NOT_FOUND));
-//                logger.debug("通过ID找到用户: {}", user.getUsername());
+//                log.debug("通过ID找到用户: {}", user.getUsername());
 //                return userIdLong.toString(); // 如果输入已经是数字ID，直接返回
 //            } catch (NumberFormatException e) {
 //                // 如果userId不是数字格式，则假设它就是username
-//                logger.debug("用户ID不是数字格式，作为用户名查找: {}", userId);
+//                log.debug("用户ID不是数字格式，作为用户名查找: {}", userId);
 //                user = userRepository.findByUsername(userId)
 //                    .orElseThrow(() -> new CustomException("User not found: " + userId, HttpStatus.NOT_FOUND));
-//                logger.debug("通过用户名找到用户: {}, ID: {}", user.getUsername(), user.getId());
+//                log.debug("通过用户名找到用户: {}, ID: {}", user.getUsername(), user.getId());
 //                return user.getId().toString(); // 返回用户的数据库ID
 //            }
 //        } catch (Exception e) {
-//            logger.error("获取用户数据库ID失败: {}", e.getMessage(), e);
+//            log.error("获取用户数据库ID失败: {}", e.getMessage(), e);
 //            throw new RuntimeException("获取用户数据库ID失败", e);
 //        }
 //    }
@@ -602,7 +601,7 @@ public class HybridSearchService {
                     .collect(Collectors.toMap(FileUpload::getFileMd5, FileUpload::getFileName));
             results.forEach(r -> r.setFileName(md5ToName.get(r.getFileMd5())));
         } catch (Exception e) {
-            logger.error("补充文件名失败", e);
+            log.error("补充文件名失败", e);
         }
     }
 
@@ -616,10 +615,10 @@ public class HybridSearchService {
         String normalizedQuery = QueryNormalizer.normalizeForCacheKey(query);
         String cacheKey = SEARCH_CACHE_PREFIX + normalizedQuery + ":" + topK + ":" + strategy + ":" + minScore;
 
-        logger.debug("搜索查询（带缓存）: {}, 标准化后: {}, 缓存key: {}", query, normalizedQuery, cacheKey);
+        log.debug("搜索查询（带缓存）: {}, 标准化后: {}, 缓存key: {}", query, normalizedQuery, cacheKey);
 
         if (redisTemplate == null) {
-            logger.warn("Redis未配置，跳过缓存，直接执行搜索");
+            log.warn("Redis未配置，跳过缓存，直接执行搜索");
             return optimizedSearch(query, topK, strategy, minScore);
         }
 
@@ -630,17 +629,17 @@ public class HybridSearchService {
 
                 if (isCacheValid(cachedResult)) {
                     cacheStatistics.incrementHits();
-                    logger.debug("缓存命中: {}, 返回 {} 个结果", query, cachedResult.getDocuments().size());
-                    return cachedResult.getDocuments();
+                    log.debug("缓存命中: {}, 返回 {} 个结果", query, cachedResult.getDocumentsAsList().size());
+                    return cachedResult.getDocumentsAsList();
                 } else {
-                    logger.debug("缓存已失效（文档版本变化）: {}", query);
+                    log.debug("缓存已失效（文档版本变化）: {}", query);
                     redisTemplate.delete(cacheKey);
                     cacheStatistics.incrementInvalidations();
                 }
             }
 
             cacheStatistics.incrementMisses();
-            logger.debug("未命中缓存，执行检索: {}", query);
+            log.debug("未命中缓存，执行检索: {}", query);
             List<Document> results = optimizedSearch(query, topK, strategy, minScore);
 
             CachedSearchResult cacheResult = new CachedSearchResult(
@@ -653,12 +652,12 @@ public class HybridSearchService {
             );
 
             redisTemplate.opsForValue().set(cacheKey, cacheResult, CACHE_TTL_SECONDS, TimeUnit.SECONDS);
-            logger.debug("缓存已保存: {}, TTL: {}秒", cacheKey, CACHE_TTL_SECONDS);
+            log.debug("缓存已保存: {}, TTL: {}秒", cacheKey, CACHE_TTL_SECONDS);
 
             return results;
 
         } catch (Exception e) {
-            logger.error("缓存操作失败，直接执行搜索: {}", e.getMessage(), e);
+            log.error("缓存操作失败，直接执行搜索: {}", e.getMessage(), e);
             return optimizedSearch(query, topK, strategy, minScore);
         }
     }
@@ -677,7 +676,7 @@ public class HybridSearchService {
             String currentVersion = getDocVersion(docId);
 
             if (!cachedVersion.equals(currentVersion)) {
-                logger.debug("文档版本变化: {} -> {} -> {}", docId, cachedVersion, currentVersion);
+                log.debug("文档版本变化: {} -> {} -> {}", docId, cachedVersion, currentVersion);
                 return false;
             }
         }
@@ -709,7 +708,7 @@ public class HybridSearchService {
 
     public void invalidateDocumentCache(String docId) {
         if (redisTemplate == null) {
-            logger.warn("Redis未配置，无法使缓存失效");
+            log.warn("Redis未配置，无法使缓存失效");
             return;
         }
 
@@ -721,16 +720,16 @@ public class HybridSearchService {
             redisTemplate.opsForValue().set(versionKey, newVersion);
 
             cacheStatistics.incrementInvalidations();
-            logger.info("文档缓存已失效: {} -> {}", docId, newVersion);
+            log.info("文档缓存已失效: {} -> {}", docId, newVersion);
 
         } catch (Exception e) {
-            logger.error("使文档缓存失败: {}", e.getMessage(), e);
+            log.error("使文档缓存失败: {}", e.getMessage(), e);
         }
     }
 
     public void invalidateAllDocumentCache() {
         if (redisTemplate == null) {
-            logger.warn("Redis未配置，无法使缓存失效");
+            log.warn("Redis未配置，无法使缓存失效");
             return;
         }
 
@@ -738,10 +737,10 @@ public class HybridSearchService {
             Set<String> keys = redisTemplate.keys(DOC_VERSION_PREFIX + "*");
             if (keys != null && !keys.isEmpty()) {
                 redisTemplate.delete(keys);
-                logger.info("所有文档缓存已失效，共 {} 个", keys.size());
+                log.info("所有文档缓存已失效，共 {} 个", keys.size());
             }
         } catch (Exception e) {
-            logger.error("使所有文档缓存失败: {}", e.getMessage(), e);
+            log.error("使所有文档缓存失败: {}", e.getMessage(), e);
         }
     }
 
@@ -751,6 +750,6 @@ public class HybridSearchService {
 
     public void resetCacheStatistics() {
         cacheStatistics.reset();
-        logger.info("缓存统计信息已重置");
+        log.info("缓存统计信息已重置");
     }
 }

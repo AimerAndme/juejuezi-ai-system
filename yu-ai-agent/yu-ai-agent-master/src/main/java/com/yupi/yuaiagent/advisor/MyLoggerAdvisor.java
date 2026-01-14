@@ -37,7 +37,7 @@ public class MyLoggerAdvisor implements BaseAdvisor {
         Integer promptTokens = usage.getPromptTokens();
         Integer completionTokens = usage.getCompletionTokens();
         Integer totalTokens = usage.getTotalTokens();
-        log.info("AI Response: {}", chatClientResponse.chatResponse().getResult().getOutput().getText());
+        //log.info("AI Response: {}", chatClientResponse.chatResponse().getResult().getOutput().getText());
         log.info("本次模型调用，会话id为：{}，token使用量：输入：{}，输出：{}，总计：{}", id, promptTokens, completionTokens, totalTokens);
         return chatClientResponse;
     }
@@ -58,7 +58,7 @@ public class MyLoggerAdvisor implements BaseAdvisor {
         Integer promptTokens = usage.getPromptTokens();
         Integer completionTokens = usage.getCompletionTokens();
         Integer totalTokens = usage.getTotalTokens();
-        log.info("AI Response: {}", chatClientResponse.chatResponse().getResult().getOutput().getText());
+        //log.info("AI Response: {}", chatClientResponse.chatResponse().getResult().getOutput().getText());
         log.info("本次模型调用，会话id为：{}，token使用量：输入：{}，输出：{}，总计：{}", id, promptTokens, completionTokens, totalTokens);
     }
 
