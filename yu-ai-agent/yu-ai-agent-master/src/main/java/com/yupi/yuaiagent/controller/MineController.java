@@ -5,11 +5,13 @@ import com.yupi.yuaiagent.domin.vo.UserChatVO;
 import com.yupi.yuaiagent.graph.PreProcessingGraphFactory;
 import com.yupi.yuaiagent.service.IMineService;
 import com.yupi.yuaiagent.util.Result;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RestController
 @RequestMapping("/mine")
 public class MineController {
@@ -34,7 +36,9 @@ public class MineController {
             return Result.success(chat);
 
         } catch (Exception e) {
-            return Result.fail("服务出错");
+
+            log.error("服务出错：{}", e.getMessage());
+            return Result.fail("服务出错：{}");
         }
 
     }

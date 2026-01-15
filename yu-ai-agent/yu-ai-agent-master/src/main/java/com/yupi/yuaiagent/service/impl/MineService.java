@@ -58,7 +58,7 @@ public class MineService implements com.yupi.yuaiagent.service.IMineService {
         CompiledGraph graph = preProcessingGraphFactory.getDBInvocationChatInstance();
         Optional<OverAllState> call = graph.call(Map.of("queryInfo", userChatVO));
         //Todo解析Rag回答的上下文
-        parseRagContext(call);
+        //parseRagContext(call);
         return (String) call.map(OverAllState::data).orElse(Map.of()).get("chatResult");
     }
 

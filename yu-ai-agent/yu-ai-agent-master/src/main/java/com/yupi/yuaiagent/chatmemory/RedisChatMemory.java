@@ -14,7 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.UserMessage;
-import org.springframework.ai.rag.postretrieval.document.DocumentPostProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -38,7 +37,8 @@ public class RedisChatMemory implements ChatMemory {
     private static final String SUMMARY_KEY_PREFIX = "chat:summary:";
     private static final String SUMMARY_LIST_KEY_PREFIX = "chat:summary:list:";
     private static final String MESSAGE_COUNT_KEY_PREFIX = "chat:message:count:";
-    private static final Integer LIMIT_MESSAGES = 10;
+    private static final String BATCH_CLEARED_PREFIX = "chat:batch:cleared:";
+    private static final Integer LIMIT_MESSAGES = 20;
     private final RedisTemplate<String, Object> redisTemplate;
     @Autowired
     MqAsyncProducer memoryAsyncProducer;
@@ -168,6 +168,16 @@ public class RedisChatMemory implements ChatMemory {
         Object value = redisTemplate.opsForValue().get(key);
         // 处理空值或类型不匹配的情况
         if (value == null) {
+            // 检查是否是摘要提取导致的清空
+            String clearedKey = BATCH_CLEARED_PREFIX + conversationId;
+            Boolean isClearedBySummary = redisTemplate.hasKey(clearedKey);
+            
+            if (isClearedBySummary != null && isClearedBySummary) {
+                // 摘要提取导致的清空，直接返回空列表
+                log.info("会话id：{}，缓存为空是由于摘要提取，不需要重建", conversationId);
+                return new ArrayList<>();
+            }
+            
             log.info("当前对话redis无缓存内容，开始重建");
             //如果redis为空
             //1、数据库拉取数据进行重建
@@ -293,15 +303,15 @@ public class RedisChatMemory implements ChatMemory {
         List<String> summaries = getSummaryList(conversationId);
 
         summaries.add(newSummary);
-        
-               while (summaries.size() > maxSummaries) {
+
+        while (summaries.size() > maxSummaries) {
             summaries.remove(0);
             log.info("会话id：{}，已丢弃最旧的摘要", conversationId);
         }
-        
+
         redisTemplate.delete(key);
         redisTemplate.opsForList().rightPushAll(key, summaries);
-               redisTemplate.expire(key, 7, TimeUnit.DAYS);
+        redisTemplate.expire(key, 7, TimeUnit.DAYS);
 
         log.info("会话id：{}，当前摘要数量：{}", conversationId, summaries.size());
     }
@@ -316,10 +326,10 @@ public class RedisChatMemory implements ChatMemory {
         String key = SUMMARY_LIST_KEY_PREFIX + conversationId;
         Long size = redisTemplate.opsForList().size(key);
         if (size == null || size == 0) {
-                   return new ArrayList<>();
+            return new ArrayList<>();
         }
-                
-                 objects = redisTemplate.opsForList().range(key, 0, -1);
+
+        List<Object> objects = redisTemplate.opsForList().range(key, 0, -1);
         return objects.stream()
                 .map(Object::toString)
                 .collect(Collectors.toList());
@@ -379,10 +389,21 @@ public class RedisChatMemory implements ChatMemory {
      *
      * @param conversationId 对话 ID
      * @param count 消息数
-     */
+            */
     public void updateLastSummaryMessageCount(String conversationId, long count) {
         String key = MESSAGE_COUNT_KEY_PREFIX + conversationId + ":last_summary";
-        redisTemplate.opsForValue().set(key, count, 7, TimeUnit.DAYS);
+               redisTemplate.opsForValue().set(key, count, 7, TimeUnit.DAYS);
         log.debug("会话id：{}，上次摘要生成时的消息数已更新为：{}", conversationId, count);
+    }
+
+    public void clearCurrentBatch(String conversationId) {
+        String key = getRedisKey(conversationId);
+        redisTemplate.delete(key);
+
+        // 添加标记，记录这是摘要提取导致的清空
+        String clearedKey = BATCH_CLEARED_PREFIX + conversationId;
+        redisTemplate.opsForValue().set(clearedKey, "true", 1, TimeUnit.HOURS); // 1小时过期
+
+        log.info("会话id：{}，当前批次已清空", conversationId);
     }
 }

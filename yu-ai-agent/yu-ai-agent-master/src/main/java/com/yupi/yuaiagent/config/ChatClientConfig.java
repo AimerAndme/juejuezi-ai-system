@@ -67,7 +67,7 @@ public class ChatClientConfig {
                 .defaultToolCallbacks(toolCallbackProvider)
                 .defaultAdvisors(
                         myLoggerAdvisor,
-                        MessageMemoryAdvisor.builder(redisChatMemory).build()
+                        MessageMemoryAdvisor.builder(redisChatMemory).enableSummary(true).summaryChatClient(summaryChatClient()).build()
                 )
                 .build();
     }
@@ -86,7 +86,7 @@ public class ChatClientConfig {
                 .defaultAdvisors(
                         myLoggerAdvisor,
                         retrievalRerankAdvisor,
-                        MessageMemoryAdvisor.builder(redisChatMemory).build()
+                        MessageMemoryAdvisor.builder(redisChatMemory).enableSummary(true).summaryChatClient(summaryChatClient()).build()
                 )
                 .build();
     }
@@ -107,6 +107,15 @@ public class ChatClientConfig {
                 .builder(dashscopeChatModel)
                 .defaultSystem(SYSTEM_PROMPT)
                 .defaultToolCallbacks(mineControllerTools)
+                .build();
+    }
+
+    //摘要总结专用client
+    @Bean
+    public ChatClient summaryChatClient() {
+        return ChatClient
+                .builder(dashscopeChatModel)
+                .defaultSystem(SYSTEM_PROMPT)
                 .build();
     }
 }

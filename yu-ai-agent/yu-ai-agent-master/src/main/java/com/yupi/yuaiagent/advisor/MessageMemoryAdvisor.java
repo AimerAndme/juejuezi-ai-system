@@ -12,6 +12,7 @@ import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
+import org.springframework.ai.chat.model.Generation;
 import org.springframework.util.Assert;
 import reactor.core.scheduler.Scheduler;
 
@@ -22,20 +23,23 @@ import java.util.stream.Collectors;
 @Slf4j
 public class MessageMemoryAdvisor implements BaseChatMemoryAdvisor {
 
-    private final ChatMemory chatMemory;
-    private final String defaultConversationId;
-    private final int order;
-    private final Scheduler scheduler;
-    private final int maxContextMessages;
-    private final ChatClient summaryChatClient;
-    private final int summaryThreshold;
-    private final boolean enableSummary;
-    private final int maxSummaries;
-    private final int summaryUpdateInterval;
+    private final ChatMemory chatMemory;                 // 对话记忆存储实现
+    private final String defaultConversationId;           // 默认对话ID
+    private final int order;                              // 顾问执行顺序
+    private final Scheduler scheduler;                    // 调度器
+    private final int maxContextMessages;                 // 最大上下文消息数
+    private final ChatClient summaryChatClient;           // 用于生成摘要的ChatClient
+    private final int summaryThreshold;                   // 摘要生成阈值（旧版参数）
+    private final boolean enableSummary;                  // 是否启用摘要功能
+    private final int maxSummaries;                       // 最大摘要数量
+    private final int summaryUpdateInterval;              // 摘要更新间隔（旧版参数）
+    private final int batchSizeMin;                       // 最小批次大小（10条）
+    private final int batchSizeMax;                       // 最大批次大小（20条）
+    private final int batchTokenThreshold;                // 批次token阈值（1500）
 
     private MessageMemoryAdvisor(ChatMemory chatMemory, String defaultConversationId, int order, Scheduler scheduler,
             int maxContextMessages, ChatClient summaryChatClient, int summaryThreshold, boolean enableSummary,
-            int maxSummaries, int summaryUpdateInterval) {
+            int maxSummaries, int summaryUpdateInterval, int batchSizeMin, int batchSizeMax, int batchTokenThreshold) {
         Assert.notNull(chatMemory, "chatMemory cannot be null");
         Assert.hasText(defaultConversationId, "defaultConversationId cannot be null or empty");
         Assert.notNull(scheduler, "scheduler cannot be null");
@@ -45,6 +49,10 @@ public class MessageMemoryAdvisor implements BaseChatMemoryAdvisor {
             Assert.isTrue(summaryThreshold > 0, "summaryThreshold must be greater than 0 when enableSummary is true");
             Assert.isTrue(maxSummaries > 0, "maxSummaries must be greater than 0 when enableSummary is true");
             Assert.isTrue(summaryUpdateInterval > 0, "summaryUpdateInterval must be greater than 0 when enableSummary is true");
+            Assert.isTrue(batchSizeMin > 0, "batchSizeMin must be greater than 0 when enableSummary is true");
+            Assert.isTrue(batchSizeMax > 0, "batchSizeMax must be greater than 0 when enableSummary is true");
+            Assert.isTrue(batchSizeMax > batchSizeMin, "batchSizeMax must be greater than batchSizeMin");
+            Assert.isTrue(batchTokenThreshold > 0, "batchTokenThreshold must be greater than 0 when enableSummary is true");
         }
         this.chatMemory = chatMemory;
         this.defaultConversationId = defaultConversationId;
@@ -56,6 +64,9 @@ public class MessageMemoryAdvisor implements BaseChatMemoryAdvisor {
         this.enableSummary = enableSummary;
         this.maxSummaries = maxSummaries;
         this.summaryUpdateInterval = summaryUpdateInterval;
+        this.batchSizeMin = batchSizeMin;
+        this.batchSizeMax = batchSizeMax;
+        this.batchTokenThreshold = batchTokenThreshold;
     }
 
     public static MessageMemoryAdvisor.Builder builder(ChatMemory chatMemory) {
@@ -65,51 +76,59 @@ public class MessageMemoryAdvisor implements BaseChatMemoryAdvisor {
     public ChatClientRequest before(ChatClientRequest chatClientRequest, AdvisorChain advisorChain) {
         String conversationId = this.getConversationId(chatClientRequest.context(), this.defaultConversationId);
         List<Message> memoryMessages = this.chatMemory.get(conversationId);
-        List<Message> processedMessages = new ArrayList(memoryMessages);
-        if (processedMessages == null || processedMessages.size() == 0) {
+        List<Message> processedMessages = new ArrayList<>();
+        if (memoryMessages.isEmpty()) {
             log.info("会话id：{}，未查询到短期记忆", conversationId);
         }
-        log.info("会话id：{}，查询到短期记忆{}条", conversationId, processedMessages.size());
+        log.info("会话id：{}，查询到短期记忆{}条", conversationId, memoryMessages.size());
 
-        if (processedMessages.size() > this.maxContextMessages) {
-            if (this.enableSummary && processedMessages.size() > this.summaryThreshold) {
-                List<String> summaryList = null;
+        if (this.enableSummary) {
+            List<String> summaryList = null;
 
-                if (this.chatMemory instanceof com.yupi.yuaiagent.chatmemory.RedisChatMemory) {
-                    com.yupi.yuaiagent.chatmemory.RedisChatMemory redisChatMemory
-                            = (com.yupi.yuaiagent.chatmemory.RedisChatMemory) this.chatMemory;
-                    summaryList = redisChatMemory.getSummaryList(conversationId);
-                }
+            if (this.chatMemory instanceof com.yupi.yuaiagent.chatmemory.RedisChatMemory) {
+                com.yupi.yuaiagent.chatmemory.RedisChatMemory redisChatMemory
+                        = (com.yupi.yuaiagent.chatmemory.RedisChatMemory) this.chatMemory;
+                summaryList = redisChatMemory.getSummaryList(conversationId);
+            }
 
-                List<Message> recentMessages = processedMessages.subList(
-                        processedMessages.size() - this.summaryThreshold,
-                        processedMessages.size()
-                );
+            if (summaryList != null && !summaryList.isEmpty()) {
+                String combinedSummary = String.join("\n\n", summaryList);
+                Message summaryMessage = new SystemMessage("历史对话摘要：\n" + combinedSummary);
+                processedMessages.add(summaryMessage);
+                log.info("会话id：{}，使用{}条摘要", conversationId, summaryList.size());
+            }
 
-                processedMessages = new ArrayList<>();
+            processedMessages.addAll(memoryMessages);
+            log.info("会话id：{}，上下文已组装为：{}条摘要 + {}条当前批次消息", conversationId,
+                    summaryList != null ? summaryList.size() : 0, memoryMessages.size());
+        } else {
+            processedMessages = memoryMessages;
+        }
 
-                if (summaryList != null && !summaryList.isEmpty()) {
-                    String combinedSummary = String.join("\n\n", summaryList);
-                    Message summaryMessage = new SystemMessage("历史对话摘要：\n" + combinedSummary);
-                    processedMessages.add(summaryMessage);
-                    log.info("会话id：{}，使用{}条摘要", conversationId, summaryList.size());
-                }
-
-                processedMessages.addAll(recentMessages);
-                log.info("会话id：{}，上下文已组装为：{}条摘要 + {}条最近消息", conversationId,
-                        summaryList != null ? summaryList.size() : 0, recentMessages.size());
-            } else {
-                processedMessages = processedMessages.subList(
-                        processedMessages.size() - this.maxContextMessages,
-                        processedMessages.size()
-                );
-                log.info("会话id：{}，已裁剪至最近{}条消息", conversationId, this.maxContextMessages);
+        // 添加空值检查，避免getInstructions()返回null导致异常
+        if (chatClientRequest.prompt() != null) {
+            List<Message> instructions = chatClientRequest.prompt().getInstructions();
+            if (instructions != null && !instructions.isEmpty()) {
+                processedMessages.addAll(instructions);
             }
         }
-        processedMessages.addAll(chatClientRequest.prompt().getInstructions());
-        ChatClientRequest processedChatClientRequest = chatClientRequest.mutate().prompt(chatClientRequest.prompt().mutate().messages(processedMessages).build()).build();
-        UserMessage userMessage = processedChatClientRequest.prompt().getUserMessage();
-        this.chatMemory.add(conversationId, userMessage);
+        // 构建处理后的请求
+        ChatClientRequest processedChatClientRequest = null;
+        if (chatClientRequest.prompt() != null) {
+            processedChatClientRequest = chatClientRequest.mutate()
+                    .prompt(chatClientRequest.prompt().mutate().messages(processedMessages).build())
+                    .build();
+            // 保存用户消息到当前批次
+            if (processedChatClientRequest != null && processedChatClientRequest.prompt() != null) {
+                UserMessage userMessage = processedChatClientRequest.prompt().getUserMessage();
+                if (userMessage != null) {
+                    this.chatMemory.add(conversationId, userMessage);
+                }
+            }
+        }
+        if (processedChatClientRequest == null) {
+            processedChatClientRequest = chatClientRequest;
+        }
         return processedChatClientRequest;
     }
 
@@ -138,14 +157,53 @@ public class MessageMemoryAdvisor implements BaseChatMemoryAdvisor {
         }
     }
 
+    private int calculateTokens(List<Message> messages) {
+        return messages.stream()
+                .mapToInt(msg -> {
+                    String content = msg.getText();
+                    return (int) (content.length() * 1.5);
+                })
+                .sum();
+    }
+
     public ChatClientResponse after(ChatClientResponse chatClientResponse, AdvisorChain advisorChain) {
         List<AssistantMessage> assistantMessages = new ArrayList();
         if (chatClientResponse.chatResponse() != null) {
-            assistantMessages = chatClientResponse.chatResponse().getResults().stream().map((g) -> {
-                return g.getOutput();
-            }).toList();
+            assistantMessages = chatClientResponse.chatResponse().getResults().stream().map(Generation::getOutput).toList();
         }
-        this.chatMemory.add(this.getConversationId(chatClientResponse.context(), this.defaultConversationId), (List) assistantMessages);
+        String conversationId = this.getConversationId(chatClientResponse.context(), this.defaultConversationId);
+        this.chatMemory.add(conversationId, (List) assistantMessages);
+
+        if (this.enableSummary && this.chatMemory instanceof com.yupi.yuaiagent.chatmemory.RedisChatMemory redisChatMemory) {
+
+            List<Message> currentBatch = redisChatMemory.get(conversationId);
+            int batchTokens = calculateTokens(currentBatch);
+
+            boolean shouldGenerateSummary = false;
+
+            if (currentBatch.size() >= this.batchSizeMax) {
+                shouldGenerateSummary = true;
+                log.info("会话id：{}，批次已达到最大限制（{}条），强制生成摘要",
+                        conversationId, currentBatch.size());
+            } else if (currentBatch.size() >= this.batchSizeMin && batchTokens >= this.batchTokenThreshold) {
+                shouldGenerateSummary = true;
+                log.info("会话id：{}，批次已达到token阈值（{} tokens, {}条），生成摘要",
+                        conversationId, batchTokens, currentBatch.size());
+            }
+
+            if (shouldGenerateSummary) {
+                String summary = generateSummary(currentBatch);
+
+                if (summary != null) {
+                    redisChatMemory.addSummaryToList(conversationId, summary, this.maxSummaries);
+                    redisChatMemory.clearCurrentBatch(conversationId);
+                    log.info("会话id：{}，摘要已生成并保存，当前批次已清空", conversationId);
+                } else {
+                    log.warn("会话id：{}，摘要生成失败", conversationId);
+                }
+            }
+        }
+
         return chatClientResponse;
     }
 
@@ -166,6 +224,9 @@ public class MessageMemoryAdvisor implements BaseChatMemoryAdvisor {
         private boolean enableSummary = false;
         private int maxSummaries = 5;
         private int summaryUpdateInterval = 10;
+        private int batchSizeMin = 10;
+        private int batchSizeMax = 20;
+        private int batchTokenThreshold = 1500;
 
         private Builder(ChatMemory chatMemory) {
             this.scheduler = BaseAdvisor.DEFAULT_SCHEDULER;
@@ -217,10 +278,25 @@ public class MessageMemoryAdvisor implements BaseChatMemoryAdvisor {
             return this;
         }
 
+        public MessageMemoryAdvisor.Builder batchSizeMin(int batchSizeMin) {
+            this.batchSizeMin = batchSizeMin;
+            return this;
+        }
+
+        public MessageMemoryAdvisor.Builder batchSizeMax(int batchSizeMax) {
+            this.batchSizeMax = batchSizeMax;
+            return this;
+        }
+
+        public MessageMemoryAdvisor.Builder batchTokenThreshold(int batchTokenThreshold) {
+            this.batchTokenThreshold = batchTokenThreshold;
+            return this;
+        }
+
         public MessageMemoryAdvisor build() {
             return new MessageMemoryAdvisor(this.chatMemory, this.conversationId, this.order, this.scheduler,
                     this.maxContextMessages, this.summaryChatClient, this.summaryThreshold, this.enableSummary,
-                    this.maxSummaries, this.summaryUpdateInterval);
+                    this.maxSummaries, this.summaryUpdateInterval, this.batchSizeMin, this.batchSizeMax, this.batchTokenThreshold);
         }
     }
 }
