@@ -1,5 +1,6 @@
 package com.yupi.yuaiagent.advisor;
 
+import com.yupi.yuaiagent.aspect.ExecutionTimeMonitor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.ChatClientRequest;
@@ -13,12 +14,14 @@ import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.model.Generation;
+import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import reactor.core.scheduler.Scheduler;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import com.yupi.yuaiagent.utils.ExecutionTimeUtils;
 
 @Slf4j
 public class MessageMemoryAdvisor implements BaseChatMemoryAdvisor {
@@ -37,10 +40,10 @@ public class MessageMemoryAdvisor implements BaseChatMemoryAdvisor {
     private final int batchSizeMax;                       // 最大批次大小（20条）
     private final int batchTokenThreshold;                // 批次token阈值（1500）
 
-    private MessageMemoryAdvisor(ChatMemory chatMemory, String defaultConversationId, int order, Scheduler scheduler,
+    private MessageMemoryAdvisor(ChatMemory redisChatMemory, String defaultConversationId, int order, Scheduler scheduler,
             int maxContextMessages, ChatClient summaryChatClient, int summaryThreshold, boolean enableSummary,
             int maxSummaries, int summaryUpdateInterval, int batchSizeMin, int batchSizeMax, int batchTokenThreshold) {
-        Assert.notNull(chatMemory, "chatMemory cannot be null");
+        Assert.notNull(redisChatMemory, "chatMemory cannot be null");
         Assert.hasText(defaultConversationId, "defaultConversationId cannot be null or empty");
         Assert.notNull(scheduler, "scheduler cannot be null");
         Assert.isTrue(maxContextMessages > 0, "maxContextMessages must be greater than 0");
@@ -54,7 +57,7 @@ public class MessageMemoryAdvisor implements BaseChatMemoryAdvisor {
             Assert.isTrue(batchSizeMax > batchSizeMin, "batchSizeMax must be greater than batchSizeMin");
             Assert.isTrue(batchTokenThreshold > 0, "batchTokenThreshold must be greater than 0 when enableSummary is true");
         }
-        this.chatMemory = chatMemory;
+        this.chatMemory = redisChatMemory;
         this.defaultConversationId = defaultConversationId;
         this.order = order;
         this.scheduler = scheduler;
@@ -74,62 +77,64 @@ public class MessageMemoryAdvisor implements BaseChatMemoryAdvisor {
     }
 
     public ChatClientRequest before(ChatClientRequest chatClientRequest, AdvisorChain advisorChain) {
-        String conversationId = this.getConversationId(chatClientRequest.context(), this.defaultConversationId);
-        List<Message> memoryMessages = this.chatMemory.get(conversationId);
-        List<Message> processedMessages = new ArrayList<>();
-        if (memoryMessages.isEmpty()) {
-            log.info("会话id：{}，未查询到短期记忆", conversationId);
-        }
-        log.info("会话id：{}，查询到短期记忆{}条", conversationId, memoryMessages.size());
+        return ExecutionTimeUtils.monitorExecutionTime("MessageMemoryAdvisor.before", () -> {
+            String conversationId = this.getConversationId(chatClientRequest.context(), this.defaultConversationId);
+            List<Message> memoryMessages = this.chatMemory.get(conversationId);
+            List<Message> processedMessages = new ArrayList<>();
+            if (memoryMessages.isEmpty()) {
+                log.info("会话id：{}，未查询到短期记忆", conversationId);
+            }
+            log.info("会话id：{}，查询到短期记忆{}条", conversationId, memoryMessages.size());
 
-        if (this.enableSummary) {
-            List<String> summaryList = null;
+            if (this.enableSummary) {
+                List<String> summaryList = null;
 
-            if (this.chatMemory instanceof com.yupi.yuaiagent.chatmemory.RedisChatMemory) {
-                com.yupi.yuaiagent.chatmemory.RedisChatMemory redisChatMemory
-                        = (com.yupi.yuaiagent.chatmemory.RedisChatMemory) this.chatMemory;
-                summaryList = redisChatMemory.getSummaryList(conversationId);
+                if (this.chatMemory instanceof com.yupi.yuaiagent.chatmemory.RedisChatMemory) {
+                    com.yupi.yuaiagent.chatmemory.RedisChatMemory redisChatMemory
+                            = (com.yupi.yuaiagent.chatmemory.RedisChatMemory) this.chatMemory;
+                    summaryList = redisChatMemory.getSummaryList(conversationId);
+                }
+
+                if (summaryList != null && !summaryList.isEmpty()) {
+                    String combinedSummary = String.join("\n\n", summaryList);
+                    Message summaryMessage = new SystemMessage("历史对话摘要：\n" + combinedSummary);
+                    processedMessages.add(summaryMessage);
+                    log.info("会话id：{}，使用{}条摘要", conversationId, summaryList.size());
+                }
+
+                processedMessages.addAll(memoryMessages);
+                log.info("会话id：{}，上下文已组装为：{}条摘要 + {}条当前批次消息", conversationId,
+                        summaryList != null ? summaryList.size() : 0, memoryMessages.size());
+            } else {
+                processedMessages = memoryMessages;
             }
 
-            if (summaryList != null && !summaryList.isEmpty()) {
-                String combinedSummary = String.join("\n\n", summaryList);
-                Message summaryMessage = new SystemMessage("历史对话摘要：\n" + combinedSummary);
-                processedMessages.add(summaryMessage);
-                log.info("会话id：{}，使用{}条摘要", conversationId, summaryList.size());
-            }
-
-            processedMessages.addAll(memoryMessages);
-            log.info("会话id：{}，上下文已组装为：{}条摘要 + {}条当前批次消息", conversationId,
-                    summaryList != null ? summaryList.size() : 0, memoryMessages.size());
-        } else {
-            processedMessages = memoryMessages;
-        }
-
-        // 添加空值检查，避免getInstructions()返回null导致异常
-        if (chatClientRequest.prompt() != null) {
-            List<Message> instructions = chatClientRequest.prompt().getInstructions();
-            if (instructions != null && !instructions.isEmpty()) {
-                processedMessages.addAll(instructions);
-            }
-        }
-        // 构建处理后的请求
-        ChatClientRequest processedChatClientRequest = null;
-        if (chatClientRequest.prompt() != null) {
-            processedChatClientRequest = chatClientRequest.mutate()
-                    .prompt(chatClientRequest.prompt().mutate().messages(processedMessages).build())
-                    .build();
-            // 保存用户消息到当前批次
-            if (processedChatClientRequest != null && processedChatClientRequest.prompt() != null) {
-                UserMessage userMessage = processedChatClientRequest.prompt().getUserMessage();
-                if (userMessage != null) {
-                    this.chatMemory.add(conversationId, userMessage);
+            // 添加空值检查，避免getInstructions()返回null导致异常
+            if (chatClientRequest.prompt() != null) {
+                List<Message> instructions = chatClientRequest.prompt().getInstructions();
+                if (instructions != null && !instructions.isEmpty()) {
+                    processedMessages.addAll(instructions);
                 }
             }
-        }
-        if (processedChatClientRequest == null) {
-            processedChatClientRequest = chatClientRequest;
-        }
-        return processedChatClientRequest;
+            // 构建处理后的请求
+            ChatClientRequest processedChatClientRequest = null;
+            if (chatClientRequest.prompt() != null) {
+                processedChatClientRequest = chatClientRequest.mutate()
+                        .prompt(chatClientRequest.prompt().mutate().messages(processedMessages).build())
+                        .build();
+                // 保存用户消息到当前批次
+                if (processedChatClientRequest != null && processedChatClientRequest.prompt() != null) {
+                    UserMessage userMessage = processedChatClientRequest.prompt().getUserMessage();
+                    if (userMessage != null) {
+                        this.chatMemory.add(conversationId, userMessage);
+                    }
+                }
+            }
+            if (processedChatClientRequest == null) {
+                processedChatClientRequest = chatClientRequest;
+            }
+            return processedChatClientRequest;
+        });
     }
 
     private String generateSummary(List<Message> messages) {
@@ -167,44 +172,46 @@ public class MessageMemoryAdvisor implements BaseChatMemoryAdvisor {
     }
 
     public ChatClientResponse after(ChatClientResponse chatClientResponse, AdvisorChain advisorChain) {
-        List<AssistantMessage> assistantMessages = new ArrayList();
-        if (chatClientResponse.chatResponse() != null) {
-            assistantMessages = chatClientResponse.chatResponse().getResults().stream().map(Generation::getOutput).toList();
-        }
-        String conversationId = this.getConversationId(chatClientResponse.context(), this.defaultConversationId);
-        this.chatMemory.add(conversationId, (List) assistantMessages);
-
-        if (this.enableSummary && this.chatMemory instanceof com.yupi.yuaiagent.chatmemory.RedisChatMemory redisChatMemory) {
-
-            List<Message> currentBatch = redisChatMemory.get(conversationId);
-            int batchTokens = calculateTokens(currentBatch);
-
-            boolean shouldGenerateSummary = false;
-
-            if (currentBatch.size() >= this.batchSizeMax) {
-                shouldGenerateSummary = true;
-                log.info("会话id：{}，批次已达到最大限制（{}条），强制生成摘要",
-                        conversationId, currentBatch.size());
-            } else if (currentBatch.size() >= this.batchSizeMin && batchTokens >= this.batchTokenThreshold) {
-                shouldGenerateSummary = true;
-                log.info("会话id：{}，批次已达到token阈值（{} tokens, {}条），生成摘要",
-                        conversationId, batchTokens, currentBatch.size());
+        return ExecutionTimeUtils.monitorExecutionTime("MessageMemoryAdvisor.after", () -> {
+            List<AssistantMessage> assistantMessages = new ArrayList();
+            if (chatClientResponse.chatResponse() != null) {
+                assistantMessages = chatClientResponse.chatResponse().getResults().stream().map(Generation::getOutput).toList();
             }
+            String conversationId = this.getConversationId(chatClientResponse.context(), this.defaultConversationId);
+            this.chatMemory.add(conversationId, (List) assistantMessages);
 
-            if (shouldGenerateSummary) {
-                String summary = generateSummary(currentBatch);
+            if (this.enableSummary && this.chatMemory instanceof com.yupi.yuaiagent.chatmemory.RedisChatMemory redisChatMemory) {
 
-                if (summary != null) {
-                    redisChatMemory.addSummaryToList(conversationId, summary, this.maxSummaries);
-                    redisChatMemory.clearCurrentBatch(conversationId);
-                    log.info("会话id：{}，摘要已生成并保存，当前批次已清空", conversationId);
-                } else {
-                    log.warn("会话id：{}，摘要生成失败", conversationId);
+                List<Message> currentBatch = redisChatMemory.get(conversationId);
+                int batchTokens = calculateTokens(currentBatch);
+
+                boolean shouldGenerateSummary = false;
+
+                if (currentBatch.size() >= this.batchSizeMax) {
+                    shouldGenerateSummary = true;
+                    log.info("会话id：{}，批次已达到最大限制（{}条），强制生成摘要",
+                            conversationId, currentBatch.size());
+                } else if (currentBatch.size() >= this.batchSizeMin && batchTokens >= this.batchTokenThreshold) {
+                    shouldGenerateSummary = true;
+                    log.info("会话id：{}，批次已达到token阈值（{} tokens, {}条），生成摘要",
+                            conversationId, batchTokens, currentBatch.size());
+                }
+
+                if (shouldGenerateSummary) {
+                    String summary = generateSummary(currentBatch);
+
+                    if (summary != null) {
+                        redisChatMemory.addSummaryToList(conversationId, summary, this.maxSummaries);
+                        redisChatMemory.clearCurrentBatch(conversationId);
+                        log.info("会话id：{}，摘要已生成并保存，当前批次已清空", conversationId);
+                    } else {
+                        log.warn("会话id：{}，摘要生成失败", conversationId);
+                    }
                 }
             }
-        }
 
-        return chatClientResponse;
+            return chatClientResponse;
+        });
     }
 
     @Override

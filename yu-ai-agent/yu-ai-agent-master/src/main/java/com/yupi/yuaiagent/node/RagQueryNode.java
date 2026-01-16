@@ -2,11 +2,12 @@ package com.yupi.yuaiagent.node;
 
 import com.alibaba.cloud.ai.graph.OverAllState;
 import com.alibaba.cloud.ai.graph.action.NodeAction;
+import com.yupi.yuaiagent.aspect.ExecutionTimeMonitor;
 import com.yupi.yuaiagent.domin.vo.UserChatVO;
+import com.yupi.yuaiagent.utils.ExecutionTimeUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.prompt.PromptTemplate;
-import org.springframework.ai.transformer.splitter.TokenTextSplitter;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -22,6 +23,7 @@ public class RagQueryNode implements NodeAction {
     }
 
     @Override
+    @ExecutionTimeMonitor
     public Map<String, Object> apply(OverAllState state) throws Exception {
         log.info(" ragChatClient 开始执行");
         UserChatVO queryInfo = (UserChatVO) state.value("queryInfo").get();
@@ -35,11 +37,13 @@ public class RagQueryNode implements NodeAction {
                 你的回答应完全基于检索到的内容。问题：{queryInfo}"
                 """);
         promptTemplate.add("queryInfo", queryInfo.getQuery());
-        String content = ragChatClient
-                .prompt(promptTemplate.render())
-                .user(queryInfo.getQuery())
-                .advisors(spec -> spec.param("chat_memory_conversation_id", queryInfo.getConversationId()))
-                .call().content();
+        String content = ExecutionTimeUtils.monitorExecutionTime("ragChatClient", () -> {
+            return ragChatClient
+                    .prompt(promptTemplate.render())
+                    .user(queryInfo.getQuery())
+                    .advisors(spec -> spec.param("chat_memory_conversation_id", queryInfo.getConversationId()))
+                    .call().content();
+        });
         if (content == null) {
             log.error(" ragChatClient 输出结果为空");
             return Map.of("chatResult", "");

@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDateTime;
+
 @Slf4j
 @RestController
 @RequestMapping("/mine")
@@ -33,10 +35,10 @@ public class MineController {
     public Result<?> chat(UserChatVO userChatVO) throws GraphStateException {
         try {
             String chat = mineService.chat(userChatVO);
+            log.info(String.valueOf(LocalDateTime.now()));
             return Result.success(chat);
 
         } catch (Exception e) {
-
             log.error("服务出错：{}", e.getMessage());
             return Result.fail("服务出错：{}");
         }

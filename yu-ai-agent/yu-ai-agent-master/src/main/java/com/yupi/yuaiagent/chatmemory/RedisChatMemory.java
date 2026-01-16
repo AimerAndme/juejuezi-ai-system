@@ -54,7 +54,7 @@ public class RedisChatMemory implements ChatMemory {
     /**
      * 添加单条消息到对话历史
      *
-     * @param userID 对话 ID
+     * @param userID  对话 ID
      * @param message 消息对象
      */
     @Override
@@ -66,7 +66,7 @@ public class RedisChatMemory implements ChatMemory {
      * 添加多条消息到对话历史
      *
      * @param conversationId 对话 ID
-     * @param messages 消息列表
+     * @param messages       消息列表
      */
     @Override
     public void add(String conversationId, List<Message> messages) {
@@ -171,13 +171,13 @@ public class RedisChatMemory implements ChatMemory {
             // 检查是否是摘要提取导致的清空
             String clearedKey = BATCH_CLEARED_PREFIX + conversationId;
             Boolean isClearedBySummary = redisTemplate.hasKey(clearedKey);
-            
+
             if (isClearedBySummary != null && isClearedBySummary) {
                 // 摘要提取导致的清空，直接返回空列表
                 log.info("会话id：{}，缓存为空是由于摘要提取，不需要重建", conversationId);
                 return new ArrayList<>();
             }
-            
+
             log.info("当前对话redis无缓存内容，开始重建");
             //如果redis为空
             //1、数据库拉取数据进行重建
@@ -243,7 +243,12 @@ public class RedisChatMemory implements ChatMemory {
                 log.error("序列化消息失败，跳过该消息: {}", message, e);
             }
         }
-        redisTemplate.opsForValue().set(key, serializedMessages, 1L, TimeUnit.DAYS);
+        redisTemplate.opsForValue().set(key, serializedMessages, 7, TimeUnit.DAYS);
+        log.debug("已将对话 [{}] 的消息存入 Redis，共 {} 条", conversationId, messages.size());
+        String summaryKey = SUMMARY_KEY_PREFIX + conversationId;
+        if (Boolean.TRUE.equals(redisTemplate.hasKey(summaryKey))) {
+            redisTemplate.expire(summaryKey, 7, TimeUnit.DAYS);
+        }
     }
 
     /**
@@ -257,7 +262,7 @@ public class RedisChatMemory implements ChatMemory {
      * 保存对话摘要到 Redis
      *
      * @param conversationId 对话 ID
-     * @param summary 摘要内容
+     * @param summary        摘要内容
      */
     public void saveSummary(String conversationId, String summary) {
         String key = SUMMARY_KEY_PREFIX + conversationId;
@@ -295,8 +300,8 @@ public class RedisChatMemory implements ChatMemory {
      * 添加摘要到摘要列表
      *
      * @param conversationId 对话 ID
-     * @param newSummary 新摘要内容
-     * @param maxSummaries 最大摘要数量
+     * @param newSummary     新摘要内容
+     * @param maxSummaries   最大摘要数量
      */
     public void addSummaryToList(String conversationId, String newSummary, int maxSummaries) {
         String key = SUMMARY_LIST_KEY_PREFIX + conversationId;
@@ -388,11 +393,11 @@ public class RedisChatMemory implements ChatMemory {
      * 更新上次摘要生成时的消息数
      *
      * @param conversationId 对话 ID
-     * @param count 消息数
-            */
+     * @param count          消息数
+     */
     public void updateLastSummaryMessageCount(String conversationId, long count) {
         String key = MESSAGE_COUNT_KEY_PREFIX + conversationId + ":last_summary";
-               redisTemplate.opsForValue().set(key, count, 7, TimeUnit.DAYS);
+        redisTemplate.opsForValue().set(key, count, 7, TimeUnit.DAYS);
         log.debug("会话id：{}，上次摘要生成时的消息数已更新为：{}", conversationId, count);
     }
 
@@ -402,7 +407,7 @@ public class RedisChatMemory implements ChatMemory {
 
         // 添加标记，记录这是摘要提取导致的清空
         String clearedKey = BATCH_CLEARED_PREFIX + conversationId;
-        redisTemplate.opsForValue().set(clearedKey, "true", 1, TimeUnit.HOURS); // 1小时过期
+        redisTemplate.opsForValue().set(clearedKey, "true", 7, TimeUnit.HOURS); // 1小时过期
 
         log.info("会话id：{}，当前批次已清空", conversationId);
     }

@@ -2,6 +2,7 @@ package com.yupi.yuaiagent.node;
 
 import com.alibaba.cloud.ai.graph.OverAllState;
 import com.alibaba.cloud.ai.graph.action.NodeAction;
+import com.yupi.yuaiagent.aspect.ExecutionTimeMonitor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.prompt.PromptTemplate;
@@ -20,6 +21,7 @@ public class Nl2SqlNode implements NodeAction {
     }
 
     @Override
+    @ExecutionTimeMonitor
     public Map<String, Object> apply(OverAllState state) throws Exception {
         log.info(" Nl2SqlNode 开始执行");
         Optional<Object> query = state.value("reWriteQuery");

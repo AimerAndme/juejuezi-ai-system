@@ -2,6 +2,7 @@ package com.yupi.yuaiagent.node;
 
 import com.alibaba.cloud.ai.graph.OverAllState;
 import com.alibaba.cloud.ai.graph.action.NodeAction;
+import com.yupi.yuaiagent.aspect.ExecutionTimeMonitor;
 import com.yupi.yuaiagent.domin.vo.UserChatVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
@@ -22,6 +23,7 @@ public class DBResult2NlNode implements NodeAction {
 
 
     @Override
+    @ExecutionTimeMonitor
     public Map<String, Object> apply(OverAllState state) throws Exception {
         log.info(" DBResult2NlNode 节点开始执行");
         UserChatVO queryInfo = (UserChatVO) state.value("queryInfo").get();

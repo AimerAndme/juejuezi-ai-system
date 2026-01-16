@@ -2,6 +2,7 @@ package com.yupi.yuaiagent.node;
 
 import com.alibaba.cloud.ai.graph.OverAllState;
 import com.alibaba.cloud.ai.graph.action.NodeAction;
+import com.yupi.yuaiagent.aspect.ExecutionTimeMonitor;
 import com.yupi.yuaiagent.domin.vo.UserChatVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
@@ -20,6 +21,7 @@ public class QueryRewritingNode implements NodeAction {
     }
 
     @Override
+    @ExecutionTimeMonitor
     public Map<String, Object> apply(OverAllState state) throws Exception {
         if (state.value("queryInfo").isEmpty()) {
             log.error("无法获取用户输入内容");

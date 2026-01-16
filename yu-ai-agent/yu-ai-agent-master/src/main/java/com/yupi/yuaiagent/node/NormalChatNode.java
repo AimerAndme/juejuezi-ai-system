@@ -2,6 +2,7 @@ package com.yupi.yuaiagent.node;
 
 import com.alibaba.cloud.ai.graph.OverAllState;
 import com.alibaba.cloud.ai.graph.action.NodeAction;
+import com.yupi.yuaiagent.aspect.ExecutionTimeMonitor;
 import com.yupi.yuaiagent.domin.vo.UserChatVO;
 import com.yupi.yuaiagent.util.factory.NormalChatPromptFactory;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +24,7 @@ public class NormalChatNode implements NodeAction {
     }
 
     @Override
+    @ExecutionTimeMonitor
     public Map<String, Object> apply(OverAllState state) throws Exception {
         log.info(" memoryChatClient 闲聊开始执行");
         if (state.value("queryInfo").isEmpty() || state.value("reWriteQuery").isEmpty()) {

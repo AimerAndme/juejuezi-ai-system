@@ -4,6 +4,7 @@ import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.query_dsl.Operator;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
+import com.yupi.yuaiagent.aspect.ExecutionTimeMonitor;
 import com.yupi.yuaiagent.client.EmbeddingClient;
 import com.yupi.yuaiagent.domin.entity.EsDocument;
 import com.yupi.yuaiagent.domin.entity.FileUpload;
@@ -608,7 +609,7 @@ public class HybridSearchService {
     public List<Document> searchWithCache(String query, int topK) {
         return searchWithCache(query, topK, 0, 0.0);
     }
-
+    @ExecutionTimeMonitor
     public List<Document> searchWithCache(String query, int topK, int strategy, double minScore) {
         cacheStatistics.incrementRequests();
 

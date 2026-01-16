@@ -8,10 +8,9 @@ import com.alibaba.cloud.ai.document.DocumentWithScore;
 import com.alibaba.cloud.ai.model.RerankModel;
 import com.alibaba.cloud.ai.model.RerankRequest;
 import com.alibaba.cloud.ai.model.RerankResponse;
-import com.yupi.yuaiagent.domin.context.RagRequestContext;
-import com.yupi.yuaiagent.domin.entity.RagRequestContextData;
 import com.yupi.yuaiagent.service.HybridSearchService;
 import com.yupi.yuaiagent.service.VectorizationService;
+import com.yupi.yuaiagent.utils.ExecutionTimeUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +32,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -97,16 +97,18 @@ public class RetrievalRerankAdvisor implements BaseAdvisor {
     }
 
     protected List<Document> doRerank(ChatClientRequest request, List<Document> documents) {
-        if (CollectionUtils.isEmpty(documents)) {
-            return documents;
-        } else {
-            RerankRequest rerankRequest = new RerankRequest(request.prompt().getUserMessage().getText(), documents);
-            RerankResponse response = this.rerankModel.call(rerankRequest);
-            logger.debug("reranked documents: {}", response);
-            return response != null && response.getResults() != null ? (List) response.getResults().stream().filter((doc) -> {
-                return doc != null && doc.getScore() >= this.minScore;
-            }).sorted(Comparator.comparingDouble(DocumentWithScore::getScore).reversed()).map(DocumentWithScore::getOutput).collect(Collectors.toList()) : documents;
-        }
+        return ExecutionTimeUtils.monitorExecutionTime("rerank", () -> {
+            if (CollectionUtils.isEmpty(documents)) {
+                return documents;
+            } else {
+                RerankRequest rerankRequest = new RerankRequest(request.prompt().getUserMessage().getText(), documents);
+                RerankResponse response = this.rerankModel.call(rerankRequest);
+                logger.debug("reranked documents: {}", response);
+                return response != null && response.getResults() != null ? (List) response.getResults().stream().filter((doc) -> {
+                    return doc != null && doc.getScore() >= this.minScore;
+                }).sorted(Comparator.comparingDouble(DocumentWithScore::getScore).reversed()).map(DocumentWithScore::getOutput).collect(Collectors.toList()) : documents;
+            }
+        });
     }
 
     public ChatClientRequest before(ChatClientRequest request, AdvisorChain advisorChain) {
@@ -120,16 +122,18 @@ public class RetrievalRerankAdvisor implements BaseAdvisor {
         log.debug("retrieved documents");
         context.put("qa_retrieved_documents", documents);
         //TODO(可优化点)放置检索信息到上下文
-        RagRequestContextData ragRequestContextData = RagRequestContext.get();
-        ragRequestContextData.setRetrievedDocuments(documents.stream().map(Document::getText).toList());
+        // RagRequestContextData ragRequestContextData = RagRequestContext.get();
+        // ragRequestContextData.setRetrievedDocuments(documents.stream().map(Document::getText).toList());
         //重新排序
         documents = this.doRerank(request, documents);
         String documentContext = (String) documents.stream().map(Document::getText).collect(Collectors.joining(System.lineSeparator()));
         String augmentedUserText = this.promptTemplate.render(Map.of("query", userMessage.getText(), "question_answer_context", documentContext));
+        log.info("RetrievalRerankAdvisor before: {}", LocalDateTime.now());
         return request.mutate().prompt(request.prompt().augmentUserMessage(augmentedUserText)).context(context).build();
     }
 
     public ChatClientResponse after(ChatClientResponse chatClientResponse, AdvisorChain advisorChain) {
+        log.info("RetrievalRerankAdvisor after: {}", LocalDateTime.now());
         ChatResponse.Builder chatResponseBuilder;
         if (chatClientResponse.chatResponse() == null) {
             chatResponseBuilder = ChatResponse.builder();
