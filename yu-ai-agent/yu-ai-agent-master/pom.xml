@@ -159,6 +159,12 @@
             <artifactId>spring-ai-starter-mcp-client</artifactId>
             <version>1.0.0-M7</version>
         </dependency>
+        <!-- 添加JSON依赖 -->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+            <version>1.2.83</version>
+        </dependency>
         <!-- AspectJ Runtime for Spring AOP -->
         <dependency>
             <groupId>org.aspectj</groupId>

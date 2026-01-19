@@ -122,6 +122,7 @@ public class RetrievalRerankAdvisor implements BaseAdvisor {
         log.debug("retrieved documents");
         context.put("qa_retrieved_documents", documents);
         //TODO(可优化点)放置检索信息到上下文
+
         // RagRequestContextData ragRequestContextData = RagRequestContext.get();
         // ragRequestContextData.setRetrievedDocuments(documents.stream().map(Document::getText).toList());
         //重新排序
