@@ -8,13 +8,18 @@ import com.yupi.yuaiagent.domin.entity.MiningAgentConversation;
 import com.yupi.yuaiagent.domin.entity.RagRequestContextData;
 import com.yupi.yuaiagent.domin.vo.UserChatVO;
 import com.yupi.yuaiagent.graph.PreProcessingGraphFactory;
+import com.yupi.yuaiagent.logging.LogContextHolder;
+import com.yupi.yuaiagent.logging.NodeExecutionLog;
+import com.yupi.yuaiagent.logging.StructuredLogBuilder;
 import com.yupi.yuaiagent.mapper.MiningAgentConversationMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+@Slf4j
 @Service
 public class MineService implements com.yupi.yuaiagent.service.IMineService {
     private final PreProcessingGraphFactory preProcessingGraphFactory;
@@ -55,10 +60,20 @@ public class MineService implements com.yupi.yuaiagent.service.IMineService {
         }
         //CompiledGraph graph = preProcessingGraphFactory.getChatInstance();
         //CompiledGraph graph = preProcessingGraphFactory.getRagChatInstance();
-        CompiledGraph graph = preProcessingGraphFactory.getDBInvocationChatInstance();
+        // CompiledGraph graph = preProcessingGraphFactory.getDBInvocationChatInstance();
+        //CompiledGraph graph = preProcessingGraphFactory.getRagChatInstanceWithWrapper();
+        CompiledGraph graph = preProcessingGraphFactory.getDBInvocationChatInstanceWithWrapper();
         Optional<OverAllState> call = graph.call(Map.of("queryInfo", userChatVO));
         //Todo解析Rag回答的上下文
         //parseRagContext(call);
+        //获取graph的执行流程跟踪日志
+        try {
+            Map<String, NodeExecutionLog> allNodeLogs = LogContextHolder.getAllNodeLogs();
+            String jsonLog = StructuredLogBuilder.buildJsonLog(allNodeLogs);
+            log.info("Graph Execution Logs: {}", jsonLog);
+        } finally {
+            LogContextHolder.clear();
+        }
         return (String) call.map(OverAllState::data).orElse(Map.of()).get("chatResult");
     }
 

@@ -62,7 +62,13 @@ public class IntentRecognitionNode implements NodeAction {
         int time = 1;
         while (time <= RETRY_TIME) {
             try {
-                String content = chatClient.prompt(render).call().content();
+                String content = chatClient
+                        .prompt(render)
+                        .advisors(spec -> spec.params(
+                                Map.of(
+                                        "nodeId", "IntentRecognitionNode")
+                        ))
+                        .call().content();
                 if (content != null && !content.isBlank()) {
                     log.info("意图识别成功！返回数据。{}", content);
                     return content;

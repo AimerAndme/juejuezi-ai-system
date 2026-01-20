@@ -53,7 +53,10 @@ public class QueryRewritingNode implements NodeAction {
                 """);
         promptTemplate.add("query", query);
         log.info("开始查询重写，原始query为：{}", query);
-        String content = chatClient.prompt(promptTemplate.render()).call().content();
+        String content = chatClient
+                .prompt(promptTemplate.render())
+                .advisors(spec -> spec.param("nodeId", "QueryRewritingNode"))
+                .call().content();
         if (content != null) {
             log.info("查询重写完成，结果query为：{}", content);
             query = content;

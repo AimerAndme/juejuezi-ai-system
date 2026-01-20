@@ -54,6 +54,7 @@ public class ChatClientConfig {
         return ChatClient
                 .builder(dashscopeChatModel)
                 .defaultSystem(SYSTEM_PROMPT)
+                .defaultAdvisors(myLoggerAdvisor)
                 .defaultToolCallbacks(toolCallbackProvider)
                 .build();
     }

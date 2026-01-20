@@ -11,6 +11,7 @@ import java.util.Map;
  * 节点执行拦截器
  */
 public class LoggingNodeActionWrapper implements NodeAction {
+    private final static int index = 0;
     private final NodeAction delegate;
     private final String nodeId;
     private final String nodeName;
@@ -25,6 +26,10 @@ public class LoggingNodeActionWrapper implements NodeAction {
     public Map<String, Object> apply(OverAllState state) throws Exception {
         NodeExecutionLog nodeExecutionLog = new NodeExecutionLog();
         nodeExecutionLog.setNodeId(nodeId);
+        //提前初始化
+        LogContextHolder.addNodeLog(nodeId, nodeExecutionLog);
+        //更新节点日志内容
+        nodeExecutionLog = LogContextHolder.getNodeLog(nodeId);
         nodeExecutionLog.setNodeName(nodeName);
         nodeExecutionLog.setNodeType(delegate.getClass().getSimpleName());
         nodeExecutionLog.setStartTime(LocalDateTime.now());
@@ -35,7 +40,6 @@ public class LoggingNodeActionWrapper implements NodeAction {
             Map<String, Object> result = delegate.apply(state);
             nodeExecutionLog.setEndTime(LocalDateTime.now());
             nodeExecutionLog.setResult(result.toString());
-            nodeExecutionLog.setAfterState(result.get("state"));
             nodeExecutionLog.setDuration(nodeExecutionLog.getEndTime().atZone(zoneId).toInstant().toEpochMilli() - nodeExecutionLog.getStartTime().atZone(zoneId).toInstant().toEpochMilli());
             nodeExecutionLog.setExecutionStatus(ExecutionStatus.SUCCESS);
             LogContextHolder.addNodeLog(nodeId, nodeExecutionLog);

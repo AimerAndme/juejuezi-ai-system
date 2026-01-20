@@ -40,7 +40,13 @@ public class DBInvocationNode implements NodeAction {
                 sql语句为：{sql}
                 """);
         promptTemplate.add("sql", sql);
-        String content = dbToolChatClient.prompt(promptTemplate.render()).call().content();
+        String content = dbToolChatClient
+                .prompt(promptTemplate.render())
+                .advisors(spec -> spec.params(
+                        Map.of(
+                                "nodeId", "DBInvocationNode")
+                ))
+                .call().content();
         if (content == null) {
             log.info("DBInvocationNode:bd工具调用结果为空！");
             return Map.of("dbInvocationResult", "工具调用失败！");

@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
  */
 @Data
 public class NodeExecutionLog {
+    private int index;
     private String nodeId;
     private String nodeName;
     private String nodeType;

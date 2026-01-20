@@ -3,6 +3,7 @@ package com.yupi.yuaiagent.node;
 import com.alibaba.cloud.ai.graph.OverAllState;
 import com.alibaba.cloud.ai.graph.action.NodeAction;
 import com.yupi.yuaiagent.aspect.ExecutionTimeMonitor;
+import com.yupi.yuaiagent.domin.vo.UserChatVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.prompt.PromptTemplate;
@@ -25,6 +26,7 @@ public class Nl2SqlNode implements NodeAction {
     public Map<String, Object> apply(OverAllState state) throws Exception {
         log.info(" Nl2SqlNode 开始执行");
         Optional<Object> query = state.value("reWriteQuery");
+        UserChatVO queryInfo = (UserChatVO) state.value("queryInfo").get();
         if (query.isEmpty()) {
             log.error("Nl2SqlNode：无法获取用户输入重写内容");
             return Map.of();
@@ -66,6 +68,10 @@ public class Nl2SqlNode implements NodeAction {
         promptTemplate.add("query", reWriteQuery);
         String content = nl2SqlChatClient
                 .prompt(promptTemplate.render())
+                .advisors(spec -> spec.params(
+                        Map.of("chat_memory_conversation_id", queryInfo.getConversationId(),
+                                "nodeId", "Nl2SqlNode")
+                ))
                 .call()
                 .content();
         log.info("Nl2SqlNode 结束执行，结果为：{}", content);

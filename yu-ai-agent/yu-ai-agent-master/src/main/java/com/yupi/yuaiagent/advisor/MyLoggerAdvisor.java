@@ -1,16 +1,14 @@
 package com.yupi.yuaiagent.advisor;
 
+import com.yupi.yuaiagent.logging.LogContextHolder;
+import com.yupi.yuaiagent.logging.NodeExecutionLog;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.ai.chat.client.ChatClientMessageAggregator;
 import org.springframework.ai.chat.client.ChatClientRequest;
 import org.springframework.ai.chat.client.ChatClientResponse;
 import org.springframework.ai.chat.client.advisor.api.AdvisorChain;
 import org.springframework.ai.chat.client.advisor.api.BaseAdvisor;
-import org.springframework.ai.chat.client.advisor.api.CallAdvisorChain;
-import org.springframework.ai.chat.client.advisor.api.StreamAdvisorChain;
 import org.springframework.ai.chat.metadata.Usage;
 import org.springframework.stereotype.Component;
-import reactor.core.publisher.Flux;
 
 /**
  * 自定义日志 Advisor
@@ -37,8 +35,19 @@ public class MyLoggerAdvisor implements BaseAdvisor {
         Integer promptTokens = usage.getPromptTokens();
         Integer completionTokens = usage.getCompletionTokens();
         Integer totalTokens = usage.getTotalTokens();
+        //获取节点id
+        String nodeId = (String) chatClientResponse.context().get("nodeId");
+        if (nodeId != null) {
+            try {
+                NodeExecutionLog nodeLog = LogContextHolder.getNodeLog(nodeId);
+                nodeLog.setTokenUsed(totalTokens);
+                LogContextHolder.addNodeLog(nodeId, nodeLog);
+            } catch (Exception e) {
+                log.error("advisor：{}，nodeId:{},日志记录失败: {}", "logAdvisor", nodeId, e.getMessage());
+            }
+        }
         //log.info("AI Response: {}", chatClientResponse.chatResponse().getResult().getOutput().getText());
-        log.info("本次模型调用，会话id为：{}，token使用量：输入：{}，输出：{}，总计：{}", id, promptTokens, completionTokens, totalTokens);
+        //log.info("本次模型调用，会话id为：{}，token使用量：输入：{}，输出：{}，总计：{}", id, promptTokens, completionTokens, totalTokens);
         return chatClientResponse;
     }
 
@@ -62,18 +71,18 @@ public class MyLoggerAdvisor implements BaseAdvisor {
         log.info("本次模型调用，会话id为：{}，token使用量：输入：{}，输出：{}，总计：{}", id, promptTokens, completionTokens, totalTokens);
     }
 
-    @Override
-    public ChatClientResponse adviseCall(ChatClientRequest chatClientRequest, CallAdvisorChain chain) {
-        chatClientRequest = before(chatClientRequest);
-        ChatClientResponse chatClientResponse = chain.nextCall(chatClientRequest);
-        observeAfter(chatClientResponse);
-        return chatClientResponse;
-    }
-
-    @Override
-    public Flux<ChatClientResponse> adviseStream(ChatClientRequest chatClientRequest, StreamAdvisorChain chain) {
-        chatClientRequest = before(chatClientRequest);
-        Flux<ChatClientResponse> chatClientResponseFlux = chain.nextStream(chatClientRequest);
-        return (new ChatClientMessageAggregator()).aggregateChatClientResponse(chatClientResponseFlux, this::observeAfter);
-    }
+//    @Override
+//    public ChatClientResponse adviseCall(ChatClientRequest chatClientRequest, CallAdvisorChain chain) {
+//        chatClientRequest = before(chatClientRequest);
+//        ChatClientResponse chatClientResponse = chain.nextCall(chatClientRequest);
+//        observeAfter(chatClientResponse);
+//        return chatClientResponse;
+//    }
+//
+//    @Override
+//    public Flux<ChatClientResponse> adviseStream(ChatClientRequest chatClientRequest, StreamAdvisorChain chain) {
+//        chatClientRequest = before(chatClientRequest);
+//        Flux<ChatClientResponse> chatClientResponseFlux = chain.nextStream(chatClientRequest);
+//        return (new ChatClientMessageAggregator()).aggregateChatClientResponse(chatClientResponseFlux, this::observeAfter);
+//    }
 }

@@ -49,7 +49,10 @@ public class RagQueryNode implements NodeAction {
             return ragChatClient
                     .prompt(promptTemplate.render())
                     .user(queryInfo.getQuery())
-                    .advisors(spec -> spec.param("chat_memory_conversation_id", queryInfo.getConversationId()))
+                    .advisors(spec -> spec.params(
+                            Map.of("chat_memory_conversation_id", queryInfo.getConversationId(),
+                                    "nodeId", "RagQueryNode")
+                    ))
                     .call().content();
         });
         if (content == null) {

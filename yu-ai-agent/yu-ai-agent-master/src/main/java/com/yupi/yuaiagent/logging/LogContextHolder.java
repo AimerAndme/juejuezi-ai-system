@@ -1,12 +1,13 @@
 package com.yupi.yuaiagent.logging;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
  * 节点日志上下文持有者(线程隔离)
  */
 public class LogContextHolder {
-    private final static ThreadLocal<Map<String, NodeExecutionLog>> threadLocalLogContext = new ThreadLocal<>();
+    private final static ThreadLocal<Map<String, NodeExecutionLog>> threadLocalLogContext = ThreadLocal.withInitial(HashMap::new);
 
     public static void addNodeLog(String nodeId, NodeExecutionLog log) {
         threadLocalLogContext.get().put(nodeId, log);

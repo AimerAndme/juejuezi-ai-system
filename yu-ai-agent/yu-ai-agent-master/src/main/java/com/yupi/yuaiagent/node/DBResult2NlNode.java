@@ -80,7 +80,10 @@ public class DBResult2NlNode implements NodeAction {
         String content = memoryChatClient
                 .prompt(promptTemplate.render())
                 .user(queryInfo.getQuery())
-                .advisors(spec -> spec.param("chat_memory_conversation_id", queryInfo.getConversationId()))
+                .advisors(spec -> spec.params(Map.of(
+                        "chat_memory_conversation_id", queryInfo.getConversationId(),
+                        "nodeId", "DBResult2NlNode"
+                )))
                 .call().content();
         if (content == null) {
             log.info("DBResult2NlNode: 智能客服助手无结果！");
