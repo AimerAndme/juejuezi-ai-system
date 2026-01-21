@@ -7,6 +7,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -24,6 +26,18 @@ public class DBInvocationNode implements NodeAction {
 
     @Override
     @ExecutionTimeMonitor
+    @Retryable(
+            value = {
+                    // 服务端错误，如500、502、503等，这些可能是临时性错误
+                    org.springframework.web.client.HttpServerErrorException.class,
+                    // 连接超时等网络异常
+                    java.net.SocketTimeoutException.class,
+                    // 其他运行时异常，但要小心，避免重试不应该重试的错误
+                    RuntimeException.class
+            },
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 1000, multiplier = 2)
+    )
     public Map<String, Object> apply(OverAllState state) throws Exception {
         log.info(" DBInvocationNode 节点开始执行");
         Optional<Object> nl2SqlResult = state.value("nl2SqlResult");

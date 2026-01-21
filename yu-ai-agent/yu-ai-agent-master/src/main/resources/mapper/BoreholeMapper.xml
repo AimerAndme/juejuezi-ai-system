@@ -19,26 +19,106 @@
     </insert>
 
     <select id="selectById" resultMap="BaseResultMap">
-        SELECT hole_id, area_id, x, y, z, total_depth, drill_purpose, drill_date, status
-        FROM agent.borehole WHERE hole_id = #{holeId}
+        SELECT hole_id,
+               area_id,
+               x,
+               y,
+               z,
+               total_depth,
+               drill_purpose,
+               drill_date,
+               status
+        FROM agent.borehole
+        WHERE hole_id = #{holeId}
     </select>
 
     <select id="selectAll" resultMap="BaseResultMap">
-        SELECT hole_id, area_id, x, y, z, total_depth, drill_purpose, drill_date, status FROM agent.borehole
+        SELECT hole_id,
+               area_id,
+               x,
+               y,
+               z,
+               total_depth,
+               drill_purpose,
+               drill_date,
+               status
+        FROM agent.borehole
     </select>
 
     <select id="selectByAreaId" resultMap="BaseResultMap">
-        SELECT hole_id, area_id, x, y, z, total_depth, drill_purpose, drill_date, status
-        FROM agent.borehole WHERE area_id = #{areaId}
+        SELECT hole_id,
+               area_id,
+               x,
+               y,
+               z,
+               total_depth,
+               drill_purpose,
+               drill_date,
+               status
+        FROM agent.borehole
+        WHERE area_id = #{areaId}
     </select>
 
+    <select id="selectAllWithPagination" resultMap="BaseResultMap">
+        SELECT hole_id,
+               area_id,
+               x,
+               y,
+               z,
+               total_depth,
+               drill_purpose,
+               drill_date,
+               status
+        FROM agent.borehole
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="selectTotalCount" resultType="int">
+        SELECT COUNT(*)
+        FROM agent.borehole
+    </select>
+
+    <select id="selectByAreaIdWithPagination" resultMap="BaseResultMap">
+        SELECT hole_id,
+               area_id,
+               x,
+               y,
+               z,
+               total_depth,
+               drill_purpose,
+               drill_date,
+               status
+        FROM agent.borehole
+        WHERE area_id = #{areaId}
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="selectTotalCountByAreaId" resultType="int">
+        SELECT COUNT(*)
+        FROM agent.borehole
+        WHERE area_id = #{areaId}
+    </select>
+    <select id="getValueRange" resultType="com.yupi.yuaiagent.domin.entity.ValueRange">
+        SELECT MIN(total_depth) AS min_value, MAX(total_depth) AS max_value, COUNT(hole_id) as count
+        FROM agent.borehole
+        WHERE area_id = #{areaId}
+    </select>
     <update id="update" parameterType="com.yupi.yuaiagent.domin.entity.Borehole">
-        UPDATE agent.borehole SET area_id = #{areaId}, x = #{x}, y = #{y}, z = #{z},
-        total_depth = #{totalDepth}, drill_purpose = #{drillPurpose}, drill_date = #{drillDate}, status = #{status}
+        UPDATE agent.borehole
+        SET area_id       = #{areaId},
+            x             = #{x},
+            y             = #{y},
+            z             = #{z},
+            total_depth   = #{totalDepth},
+            drill_purpose = #{drillPurpose},
+            drill_date    = #{drillDate},
+            status        = #{status}
         WHERE hole_id = #{holeId}
     </update>
 
     <delete id="deleteById">
-        DELETE FROM agent.borehole WHERE hole_id = #{holeId}
+        DELETE
+        FROM agent.borehole
+        WHERE hole_id = #{holeId}
     </delete>
 </mapper>

@@ -1,9 +1,11 @@
 package com.yupi.yuaiagent.controller;
 
 import com.yupi.yuaiagent.domin.entity.Borehole;
+import com.yupi.yuaiagent.domin.vo.HistogramData;
 import com.yupi.yuaiagent.service.IBoreholeService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,24 +47,51 @@ public class BoreholeController {
     }
 
     @GetMapping
-    public ResponseEntity<Map<String, Object>> getAll() {
+    public ResponseEntity<Map<String, Object>> getAll(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size) {
         Map<String, Object> res = new HashMap<>();
-        List<Borehole> list = service.getAll();
-        res.put("code", 200);
-        res.put("message", "查询成功");
-        res.put("data", list);
-        res.put("total", list.size());
+        try {
+            // 计算偏移量
+            int offset = (page - 1) * size;
+            List<Borehole> list = service.getAll(offset, size);
+            int total = service.getTotalCount();
+            res.put("code", 200);
+            res.put("message", "查询成功");
+            res.put("data", list);
+            res.put("total", total);
+            res.put("page", page);
+            res.put("size", size);
+            res.put("pages", (total + size - 1) / size);
+        } catch (Exception e) {
+            res.put("code", 500);
+            res.put("message", e.getMessage());
+        }
         return ResponseEntity.ok(res);
     }
 
     @GetMapping("/by-area/{areaId}")
-    public ResponseEntity<Map<String, Object>> getByAreaId(@PathVariable("areaId") String areaId) {
+    public ResponseEntity<Map<String, Object>> getByAreaId(
+            @PathVariable("areaId") String areaId,
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size) {
         Map<String, Object> res = new HashMap<>();
-        List<Borehole> list = service.getByAreaId(areaId);
-        res.put("code", 200);
-        res.put("message", "查询成功");
-        res.put("data", list);
-        res.put("total", list.size());
+        try {
+            // 计算偏移量
+            int offset = (page - 1) * size;
+            List<Borehole> list = service.getByAreaId(areaId, offset, size);
+            int total = service.getTotalCountByAreaId(areaId);
+            res.put("code", 200);
+            res.put("message", "查询成功");
+            res.put("data", list);
+            res.put("total", total);
+            res.put("page", page);
+            res.put("size", size);
+            res.put("pages", (total + size - 1) / size);
+        } catch (Exception e) {
+            res.put("code", 500);
+            res.put("message", e.getMessage());
+        }
         return ResponseEntity.ok(res);
     }
 
@@ -82,5 +111,26 @@ public class BoreholeController {
         res.put("code", result > 0 ? 200 : 500);
         res.put("message", result > 0 ? "删除成功" : "删除失败");
         return ResponseEntity.ok(res);
+    }
+
+    @GetMapping("/histogram")
+    public ResponseEntity<Map<String, Object>> getHistogramVisualization(
+            @RequestParam("areaId") String areaId,
+            @RequestParam(value = "intervalCount", defaultValue = "10") int intervalCount,
+            @RequestParam(value = "minValue", required = false) Double minValue,
+            @RequestParam(value = "maxValue", required = false) Double maxValue
+    ) {
+        Map<String, Object> res = new HashMap<>();
+        try {
+            HistogramData result = service.getHistogramVisualizationData(areaId, intervalCount, minValue, maxValue);
+            res.put("code", !result.getInterval().isEmpty() ? 200 : 500);
+            res.put("message", !result.getInterval().isEmpty() ? "直方图分析成功" : "直方图分析失败");
+            res.put("data", result);
+            return ResponseEntity.ok(res);
+        } catch (Exception e) {
+            res.put("code", 500);
+            res.put("message", e.getMessage());
+            return ResponseEntity.ok(res);
+        }
     }
 }

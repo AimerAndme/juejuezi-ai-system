@@ -10,7 +10,12 @@ const request = axios.create({
 
 // 通用CRUD工厂函数
 const createApi = (endpoint) => ({
-  getAll: () => request.get(`/data/${endpoint}`),
+  getAll: (page, size) => {
+    if (page && size) {
+      return request.get(`/data/${endpoint}`, { params: { page, size } })
+    }
+    return request.get(`/data/${endpoint}`)
+  },
   getById: (id) => request.get(`/data/${endpoint}/${id}`),
   add: (data) => request.post(`/data/${endpoint}`, data),
   update: (data) => request.put(`/data/${endpoint}`, data),
@@ -26,7 +31,14 @@ export const coalSeamApi = createApi('coal-seam')
 // 钻孔基本信息
 export const boreholeApi = {
   ...createApi('borehole'),
-  getByAreaId: (areaId) => request.get(`/data/borehole/by-area/${areaId}`),
+  getByAreaId: (areaId, page, size) => {
+    if (page && size) {
+      return request.get(`/data/borehole/by-area/${areaId}`, {
+        params: { page, size },
+      })
+    }
+    return request.get(`/data/borehole/by-area/${areaId}`)
+  },
 }
 
 // 岩性分层

@@ -33,8 +33,9 @@
   --shadow-medium: 0 4px 16px rgba(0, 0, 0, 0.12);
 
   /* 字体 Token */
-  --font-family-base: 'Inter', 'PingFang SC', -apple-system, BlinkMacSystemFont,
-    'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-family-base:
+    'Inter', 'PingFang SC', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    Roboto, 'Helvetica Neue', Arial, sans-serif;
   --font-size-xs: 12px;
   --font-size-sm: 13px;
   --font-size-base: 14px;
@@ -90,7 +91,9 @@
   font-family: var(--font-family-base);
   font-size: var(--font-size-base);
   color: var(--text-primary);
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 
   /* 深层嵌套限制 */
   /* 最多 3 层：.data-detail > .data-detail__xxx > .data-detail__xxx-item */
@@ -120,7 +123,35 @@
 
 .data-detail__header-right {
   display: flex;
+  align-items: center;
   gap: var(--spacing-sm);
+}
+
+/* 矿区过滤下拉框样式 */
+.data-detail__filter {
+  margin-right: var(--spacing-sm);
+}
+
+.data-detail__filter-select {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--border-light);
+  border-radius: var(--border-radius);
+  font-size: var(--font-size-base);
+  font-family: var(--font-family-base);
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
+  transition: border-color var(--transition-fast);
+  min-width: 200px;
+
+  &:hover {
+    border-color: var(--border-color);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+  }
 }
 
 .data-detail__title {
@@ -650,13 +681,86 @@
    ============================================================ */
 
 .data-detail {
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
 .data-detail__header,
 .data-detail__table-wrapper,
 .data-detail__form-container {
-  transition: background-color 0.3s ease, border-color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease;
+}
+
+/* ============================================================
+   分页控件样式
+   ============================================================ */
+
+.data-detail__pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-md);
+  border-top: 1px solid var(--border-light);
+  background-color: var(--bg-secondary);
+}
+
+.data-detail__pagination-info {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+.data-detail__pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.data-detail__pagination-btn {
+  padding: var(--spacing-xs) var(--spacing-md);
+  border: 1px solid var(--border-light);
+  border-radius: var(--border-radius);
+  font-size: var(--font-size-sm);
+  font-family: var(--font-family-base);
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+
+  &:hover:not(:disabled) {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    color: var(--text-disabled);
+  }
+}
+
+.data-detail__pagination-select {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border: 1px solid var(--border-light);
+  border-radius: var(--border-radius);
+  font-size: var(--font-size-sm);
+  font-family: var(--font-family-base);
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
+  cursor: pointer;
+  transition: border-color var(--transition-fast);
+
+  &:hover {
+    border-color: var(--primary-color);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+  }
 }
 
 /* ============================================================
@@ -666,6 +770,7 @@
 @media print {
   .data-detail__header-right,
   .data-detail__form-modal,
+  .data-detail__pagination,
   .message {
     display: none !important;
   }

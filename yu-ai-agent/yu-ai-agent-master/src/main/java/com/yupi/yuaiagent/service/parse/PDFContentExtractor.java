@@ -1,4 +1,4 @@
-package com.yupi.yuaiagent.util;
+package com.yupi.yuaiagent.service.parse;
 
 import com.alibaba.dashscope.exception.NoApiKeyException;
 import com.alibaba.dashscope.exception.UploadFileException;
@@ -31,7 +31,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CountDownLatch;
 
 @Slf4j
 @Component

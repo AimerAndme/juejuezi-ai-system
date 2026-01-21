@@ -38,7 +38,7 @@ public class Borehole {
     /**
      * 总深度
      */
-    private BigDecimal totalDepth;
+    private Double totalDepth;
 
     /**
      * 钻探目的

@@ -2,9 +2,9 @@ package com.yupi.yuaiagent.tools.mineControllerTools;
 
 import com.yupi.yuaiagent.domin.entity.Borehole;
 import com.yupi.yuaiagent.service.IBoreholeService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -29,7 +29,7 @@ public class BoreholeControllerTool {
             @ToolParam(description = "X坐标") BigDecimal x,
             @ToolParam(description = "Y坐标") BigDecimal y,
             @ToolParam(description = "Z坐标") BigDecimal z,
-            @ToolParam(description = "总深度") BigDecimal totalDepth,
+            @ToolParam(description = "总深度") Double totalDepth,
             @ToolParam(description = "钻探目的") String drillPurpose,
             @ToolParam(description = "钻探日期") LocalDate drillDate,
             @ToolParam(description = "状态") String status
@@ -96,7 +96,7 @@ public class BoreholeControllerTool {
             @ToolParam(description = "X坐标") BigDecimal x,
             @ToolParam(description = "Y坐标") BigDecimal y,
             @ToolParam(description = "Z坐标") BigDecimal z,
-            @ToolParam(description = "总深度") BigDecimal totalDepth,
+            @ToolParam(description = "总深度") Double totalDepth,
             @ToolParam(description = "钻探目的") String drillPurpose,
             @ToolParam(description = "钻探日期") LocalDate drillDate,
             @ToolParam(description = "状态") String status

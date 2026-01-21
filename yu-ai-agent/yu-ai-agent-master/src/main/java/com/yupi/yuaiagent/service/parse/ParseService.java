@@ -1,7 +1,8 @@
-package com.yupi.yuaiagent.service;
+package com.yupi.yuaiagent.service.parse;
 
 import com.yupi.yuaiagent.domin.constant.EmbeddingModelConstant;
 import com.yupi.yuaiagent.domin.entity.DocumentVector;
+import com.yupi.yuaiagent.service.IDocumentVectorService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.Loader;

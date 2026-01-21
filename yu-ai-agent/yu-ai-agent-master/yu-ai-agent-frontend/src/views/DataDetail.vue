@@ -12,6 +12,26 @@
         <h1 class="data-detail__title">{{ pageTitle }}</h1>
       </div>
       <div class="data-detail__header-right">
+        <!-- 矿区过滤下拉框（仅钻孔页面显示） -->
+        <div
+          v-if="route.params.table === 'borehole'"
+          class="data-detail__filter"
+        >
+          <select
+            v-model="selectedAreaId"
+            @change="filterByAreaId"
+            class="data-detail__filter-select"
+          >
+            <option value="">全部矿区</option>
+            <option
+              v-for="area in mineAreas"
+              :key="area.areaId"
+              :value="area.areaId"
+            >
+              {{ area.areaName }} ({{ area.areaId }})
+            </option>
+          </select>
+        </div>
         <AppButton
           text="+ 新增"
           variant="primary"
@@ -76,6 +96,42 @@
           </tr>
         </tbody>
       </table>
+
+      <!-- 分页控件（仅钻孔页面显示） -->
+      <div
+        v-if="route.params.table === 'borehole'"
+        class="data-detail__pagination"
+      >
+        <div class="data-detail__pagination-info">
+          共 {{ total }} 条记录，当前第 {{ currentPage }} / {{ totalPages }} 页
+        </div>
+        <div class="data-detail__pagination-controls">
+          <button
+            class="data-detail__pagination-btn"
+            :disabled="currentPage === 1"
+            @click="handlePageChange(currentPage - 1)"
+          >
+            上一页
+          </button>
+          <button
+            class="data-detail__pagination-btn"
+            :disabled="currentPage === totalPages"
+            @click="handlePageChange(currentPage + 1)"
+          >
+            下一页
+          </button>
+          <select
+            v-model="pageSize"
+            @change="handlePageSizeChange(pageSize)"
+            class="data-detail__pagination-select"
+          >
+            <option value="10">10条/页</option>
+            <option value="20">20条/页</option>
+            <option value="50">50条/页</option>
+            <option value="100">100条/页</option>
+          </select>
+        </div>
+      </div>
     </div>
 
     <!-- 表单弹窗 -->
@@ -164,6 +220,14 @@ const message = ref('')
 const messageType = ref('')
 const currentColumns = ref([])
 const pageTitle = ref('')
+const mineAreas = ref([])
+const selectedAreaId = ref('')
+
+// 分页相关
+const currentPage = ref(1)
+const pageSize = ref(10)
+const total = ref(0)
+const totalPages = ref(1)
 
 let currentApi = null
 let currentIdKey = ''
@@ -359,7 +423,18 @@ const goBack = () => {
   router.back()
 }
 
-const initPage = () => {
+const loadMineAreas = async () => {
+  try {
+    const res = await api.mineAreaApi.getAll()
+    if (res.data.code === 200) {
+      mineAreas.value = res.data.data || []
+    }
+  } catch (e) {
+    console.error('加载矿区数据失败:', e)
+  }
+}
+
+const initPage = async () => {
   const tableName = route.params.table
   const config = tableConfigs[tableName]
 
@@ -374,15 +449,42 @@ const initPage = () => {
   currentApi = config.api
   currentIdKey = config.idKey
 
+  // 如果是钻孔页面，加载矿区数据
+  if (tableName === 'borehole') {
+    await loadMineAreas()
+  }
+
+  // 初始化时默认使用分页接口（钻孔页面）
   loadData()
 }
 
 const loadData = async () => {
   loading.value = true
   try {
-    const res = await currentApi.getAll()
+    let res
+    // 如果是钻孔页面且选择了矿区，按矿区编码过滤
+    if (route.params.table === 'borehole' && selectedAreaId.value) {
+      res = await currentApi.getByAreaId(
+        selectedAreaId.value,
+        currentPage.value,
+        pageSize.value,
+      )
+    } else if (route.params.table === 'borehole') {
+      // 钻孔页面默认分页
+      res = await currentApi.getAll(currentPage.value, pageSize.value)
+    } else {
+      // 其他页面保持原有逻辑
+      res = await currentApi.getAll()
+    }
     if (res.data.code === 200) {
       tableData.value = res.data.data || []
+      // 更新分页信息
+      if (res.data.total !== undefined) {
+        total.value = res.data.total
+      }
+      if (res.data.pages !== undefined) {
+        totalPages.value = res.data.pages
+      }
     } else {
       showMessage('加载失败', 'error')
     }
@@ -391,6 +493,24 @@ const loadData = async () => {
   } finally {
     loading.value = false
   }
+}
+
+const filterByAreaId = () => {
+  // 重置到第一页
+  currentPage.value = 1
+  loadData()
+}
+
+// 分页方法
+const handlePageChange = (page) => {
+  currentPage.value = page
+  loadData()
+}
+
+const handlePageSizeChange = (size) => {
+  pageSize.value = size
+  currentPage.value = 1
+  loadData()
 }
 
 const showAddForm = () => {
