@@ -1,5 +1,6 @@
 package com.yupi.yuaiagent.service.cache;
 
+import com.yupi.yuaiagent.utils.JsonUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -9,32 +10,28 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 @Slf4j
 public class CacheService {
-
     private final RedisTemplate<String, Object> redisTemplate;
 
     public void setCache(String key, Object value, long time) {
         try {
-            redisTemplate.opsForValue().set(key, value, time);
+            String json = JsonUtils.toJson(value);
+            json = JsonUtils.cleanInvalidJsonChars(json);
+            redisTemplate.opsForValue().set(key, json, time);
             log.debug("缓存设置成功：{}", key);
         } catch (Exception e) {
             log.error("缓存设置失败：{}", key, e);
         }
     }
 
-    public Object getCache(String key) {
+    public Object getCache(String key, Class<?> valueType) {
         try {
-            Object value = redisTemplate.opsForValue().get(key);
+            Object value = JsonUtils.fromJson((String) redisTemplate.opsForValue().get(key), valueType);
             if (value != null) {
                 log.debug("缓存命中：{}", key);
             }
             return value;
         } catch (Exception e) {
-            log.error("缓存获取异常，尝试删除缓存：{}", key, e);
-            try {
-                deleteCache(key);
-            } catch (Exception deleteException) {
-                log.error("删除缓存失败：{}", key, deleteException);
-            }
+            log.error("缓存获取异常：{}", key, e.getCause());
             return null;
         }
     }

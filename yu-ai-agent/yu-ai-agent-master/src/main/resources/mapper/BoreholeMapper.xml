@@ -103,6 +103,12 @@
         FROM agent.borehole
         WHERE area_id = #{areaId}
     </select>
+    <select id="selectTotalDepthByAreaId" resultType="double">
+        SELECT
+        total_depth as totalDepth
+        FROM agent.borehole
+        WHERE area_id = #{areaId}
+    </select>
     <update id="update" parameterType="com.yupi.yuaiagent.domin.entity.Borehole">
         UPDATE agent.borehole
         SET area_id       = #{areaId},

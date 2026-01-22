@@ -20,11 +20,6 @@ import java.util.Map;
  */
 public final class JsonUtils {
 
-    // 私有化构造方法，禁止实例化
-    private JsonUtils() {
-        throw new UnsupportedOperationException("工具类不能实例化");
-    }
-
     /**
      * 全局 ObjectMapper 实例（单例，线程安全）
      * 配置：忽略 null 值、格式化输出、处理 LocalDateTime、忽略未知字段（避免反序列化报错）
@@ -47,9 +42,16 @@ public final class JsonUtils {
         OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
+    // 私有化构造方法，禁止实例化
+    private JsonUtils() {
+        throw new UnsupportedOperationException("工具类不能实例化");
+    }
+
     // ===================== 核心方法：对象转 JSON 字符串 =====================
+
     /**
      * 对象转 JSON 字符串（默认配置：忽略 null、格式化输出）
+     *
      * @param obj 任意 Java 对象（POJO/Map/List 等）
      * @return JSON 字符串
      */
@@ -63,8 +65,9 @@ public final class JsonUtils {
 
     /**
      * 对象转 JSON 字符串（自定义是否格式化、是否忽略 null）
-     * @param obj 任意 Java 对象
-     * @param pretty 是否格式化输出（true=格式化，false=压缩）
+     *
+     * @param obj        任意 Java 对象
+     * @param pretty     是否格式化输出（true=格式化，false=压缩）
      * @param ignoreNull 是否忽略 null 值（true=忽略，false=保留）
      * @return JSON 字符串
      */
@@ -74,8 +77,8 @@ public final class JsonUtils {
             ObjectMapper tempMapper = new ObjectMapper();
             tempMapper.registerModule(new JavaTimeModule());
             // 配置 null 值处理
-            tempMapper.setSerializationInclusion(ignoreNull ? 
-                    com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL : 
+            tempMapper.setSerializationInclusion(ignoreNull ?
+                    com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL :
                     com.fasterxml.jackson.annotation.JsonInclude.Include.ALWAYS);
             // 配置格式化
             if (pretty) {
@@ -90,11 +93,13 @@ public final class JsonUtils {
     }
 
     // ===================== 核心方法：JSON 字符串转对象 =====================
+
     /**
      * JSON 字符串转指定类型对象
-     * @param json JSON 字符串
+     *
+     * @param json  JSON 字符串
      * @param clazz 目标对象类型（如 User.class）
-     * @param <T> 泛型
+     * @param <T>   泛型
      * @return 目标类型对象
      */
     public static <T> T fromJson(String json, Class<T> clazz) {
@@ -110,9 +115,10 @@ public final class JsonUtils {
 
     /**
      * JSON 字符串转复杂类型（如 List<User>、Map<String, Object> 等）
-     * @param json JSON 字符串
+     *
+     * @param json          JSON 字符串
      * @param typeReference 类型引用（如 new TypeReference<List<User>>() {}）
-     * @param <T> 泛型
+     * @param <T>           泛型
      * @return 复杂类型对象
      */
     public static <T> T fromJson(String json, TypeReference<T> typeReference) {
@@ -127,34 +133,53 @@ public final class JsonUtils {
     }
 
     // ===================== 快捷方法：JSON 转集合/Map =====================
+
     /**
      * JSON 字符串转 List 集合（如 List<User>）
-     * @param json JSON 字符串
+     *
+     * @param json         JSON 字符串
      * @param elementClazz List 中元素的类型
-     * @param <T> 泛型
+     * @param <T>          泛型
      * @return List 集合
      */
     public static <T> List<T> jsonToList(String json, Class<T> elementClazz) {
-        return fromJson(json, new TypeReference<List<T>>() {});
+        return fromJson(json, new TypeReference<List<T>>() {
+        });
     }
 
     /**
      * JSON 字符串转 Map（默认 Map<String, Object>）
+     *
      * @param json JSON 字符串
      * @return Map 集合
      */
     public static Map<String, Object> jsonToMap(String json) {
-        return fromJson(json, new TypeReference<Map<String, Object>>() {});
+        return fromJson(json, new TypeReference<Map<String, Object>>() {
+        });
     }
 
     /**
      * JSON 字符串转指定类型的 Map（如 Map<String, User>）
-     * @param json JSON 字符串
+     *
+     * @param json       JSON 字符串
      * @param valueClazz Map 值的类型
-     * @param <V> 泛型
+     * @param <V>        泛型
      * @return 指定类型的 Map
      */
     public static <V> Map<String, V> jsonToMap(String json, Class<V> valueClazz) {
-        return fromJson(json, new TypeReference<Map<String, V>>() {});
+        return fromJson(json, new TypeReference<Map<String, V>>() {
+        });
+    }
+
+    /**
+     * 清理JSON字符串中的非法控制字符（保留\r、\n、\t，移除其他控制字符）
+     */
+    public static String cleanInvalidJsonChars(String jsonStr) {
+        if (jsonStr == null || jsonStr.isEmpty()) {
+            return jsonStr;
+        }
+        // 正则表达式：匹配除\r、\n、\t外的所有ASCII控制字符（[\x00-\x1F\x7F]）
+        String regex = "[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F\\x7F]";
+        return jsonStr.replaceAll(regex, "");
     }
 }

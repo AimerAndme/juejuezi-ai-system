@@ -1,9 +1,11 @@
 package com.yupi.yuaiagent.mapper;
 
+import com.yupi.yuaiagent.aspect.ExecutionTimeMonitor;
 import com.yupi.yuaiagent.domin.entity.Borehole;
 import com.yupi.yuaiagent.domin.entity.ValueRange;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+
 import java.util.List;
 
 @Mapper
@@ -36,7 +38,7 @@ public interface BoreholeMapper {
      * 分页查询所有钻孔信息
      *
      * @param offset 偏移量
-     * @param limit 限制条数
+     * @param limit  限制条数
      * @return 钻孔信息列表
      */
     List<Borehole> selectAllWithPagination(int offset, int limit);
@@ -54,6 +56,7 @@ public interface BoreholeMapper {
      * @param areaId 矿区编码
      * @return 钻孔信息列表
      */
+    @ExecutionTimeMonitor
     List<Borehole> selectByAreaId(@Param("areaId") String areaId);
 
     /**
@@ -61,7 +64,7 @@ public interface BoreholeMapper {
      *
      * @param areaId 矿区编码
      * @param offset 偏移量
-     * @param limit 限制条数
+     * @param limit  限制条数
      * @return 钻孔信息列表
      */
     List<Borehole> selectByAreaIdWithPagination(@Param("areaId") String areaId, int offset, int limit);
@@ -91,4 +94,6 @@ public interface BoreholeMapper {
     int deleteById(@Param("holeId") String holeId);
 
     ValueRange getValueRange(@Param("areaId") String areaId);
+
+    List<Double> selectTotalDepthByAreaId(@Param("areaId") String areaId);
 }

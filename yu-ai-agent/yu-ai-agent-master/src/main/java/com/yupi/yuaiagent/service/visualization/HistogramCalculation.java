@@ -1,7 +1,10 @@
 package com.yupi.yuaiagent.service.visualization;
 
 import com.yupi.yuaiagent.domin.entity.HistogramRange;
+import com.yupi.yuaiagent.domin.entity.HistogramStatistics;
+import com.yupi.yuaiagent.domin.vo.HistogramData;
 import com.yupi.yuaiagent.service.HistogramStatisticsService;
+import com.yupi.yuaiagent.service.StatisticsCalculationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,12 +16,9 @@ public class HistogramCalculation implements CalculationStrategy<List<HistogramR
     @Autowired
     private HistogramStatisticsService histogramStatisticsService;
 
-    /**
-     * 10万-50万数据处理方案
-     *
-     * @param dataList
-     * @return
-     */
+    @Autowired
+    private StatisticsCalculationService statisticsCalculationService;
+
     @Override
     public List<HistogramRange> useDataApplicationCalculation(List<Double> dataList) {
         if (dataList == null || dataList.isEmpty()) {
@@ -39,20 +39,41 @@ public class HistogramCalculation implements CalculationStrategy<List<HistogramR
         return result;
     }
 
-
-    public List<HistogramRange> handleCalculation(List<Double> dataList, int dataLength, int interval) {
+    public HistogramData handleCalculation(List<Double> dataList, int dataLength, int interval, Double max, Double min) {
         if (dataList == null || dataList.isEmpty()) {
             return null;
         }
-        if (dataLength >= 100000 && dataLength <= 500000) {
-            return useDataApplicationCalculation(dataList);
-        }
-//        if (interval)
-//        int intervalCount = calculateOptimalIntervalCount(dataLength);
-        List<HistogramRange> result = histogramStatisticsService.calculateHistogram(dataList, interval);
-        return result;
-    }
 
+        List<HistogramRange> histogramRanges;
+        if (dataLength >= 100000 && dataLength <= 500000) {
+            histogramRanges = useDataApplicationCalculation(dataList);
+        } else {
+            histogramRanges = histogramStatisticsService.calculateHistogram(dataList, interval, max, min);
+        }
+
+        HistogramStatistics statistics = statisticsCalculationService.calculateAllStatistics(dataList);
+
+        HistogramData histogramData = new HistogramData();
+        histogramData.setInterval(histogramRanges);
+        histogramData.setTotalCount(statistics.getTotalCount());
+        histogramData.setInvalidCount(statistics.getInvalidCount());
+        histogramData.setMean(statistics.getMean());
+        histogramData.setStandardDeviation(statistics.getStandardDeviation());
+        histogramData.setCoefficientOfVariation(statistics.getCoefficientOfVariation());
+        histogramData.setMaxValue(statistics.getMaxValue());
+        histogramData.setUpperQuartile(statistics.getUpperQuartile());
+        histogramData.setLowerQuartile(statistics.getLowerQuartile());
+        histogramData.setMedian(statistics.getMedian());
+        histogramData.setMinValue(statistics.getMinValue());
+        histogramData.setMeanMinus2Sigma(statistics.getMeanMinus2Sigma());
+        histogramData.setMeanPlus2Sigma(statistics.getMeanPlus2Sigma());
+        histogramData.setLogMean(statistics.getLogMean());
+        histogramData.setLogVariance(statistics.getLogVariance());
+        histogramData.setShapeParameter(statistics.getShapeParameter());
+        histogramData.setScaleParameter(statistics.getScaleParameter());
+
+        return histogramData;
+    }
 
     private int calculateOptimalIntervalCount(int dataSize) {
         if (dataSize <= 0) {
@@ -62,5 +83,4 @@ public class HistogramCalculation implements CalculationStrategy<List<HistogramR
         int sturgesInterval = (int) Math.ceil(Math.log(dataSize) / Math.log(2)) + 1;
         return Math.max(5, Math.min(50, sturgesInterval));
     }
-
 }

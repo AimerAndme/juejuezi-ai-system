@@ -89,8 +89,9 @@ public class BoreholeService implements IBoreholeService {
             maxValue = range.getMaxValue();
         }
         String cacheKey = CacheKeyGenerator.generateHistogramCacheKey(areaId, intervalCount, minValue, maxValue, count);
+        log.info("缓存键：{}", cacheKey);
         try {
-            Object cache = cacheService.getCache(cacheKey);
+            Object cache = cacheService.getCache(cacheKey, HistogramData.class);
             if (cache != null) {
                 log.info("缓存命中：{}", cacheKey);
                 return (HistogramData) cache;
@@ -99,12 +100,10 @@ public class BoreholeService implements IBoreholeService {
             log.error("缓存获取异常：{}", cacheKey, e);
         }
         log.info("缓存未命中，执行数据查询：{}", cacheKey);
-        List<Borehole> boreholes = mapper.selectByAreaId(areaId);
-        List<Double> doubleList = boreholes.stream().map(Borehole::getTotalDepth).toList();
-        List<HistogramRange> histogramRanges = histogramCalculation.handleCalculation(doubleList, count, intervalCount);
-        HistogramData histogramData = new HistogramData();
-        histogramData.setInterval(histogramRanges);
+        List<Double> doubleList = mapper.selectTotalDepthByAreaId(areaId);
+        HistogramData histogramData = histogramCalculation.handleCalculation(doubleList, count, intervalCount, maxValue, minValue);
         cacheService.setCache(cacheKey, histogramData, 60 * 60 * 24);
+        log.info("缓存键：{}", cacheKey);
         return histogramData;
     }
 }

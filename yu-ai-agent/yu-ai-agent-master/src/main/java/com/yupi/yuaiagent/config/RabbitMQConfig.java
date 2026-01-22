@@ -53,6 +53,7 @@ public class RabbitMQConfig {
                 .with(MEMORY_DLQ_ROUTING_KEY);
     }
 
+
     /**
      * 主交换机（非核心记忆异步任务）
      */
