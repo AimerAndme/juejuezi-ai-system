@@ -21,6 +21,15 @@ public class LogContextHolder {
         return threadLocalLogContext.get();
     }
 
+    public static int getTotalTokens() {
+        int total = 0;
+        Map<String, NodeExecutionLog> allNodeLogs = getAllNodeLogs();
+        for (String key : allNodeLogs.keySet()) {
+            total += allNodeLogs.get(key).getTokenUsed();
+        }
+        return total;
+    }
+
     public static void clear() {
         threadLocalLogContext.remove();
     }

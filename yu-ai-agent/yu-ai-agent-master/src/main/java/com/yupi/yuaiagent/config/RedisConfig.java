@@ -9,18 +9,21 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.yupi.yuaiagent.service.cache.CleanGenericJackson2JsonRedisSerializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @Configuration
 public class RedisConfig {
+
     @Bean
     public CleanGenericJackson2JsonRedisSerializer cleanGenericJackson2JsonRedisSerializer(ObjectMapper redisObjectMapper) {
         return new CleanGenericJackson2JsonRedisSerializer(redisObjectMapper);
     }
 
     @Bean
+    @Primary
     public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory factory, CleanGenericJackson2JsonRedisSerializer cleanGenericJackson2JsonRedisSerializer) {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(factory);
@@ -41,7 +44,6 @@ public class RedisConfig {
         // 2. 创建 Jackson2JsonRedisSerializer 时，直接将 ObjectMapper 通过构造函数传入
 //        GenericJackson2JsonRedisSerializer jackson2JsonRedisSerializer =
 //                new GenericJackson2JsonRedisSerializer(objectMapper);
-
         // 3. 配置 RedisTemplate 的序列化器
         // key 使用 String 序列化器
         template.setKeySerializer(new StringRedisSerializer());
@@ -51,6 +53,24 @@ public class RedisConfig {
         template.setValueSerializer(cleanGenericJackson2JsonRedisSerializer);
         // hash 的 value 也使用 Jackson 序列化器
         template.setHashValueSerializer(cleanGenericJackson2JsonRedisSerializer);
+
+        // 初始化 RedisTemplate
+        template.afterPropertiesSet();
+
+        return template;
+    }
+
+    @Bean("luaScriptRedisTemplate")
+    public RedisTemplate<String, Object> luaScriptRedisTemplate(RedisConnectionFactory factory) {
+        RedisTemplate<String, Object> template = new RedisTemplate<>();
+        template.setConnectionFactory(factory);
+
+        // 配置 RedisTemplate 的序列化器 - 全部使用 String 序列化器
+        // Lua 脚本的参数需要使用 String 序列化器，而不是 JSON 序列化器
+        template.setKeySerializer(new StringRedisSerializer());
+        template.setHashKeySerializer(new StringRedisSerializer());
+        template.setValueSerializer(new StringRedisSerializer());
+        template.setHashValueSerializer(new StringRedisSerializer());
 
         // 初始化 RedisTemplate
         template.afterPropertiesSet();

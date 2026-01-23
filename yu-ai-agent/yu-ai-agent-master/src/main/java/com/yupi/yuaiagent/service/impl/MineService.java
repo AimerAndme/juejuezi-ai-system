@@ -12,6 +12,7 @@ import com.yupi.yuaiagent.logging.LogContextHolder;
 import com.yupi.yuaiagent.logging.NodeExecutionLog;
 import com.yupi.yuaiagent.logging.StructuredLogBuilder;
 import com.yupi.yuaiagent.mapper.MiningAgentConversationMapper;
+import com.yupi.yuaiagent.service.quota.RedisSlidingWindowLimiterService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -24,10 +25,12 @@ import java.util.Optional;
 public class MineService implements com.yupi.yuaiagent.service.IMineService {
     private final PreProcessingGraphFactory preProcessingGraphFactory;
     private final MiningAgentConversationMapper miningAgentConversationMapper;
+    private final RedisSlidingWindowLimiterService redisSlidingWindowLimiterService;
 
-    public MineService(PreProcessingGraphFactory preProcessingGraphFactory, MiningAgentConversationMapper miningAgentConversationMapper) {
+    public MineService(PreProcessingGraphFactory preProcessingGraphFactory, MiningAgentConversationMapper miningAgentConversationMapper, RedisSlidingWindowLimiterService redisSlidingWindowLimiterService) {
         this.preProcessingGraphFactory = preProcessingGraphFactory;
         this.miningAgentConversationMapper = miningAgentConversationMapper;
+        this.redisSlidingWindowLimiterService = redisSlidingWindowLimiterService;
     }
 
     @Override
@@ -70,6 +73,8 @@ public class MineService implements com.yupi.yuaiagent.service.IMineService {
         try {
             Map<String, NodeExecutionLog> allNodeLogs = LogContextHolder.getAllNodeLogs();
             String jsonLog = StructuredLogBuilder.buildJsonLog(allNodeLogs);
+            int totalTokens = LogContextHolder.getTotalTokens();
+            redisSlidingWindowLimiterService.updateTokenQuota(userId, totalTokens);
             log.info("Graph Execution Logs: {}", jsonLog);
         } finally {
             LogContextHolder.clear();

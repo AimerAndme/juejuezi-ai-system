@@ -159,4 +159,20 @@ file:
     max-chunk-size: 1000 # 最大分片大小（字符数），防止过大的分片
     keep-separator: true # 是否保留分隔符
     trim-whitespace: true # 是否修剪空白字符
-
+quota:
+  rules:
+    default:
+      window-ms: 60000          # 1分钟
+      max-tokens: 10000         # 最大1万tokens
+      threshold-percent: 90     # 使用达到90%就限流
+      description: "默认用户配额"
+    vip:
+      window-ms: 60000
+      max-tokens: 50000         # VIP用户5万tokens
+      threshold-percent: 95    # VIP用户95%才限流
+      description: "VIP用户配额"
+    free:
+      window-ms: 3600000        # 1小时
+      max-tokens: 1000          # 免费用户1千tokens/小时
+      threshold-percent: 80     # 免费用户80%就限流
+      description: "免费用户配额"
