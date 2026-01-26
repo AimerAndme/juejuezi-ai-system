@@ -15,13 +15,13 @@ public class RedisSlidingWindowLimiterService {
         this.redisSlidingWindowLimiter = redisSlidingWindowLimiter;
     }
 
-    public LimitResult checkTokenQuota(String userId) {
+    public LimitResult checkTokenQuota(String userId, int tokens, int windosms, int maxTokens, int thresholdPercent) {
         if (userId == null) {
             log.error("userId is null");
             throw new RuntimeException("userId is null");
         }
         String quotaKey = buildKey(userId);
-        return redisSlidingWindowLimiter.tryConsume(quotaKey);
+        return redisSlidingWindowLimiter.tryConsume(quotaKey, tokens, windosms, maxTokens, thresholdPercent);
     }
 
     public LimitResult searchTokenQuota(String userId) {
@@ -39,7 +39,7 @@ public class RedisSlidingWindowLimiterService {
             throw new RuntimeException("userId is null");
         }
         String key = buildKey(userId);
-        return redisSlidingWindowLimiter.updateConsumption(key, tokens);
+        return redisSlidingWindowLimiter.updateConsumption(key, tokens, 60000, 50000, 90);
     }
 
     public void resetUserQuota(String userId) {

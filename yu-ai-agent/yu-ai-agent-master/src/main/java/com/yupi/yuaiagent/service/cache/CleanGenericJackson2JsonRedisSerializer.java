@@ -29,7 +29,7 @@ public class CleanGenericJackson2JsonRedisSerializer extends GenericJackson2Json
             return new byte[0];
         }
         try {
-            // 1. 转JSON字符串
+            // 1. 转JSON字符串（使用配置了enableDefaultTyping的objectMapper）
             String json = objectMapper.writeValueAsString(source);
             // 2. 清理非法字符
             String cleanJson = JsonUtils.cleanInvalidJsonChars(json);

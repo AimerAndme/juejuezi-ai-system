@@ -3,6 +3,7 @@ package com.yupi.yuaiagent.service.impl;
 import com.alibaba.cloud.ai.graph.CompiledGraph;
 import com.alibaba.cloud.ai.graph.OverAllState;
 import com.alibaba.cloud.ai.graph.exception.GraphStateException;
+import com.yupi.yuaiagent.aspect.EnableQuotaLimiter;
 import com.yupi.yuaiagent.domin.context.RagRequestContext;
 import com.yupi.yuaiagent.domin.entity.MiningAgentConversation;
 import com.yupi.yuaiagent.domin.entity.RagRequestContextData;
@@ -54,6 +55,7 @@ public class MineService implements com.yupi.yuaiagent.service.IMineService {
     }
 
     @Override
+    @EnableQuotaLimiter
     public String chat(UserChatVO userChatVO) throws GraphStateException {
         String userId = userChatVO.getUserId();
         String conversationId = userChatVO.getConversationId();
@@ -69,16 +71,6 @@ public class MineService implements com.yupi.yuaiagent.service.IMineService {
         Optional<OverAllState> call = graph.call(Map.of("queryInfo", userChatVO));
         //Todo解析Rag回答的上下文
         //parseRagContext(call);
-        //获取graph的执行流程跟踪日志
-        try {
-            Map<String, NodeExecutionLog> allNodeLogs = LogContextHolder.getAllNodeLogs();
-            String jsonLog = StructuredLogBuilder.buildJsonLog(allNodeLogs);
-            int totalTokens = LogContextHolder.getTotalTokens();
-            redisSlidingWindowLimiterService.updateTokenQuota(userId, totalTokens);
-            log.info("Graph Execution Logs: {}", jsonLog);
-        } finally {
-            LogContextHolder.clear();
-        }
         return (String) call.map(OverAllState::data).orElse(Map.of()).get("chatResult");
     }
 

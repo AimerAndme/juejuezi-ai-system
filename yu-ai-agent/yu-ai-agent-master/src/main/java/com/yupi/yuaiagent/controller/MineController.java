@@ -38,7 +38,7 @@ public class MineController {
     @GetMapping(value = "/chat")
     public Result<?> chat(UserChatVO userChatVO) throws GraphStateException {
         String userId = userChatVO.getUserId();
-        LimitResult limitResult = redisSlidingWindowLimiterService.searchTokenQuota(userId);
+        LimitResult limitResult = redisSlidingWindowLimiterService.checkTokenQuota(userId,0,60000,50000,90);
         log.info("limitResult: {}", limitResult);
         if (!limitResult.isAllowed()) {
             return Result.fail("用户请求过于频繁，请稍后再试");

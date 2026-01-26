@@ -12,6 +12,7 @@ import com.yupi.yuaiagent.domin.entity.SearchResult;
 import com.yupi.yuaiagent.mapper.FileUploadMapper;
 import com.yupi.yuaiagent.model.CacheStatistics;
 import com.yupi.yuaiagent.model.CachedSearchResult;
+import com.yupi.yuaiagent.utils.JsonUtils;
 import com.yupi.yuaiagent.utils.QueryNormalizer;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -27,7 +28,6 @@ import java.util.stream.Collectors;
 /**
  * 混合搜索服务，结合文本匹配和向量相似度搜索 支持权限过滤，确保用户只能搜索其有权限访问的文档
  */
-
 @Service
 @Slf4j
 public class HybridSearchService {
@@ -609,10 +609,10 @@ public class HybridSearchService {
     public List<Document> searchWithCache(String query, int topK) {
         return searchWithCache(query, topK, 0, 0.0);
     }
+
     @ExecutionTimeMonitor
     public List<Document> searchWithCache(String query, int topK, int strategy, double minScore) {
         cacheStatistics.incrementRequests();
-
         String normalizedQuery = QueryNormalizer.normalizeForCacheKey(query);
         String cacheKey = SEARCH_CACHE_PREFIX + normalizedQuery + ":" + topK + ":" + strategy + ":" + minScore;
 
@@ -626,23 +626,28 @@ public class HybridSearchService {
         try {
             Object cached = redisTemplate.opsForValue().get(cacheKey);
             if (cached != null) {
-                CachedSearchResult cachedResult = (CachedSearchResult) cached;
-
-                if (isCacheValid(cachedResult)) {
+                CachedSearchResult cachedResult;
+                if (cached instanceof String) {
+                    cachedResult = JsonUtils.fromJson((String) cached, CachedSearchResult.class);
+                } else {
+                    log.warn("缓存类型未知: {}", cached.getClass().getName());
+                    redisTemplate.delete(cacheKey);
+                    cacheStatistics.incrementInvalidations();
+                    cachedResult = null;
+                }
+                if (cachedResult != null && isCacheValid(cachedResult)) {
                     cacheStatistics.incrementHits();
                     log.debug("缓存命中: {}, 返回 {} 个结果", query, cachedResult.getDocumentsAsList().size());
                     return cachedResult.getDocumentsAsList();
-                } else {
+                } else if (cachedResult != null) {
                     log.debug("缓存已失效（文档版本变化）: {}", query);
                     redisTemplate.delete(cacheKey);
                     cacheStatistics.incrementInvalidations();
                 }
             }
-
             cacheStatistics.incrementMisses();
             log.debug("未命中缓存，执行检索: {}", query);
             List<Document> results = optimizedSearch(query, topK, strategy, minScore);
-
             CachedSearchResult cacheResult = new CachedSearchResult(
                     results,
                     getDocVersions(results),
@@ -651,8 +656,9 @@ public class HybridSearchService {
                     strategy,
                     minScore
             );
-
-            redisTemplate.opsForValue().set(cacheKey, cacheResult, CACHE_TTL_SECONDS, TimeUnit.SECONDS);
+            // 手动序列化缓存结果
+            String cacheJson = JsonUtils.toJson(cacheResult);
+            redisTemplate.opsForValue().set(cacheKey, cacheJson, CACHE_TTL_SECONDS, TimeUnit.SECONDS);
             log.debug("缓存已保存: {}, TTL: {}秒", cacheKey, CACHE_TTL_SECONDS);
 
             return results;
