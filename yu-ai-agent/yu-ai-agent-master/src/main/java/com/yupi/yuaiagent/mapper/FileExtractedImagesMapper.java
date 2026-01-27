@@ -9,7 +9,7 @@ import java.util.List;
 public interface FileExtractedImagesMapper {
 
     int insert(FileExtractedImages entity);
-
+    int insertBatch(@Param("entities") List<FileExtractedImages> entities);
     FileExtractedImages selectById(@Param("id") Integer id);
 
     List<FileExtractedImages> selectByFileMd5(@Param("fileMd5") String fileMd5);

@@ -71,9 +71,17 @@ public class MqAsyncProducer {
         // 消息发布确认回调（确认消息是否到达交换机）
         rabbitTemplate.setConfirmCallback((correlationData, ack, cause) -> {
             if (ack) {
-                log.info("消息发布到交换机成功，correlationId: {}", correlationData.getId());
+                if (correlationData != null) {
+                    log.info("消息发布到交换机成功，correlationId: {}", correlationData.getId());
+                } else {
+                    log.info("消息发布到交换机成功，但 correlationId 为空");
+                }
             } else {
-                log.error("消息发布到交换机失败，correlationId: {}, cause: {}", correlationData.getId(), cause);
+                if (correlationData != null) {
+                    log.error("消息发布到交换机失败，correlationId: {}, cause: {}", correlationData.getId(), cause);
+                } else {
+                    log.error("消息发布到交换机失败，但 correlationId 为空");
+                }
             }
         });
 
