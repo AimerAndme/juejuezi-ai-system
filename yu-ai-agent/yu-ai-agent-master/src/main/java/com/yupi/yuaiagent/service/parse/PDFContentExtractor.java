@@ -156,7 +156,7 @@ public class PDFContentExtractor {
             if (!outputDir.exists()) {
                 outputDir.mkdirs();
             }
-            
+
             int imageCounter = 0;
             for (int i = 0; i < pageCount; i++) {
                 PDPage page = document.getPage(i);
@@ -365,13 +365,184 @@ public class PDFContentExtractor {
         }
     }
 
+    /**
+     * 提取PDF的文本、图片和表格，使用vlm大模型进行图片的处理
+     *
+     * @param pdfPath        PDF文件路径
+     * @param imageOutputDir 图片保存的目录路径
+     * @param baseUrl        图片的基础URL (例如: "http://yourserver.com/images/")
+     * @return 包含混合内容、图片URL列表和表格内容列表的 MixedContentResult
+     * @throws IOException
+     */
+    @ExecutionTimeMonitor
+    public String extractMixedContentWithVlmCur(FileUpload fileUpload, String pdfPath, String imageOutputDir, String baseUrl) throws IOException, NoApiKeyException, UploadFileException {
+        long startTime = System.currentTimeMillis();
+        String userId = fileUpload.getUserId();
+        String fileMd5 = fileUpload.getFileMd5();
+        String fileName = fileUpload.getFileName();
+        File pdfFile = new File(pdfPath);
+        List<PDFPageText> textList = new ArrayList<>();
+        List<PDFPageImage> imageList = new ArrayList<>();
+        List<PDFPageExtractResult> pdfExtractResultList = new ArrayList<>();
+        try (PDDocument document = Loader.loadPDF(pdfFile)) {
+            int pageCount = document.getNumberOfPages();
+            File outputDir = new File(imageOutputDir);
+            if (!outputDir.exists()) {
+                outputDir.mkdirs();
+            }
+
+            //完成文本和图片的提取（图片临时存储）
+            for (int i = 0; i < pageCount; i++) {
+                PDFPageExtractResult pdfPageExtractResult = new PDFPageExtractResult();
+                //文本提取
+                PDFPageText pageText = extractText(document, i);
+                textList.add(pageText);
+                pdfPageExtractResult.setText(pageText.getText());
+                //如果存在图片
+                PDFPageImage pdfPageImage = extactImage(document, i, fileMd5, outputDir, baseUrl);
+                if (!pdfPageImage.getImageUrlList().isEmpty()) {
+                    imageList.add(pdfPageImage);
+                    pdfPageExtractResult.setImageUrlList(pdfPageImage.getImageUrlList());
+                }
+                pdfExtractResultList.add(pdfPageExtractResult);
+            }
+        } catch (IOException e) {
+            long endTime = System.currentTimeMillis();
+            long executionTime = endTime - startTime;
+            log.error("PDF处理失败 - 文件: {}, 耗时: {}ms, 异常: {}", fileName, executionTime, e.getMessage());
+            throw e;
+        }
+        //多线程提取图片信息
+        List<CompletableFuture<PDFPageExtractResult>> pdfExtractFutureList = new ArrayList<>();
+        for (PDFPageExtractResult pdfPageExtractResult : pdfExtractResultList) {
+            if (pdfPageExtractResult.getImageTextList() == null || pdfPageExtractResult.getImageTextList().isEmpty()) {
+                continue;
+            }
+            CompletableFuture<PDFPageExtractResult> future = CompletableFuture.supplyAsync(() -> {
+                List<String> imageText = new ArrayList<>();
+                for (String imageUrl : pdfPageExtractResult.getImageUrlList()) {
+                    String image2Text = "";
+                    try {
+                        image2Text = image2Text(imageUrl);
+                    } catch (NoApiKeyException e) {
+                        throw new RuntimeException(e);
+                    } catch (UploadFileException e) {
+                        throw new RuntimeException(e);
+                    }
+                    imageText.add(image2Text);
+                }
+                pdfPageExtractResult.setImageTextList(imageText);
+                return pdfPageExtractResult;
+            }, pdfPageExecutor);
+            pdfExtractFutureList.add(future);
+        }
+        //等待处理完成
+        log.info("等待图片信息处理完成");
+        CompletableFuture<Void> allFutures = CompletableFuture.allOf(pdfExtractFutureList.toArray(new CompletableFuture[0]));
+        try {
+            allFutures.get();
+        } catch (Exception e) {
+            log.error("等待页面处理完成时发生异常: {}", e.getMessage(), e);
+        }
+        //处理图片信息，拼接内容并返回
+        StringBuilder mixedContent = new StringBuilder();
+        log.info("开始拼接内容");
+        for (PDFPageExtractResult pdfPageExtractResult : pdfExtractResultList) {
+            mixedContent.append(pdfPageExtractResult.getText());
+            if (pdfPageExtractResult.getImageTextList() == null) {
+                continue;
+            }
+            if (!pdfPageExtractResult.getImageTextList().isEmpty()) {
+                for (String s : pdfPageExtractResult.getImageTextList()) {
+                    mixedContent.append(s);
+                }
+            }
+        }
+        return mixedContent.toString();
+    }
+
+    private PDFPageImage extactImage(PDDocument document, int pageIndex, String fileMd5, File outputDir, String baseUrl) throws IOException {
+        PDPage page = document.getPage(pageIndex);
+        PDResources resources = page.getResources();
+        int imageCounter = 0;
+        ArrayList<String> imageUrls = new ArrayList<>();
+        if (resources != null && resources.getXObjectNames() != null) {
+            for (Object xObjectKey : resources.getXObjectNames()) {
+                PDXObject xObject = resources.getXObject((org.apache.pdfbox.cos.COSName) xObjectKey);
+                if (xObject instanceof PDImageXObject) {
+                    PDImageXObject image = (PDImageXObject) xObject;
+                    String suffix = image.getSuffix();
+                    if (suffix == null) {
+                        suffix = "png";
+                    }
+                    String imageFileName = fileMd5 + FileConstant.IMAGES_UPLOADS_PREFIX + (pageIndex + 1) + "_" + (imageCounter++) + "." + suffix;
+                    File imageFile = new File(outputDir, imageFileName);
+                    BufferedImage awtImage = null;
+                    try {
+                        awtImage = image.getImage();
+                    } catch (IOException e) {
+                        log.warn("无法提取图片数据，可能是由于ICC颜色空间问题: {}", e.getMessage());
+                        continue;
+                    }
+                    if (awtImage != null) {
+                        try {
+                            ImageIO.write(awtImage, suffix.toUpperCase(), imageFile);
+                            log.debug("成功保存图片到: {}", imageFile.getAbsolutePath());
+                        } catch (IOException e) {
+                            log.error("保存图片失败: {}", imageFile.getAbsolutePath(), e);
+                            continue;
+                        }
+                        String imageUrl = baseUrl + "/" + imageFileName;
+                        imageUrls.add(imageUrl);
+                    } else {
+                        log.warn("无法获取图片数据，请检查图片格式是否正确");
+                    }
+                }
+            }
+        }
+        return new PDFPageImage(pageIndex, imageUrls, new ArrayList<>());
+    }
+
+    //解析文本
+    private PDFPageText extractText(PDDocument document, int pageIndex) throws IOException {
+        PDFTextStripper stripper = new PDFTextStripper();
+        stripper.setStartPage(pageIndex + 1);
+        stripper.setEndPage(pageIndex + 1);
+        String pageText = "";
+        StringBuilder tableContents = new StringBuilder();
+        try {
+            String text = stripper.getText(document);
+            if (text != null) {
+                pageText = text;
+            } else {
+                log.warn("第 {} 页文本内容为空", pageIndex + 1);
+            }
+        } catch (Exception e) {
+            log.warn("提取第 {} 页文本时出错，可能是字体或PDF格式问题: {}", pageIndex + 1, e.getMessage());
+        }
+        // 尝试检测和提取表格
+        List<String> pageTables = detectAndExtractTables(document, pageIndex);
+        for (String tableContent : pageTables) {
+            if (tableContent == null) {
+                tableContent = "";
+                log.warn("第 {} 页表格内容为空", pageIndex + 1);
+            }
+            String tablePlaceholder = "[TABLE_" + ": " + tableContent.trim() + "..]";
+            tableContents.append("\n").append(tablePlaceholder).append("\n");
+        }
+        PDFPageText pdfPageText = new PDFPageText();
+        pdfPageText.setText(pageText + tableContents.toString());
+        pdfPageText.setPageIndex(pageIndex);
+        return pdfPageText;
+    }
+
     private PageProcessResult processPage(PDDocument document, int pageIndex, String fileMd5, String userId, File outputDir, String baseUrl) throws IOException, NoApiKeyException, UploadFileException {
         PageProcessResult result = new PageProcessResult();
         result.setPageIndex(pageIndex);
         result.setImageUrls(new ArrayList<>());
         result.setTableContents(new ArrayList<>());
 
-        PDPage page = document.getPage(pageIndex);
+
         StringBuilder pageContent = new StringBuilder();
 
         PDFTextStripper stripper = new PDFTextStripper();
@@ -384,7 +555,8 @@ public class PDFContentExtractor {
             log.warn("提取第 {} 页文本时出错，可能是字体或PDF格式问题: {}", pageIndex + 1, e.getMessage());
         }
         pageContent.append(pageText);
-
+        //图片提取
+        PDPage page = document.getPage(pageIndex);
         PDResources resources = page.getResources();
         int imageCounter = 0;
         if (resources != null && resources.getXObjectNames() != null) {
