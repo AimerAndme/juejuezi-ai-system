@@ -1,6 +1,7 @@
 package com.yupi.yuaiagent.service.producer;
 
 import com.yupi.yuaiagent.config.RabbitMQConfig;
+import com.yupi.yuaiagent.domin.entity.FileProcessNotification;
 import com.yupi.yuaiagent.domin.entity.MemoryFragment;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
@@ -61,6 +62,21 @@ public class MqAsyncProducer {
             throw new RuntimeException("消息发送失败", e);
         }
 
+    }
+
+    public void sendFileProcessNotification(FileProcessNotification notification) {
+        CorrelationData correlationData = new CorrelationData(notification.getFileMd5());
+        try {
+            rabbitTemplate.convertAndSend(
+                    RabbitMQConfig.FILE_NOTIFICATION_EXCHANGE,
+                    RabbitMQConfig.FILE_NOTIFICATION_ROUTING_KEY,
+                    notification,
+                    correlationData);
+            log.info("文件处理通知发送成功，progress：{}，fileMd5：{}，status：{}", notification.getProgress(), notification.getFileMd5(), notification.getStatus());
+        } catch (Exception e) {
+            log.error("文件处理通知发送失败，fileMd5: {}，status: {}，progress: {}", notification.getFileMd5(), notification.getStatus(), notification.getProgress(), e);
+            throw new RuntimeException("消息发送失败", e);
+        }
     }
 
     /**

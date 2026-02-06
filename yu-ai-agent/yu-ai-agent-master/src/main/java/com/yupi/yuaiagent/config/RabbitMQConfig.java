@@ -18,11 +18,14 @@ public class RabbitMQConfig {
     // 队列名称（可配置到 application.yml）
     public static final String MEMORY_ASYNC_QUEUE = "agent.memory.async.queue";
     public static final String FILE_ASYNC_QUEUE = "agent.file.async.queue";
+    public static final String FILE_NOTIFICATION_QUEUE = "agent.file.notification.queue";
     public static final String MEMORY_DLQ_QUEUE = "agent.memory.dlq.queue"; // 死信队列
     public static final String MEMORY_EXCHANGE = "agent.memory.exchange";
     public static final String FILE_EXCHANGE = "agent.file.exchange";
+    public static final String FILE_NOTIFICATION_EXCHANGE = "agent.file.notification.exchange";
     public static final String MEMORY_ROUTING_KEY = "agent.memory.routing.key";
     public static final String FILE_ROUTING_KEY = "agent.file.routing.key";
+    public static final String FILE_NOTIFICATION_ROUTING_KEY = "agent.file.notification.routing.key";
     public static final String MEMORY_DLQ_EXCHANGE = "agent.memory.dlq.exchange";
     public static final String MEMORY_DLQ_ROUTING_KEY = "agent.memory.dlq.routing.key";
 
@@ -116,6 +119,37 @@ public class RabbitMQConfig {
         return BindingBuilder.bind(fileAsyncQueue())
                 .to(fileExchange())
                 .with(FILE_ROUTING_KEY);
+    }
+
+    /**
+     * 文件通知交换机
+     */
+    @Bean
+    public DirectExchange fileNotificationExchange() {
+        return new DirectExchange(FILE_NOTIFICATION_EXCHANGE, true, false);
+    }
+
+    /**
+     * 文件通知队列
+     */
+    @Bean
+    public Queue fileNotificationQueue() {
+        return QueueBuilder.durable(FILE_NOTIFICATION_QUEUE)
+                .withArgument("x-dead-letter-exchange", MEMORY_DLQ_EXCHANGE)
+                .withArgument("x-dead-letter-routing-key", MEMORY_DLQ_ROUTING_KEY)
+                .withArgument("x-message-ttl", 60000)
+                .withArgument("x-max-length", 10000)
+                .build();
+    }
+
+    /**
+     * 文件通知队列绑定
+     */
+    @Bean
+    public Binding fileNotificationBinding() {
+        return BindingBuilder.bind(fileNotificationQueue())
+                .to(fileNotificationExchange())
+                .with(FILE_NOTIFICATION_ROUTING_KEY);
     }
 
     /**

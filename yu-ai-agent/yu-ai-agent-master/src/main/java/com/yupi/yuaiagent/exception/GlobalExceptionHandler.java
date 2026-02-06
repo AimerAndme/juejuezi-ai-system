@@ -9,6 +9,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.async.AsyncRequestTimeoutException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -87,6 +88,14 @@ public class GlobalExceptionHandler {
         log.error("空指针异常 - 请求路径: {}, 堆栈信息: ", request.getRequestURI(), e);
         return new Result<>(ErrorCode.INTERNAL_SERVER_ERROR.getCode(),
                 "系统内部错误，请联系管理员", null);
+    }
+
+    /**
+     * 处理异步请求超时异常（SSE 超时） SSE 超时是正常行为，不需要返回 JSON 错误
+     */
+    @ExceptionHandler(AsyncRequestTimeoutException.class)
+    public void handleAsyncRequestTimeoutException(AsyncRequestTimeoutException e, HttpServletRequest request) {
+        log.debug("SSE 连接超时 - 请求路径: {}", request.getRequestURI());
     }
 
     /**

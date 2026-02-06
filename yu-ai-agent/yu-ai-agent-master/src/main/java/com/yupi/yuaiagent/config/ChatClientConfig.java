@@ -58,7 +58,16 @@ public class ChatClientConfig {
                 .defaultToolCallbacks(toolCallbackProvider)
                 .build();
     }
-
+    //意图识别client
+    @Bean
+    public ChatClient intentChatClient() {
+        return ChatClient
+                .builder(dashscopeChatModel)
+                .defaultSystem(SYSTEM_PROMPT)
+                .defaultAdvisors(myLoggerAdvisor)
+                .defaultToolCallbacks(toolCallbackProvider)
+                .build();
+    }
     //记忆通用client
     @Bean
     public ChatClient memoryChatClient() {

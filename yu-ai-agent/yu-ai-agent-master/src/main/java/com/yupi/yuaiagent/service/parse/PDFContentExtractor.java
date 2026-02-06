@@ -21,9 +21,11 @@ import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.pdfbox.text.TextPosition;
 import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpServerErrorException;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -282,7 +284,7 @@ public class PDFContentExtractor {
             }
         }
 
-        return new MixedContentResult(mixedContent.toString(), imageUrls, tableContents);
+        return null;
     }
 
     /**
@@ -375,7 +377,7 @@ public class PDFContentExtractor {
      * @throws IOException
      */
     @ExecutionTimeMonitor
-    public String extractMixedContentWithVlmCur(FileUpload fileUpload, String pdfPath, String imageOutputDir, String baseUrl) throws IOException, NoApiKeyException, UploadFileException {
+    public MixedContentResult extractMixedContentWithVlmCur(FileUpload fileUpload, String pdfPath, String imageOutputDir, String baseUrl) throws IOException, NoApiKeyException, UploadFileException {
         long startTime = System.currentTimeMillis();
         String userId = fileUpload.getUserId();
         String fileMd5 = fileUpload.getFileMd5();
@@ -384,6 +386,8 @@ public class PDFContentExtractor {
         List<PDFPageText> textList = new ArrayList<>();
         List<PDFPageImage> imageList = new ArrayList<>();
         List<PDFPageExtractResult> pdfExtractResultList = new ArrayList<>();
+        MixedContentResult mixedContentResult = new MixedContentResult();
+        List<Map<Integer, String>> errorTextList = new ArrayList<>();
         try (PDDocument document = Loader.loadPDF(pdfFile)) {
             int pageCount = document.getNumberOfPages();
             File outputDir = new File(imageOutputDir);
@@ -395,9 +399,13 @@ public class PDFContentExtractor {
             for (int i = 0; i < pageCount; i++) {
                 PDFPageExtractResult pdfPageExtractResult = new PDFPageExtractResult();
                 //文本提取
-                PDFPageText pageText = extractText(document, i);
-                textList.add(pageText);
-                pdfPageExtractResult.setText(pageText.getText());
+                try {
+                    PDFPageText pageText = extractText(document, i);
+                    textList.add(pageText);
+                    pdfPageExtractResult.setText(pageText.getText());
+                } catch (Exception e) {
+                    errorTextList.add(Map.of(i, e.getMessage()));
+                }
                 //如果存在图片
                 PDFPageImage pdfPageImage = extactImage(document, i, fileMd5, outputDir, baseUrl);
                 if (!pdfPageImage.getImageUrlList().isEmpty()) {
@@ -413,6 +421,8 @@ public class PDFContentExtractor {
             throw e;
         }
         //多线程提取图片信息
+        List<Map<Integer, String>> errorImageList = new ArrayList<>();
+        List<FileExtractedImages> fileExtractedImagesList = new ArrayList<>();
         List<CompletableFuture<PDFPageExtractResult>> pdfExtractFutureList = new ArrayList<>();
         for (PDFPageExtractResult pdfPageExtractResult : pdfExtractResultList) {
             if (pdfPageExtractResult.getImageTextList() == null || pdfPageExtractResult.getImageTextList().isEmpty()) {
@@ -422,13 +432,34 @@ public class PDFContentExtractor {
                 List<String> imageText = new ArrayList<>();
                 for (String imageUrl : pdfPageExtractResult.getImageUrlList()) {
                     String image2Text = "";
+                    FileExtractedImages fileExtractedImages = new FileExtractedImages();
                     try {
                         image2Text = image2Text(imageUrl);
-                    } catch (NoApiKeyException e) {
+                        fileExtractedImages.setImagePath(imageUrl)
+                                .setPageNumber(pdfPageExtractResult.getPageIndex())
+                                .setVlModelName("test")
+                                .setVlModelVersion("test")
+                                .setVlResultText(image2Text)
+                                .setVlProcessingStatus("success");
+                    } catch (NoApiKeyException | UploadFileException e) {
+                        //业务逻辑异常
+                        log.error("图片转文字失败: {}", imageUrl, e);
+                        errorImageList.add(Map.of(pdfPageExtractResult.getPageIndex(), "业务异常"));
                         throw new RuntimeException(e);
-                    } catch (UploadFileException e) {
+                    } catch (Exception e) {
+                        fileExtractedImages.setImagePath(imageUrl)
+                                .setPageNumber(pdfPageExtractResult.getPageIndex())
+                                .setVlModelName("test")
+                                .setVlModelVersion("test")
+                                .setVlResultText(image2Text)
+                                .setVlProcessingStatus("fail");
+                        log.error("图片转文字失败: {}", imageUrl, e);
+                        errorImageList.add(
+                                Map.of(pdfPageExtractResult.getPageIndex(), "系统异常")
+                        );
                         throw new RuntimeException(e);
                     }
+                    fileExtractedImagesList.add(fileExtractedImages);
                     imageText.add(image2Text);
                 }
                 pdfPageExtractResult.setImageTextList(imageText);
@@ -458,7 +489,11 @@ public class PDFContentExtractor {
                 }
             }
         }
-        return mixedContent.toString();
+        mixedContentResult.setMixedContent(mixedContent.toString());
+        mixedContentResult.setErrorImagePages(errorImageList);
+        mixedContentResult.setErrorTextPages(errorTextList);
+        mixedContentResult.setFileExtractedImages(fileExtractedImagesList);
+        return mixedContentResult;
     }
 
     private PDFPageImage extactImage(PDDocument document, int pageIndex, String fileMd5, File outputDir, String baseUrl) throws IOException {
@@ -763,23 +798,45 @@ public class PDFContentExtractor {
             backoff = @Backoff(delay = 1000, multiplier = 2)
     )
     private String image2Text(String imageUrl) throws NoApiKeyException, UploadFileException {
-        String imageText = null;
+        String imageText;
         try {
             imageText = vlmClient.image2text(imageUrl);
             log.info("图片转文字成功: {}", imageUrl);
             if (imageText == null) {
                 log.info("图片转文字,响应为空内容: {}", imageUrl);
+                return "";
             }
         } catch (Exception e) {
-            log.error("图片转文字调用失败: {}", imageUrl, e);
-            // 检查是否是客户端错误（4xx），这些通常不应该重试
+            log.error("调用 vlmClient 发生未知错误: {}", imageUrl, e);
+
+            // --- 关键点：如果是客户端错误（4xx），不希望重试 ---
             if (e instanceof org.springframework.web.client.HttpClientErrorException) {
-                // 对于客户端错误，直接抛出而不是重试
-                throw new org.springframework.retry.RetryException("客户端错误，不重试: " + e.getMessage());
+                // 将客户端错误包装为业务异常抛出
+                // Spring Retry 默认只处理 RuntimeException，如果 NoApiKeyException 是受检异常，必须这样处理
+                throw new UploadFileException("客户端错误，不进行重试: " + e.getMessage());
             }
-            throw e; // 重新抛出异常以触发重试机制
+            if (e instanceof HttpServerErrorException) {
+                log.info("图片转文字,响应为空内容: {}", imageUrl);
+                throw e;
+            }
+            // 抛出原异常，触发 @Retryable 机制
+            throw e;
         }
         return imageText;
+    }
+
+    // --- 必须添加的恢复方法 ---
+    @Recover
+    public String recover(Exception e, String imageUrl) throws Exception {
+        log.error("重试机制已耗尽，最终失败: {}", imageUrl, e);
+
+        // 如果是业务逻辑异常（如 API Key 错误），通常不需要重试，这里直接处理
+        if (e instanceof NoApiKeyException || e instanceof UploadFileException) {
+            throw e; // 重新抛出业务异常
+        }
+        log.error("重试机制已耗尽，最终失败: {}", imageUrl, e);
+        // 对于重试耗尽的系统错误，返回默认值或抛出新的运行时异常
+        return "";
     }
 
     /**
@@ -826,19 +883,19 @@ public class PDFContentExtractor {
         }
     }
 
-    /**
-     * PDF图文表混合提取结果
-     */
-    public class MixedContentResult {
-
-        public final String mixedContent;  // 包含图片和表格占位符的文本内容
-        public final List<String> imageUrls;  // 图片URL列表
-        public final List<String> tableContents;  // 表格内容列表
-
-        public MixedContentResult(String mixedContent, List<String> imageUrls, List<String> tableContents) {
-            this.mixedContent = mixedContent;
-            this.imageUrls = imageUrls;
-            this.tableContents = tableContents;
-        }
-    }
+//    /**
+//     * PDF图文表混合提取结果
+//     */
+//    public class MixedContentResult {
+//
+//        public final String mixedContent;  // 包含图片和表格占位符的文本内容
+//        public final List<String> imageUrls;  // 图片URL列表
+//        public final List<String> tableContents;  // 表格内容列表
+//
+//        public MixedContentResult(String mixedContent, List<String> imageUrls, List<String> tableContents) {
+//            this.mixedContent = mixedContent;
+//            this.imageUrls = imageUrls;
+//            this.tableContents = tableContents;
+//        }
+//    }
 }

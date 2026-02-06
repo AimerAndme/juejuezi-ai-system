@@ -45,9 +45,70 @@ export const completeUpload = (data) => {
   return request.post('/files/upload/complete', data)
 }
 
+/**
+ * 订阅文件处理通知（SSE）
+ */
+export const subscribeFileProcess = (
+  userId,
+  fileMd5,
+  onMessage,
+  onError,
+  onComplete,
+) => {
+  const url = `${API_BASE_URL}/files/notification/subscribe?userId=${encodeURIComponent(userId)}&fileMd5=${encodeURIComponent(fileMd5)}`
+  console.log('[SSE] 开始订阅:', url)
+
+  const eventSource = new EventSource(url)
+
+  eventSource.addEventListener('connected', (event) => {
+    console.log('[SSE] 连接成功:', event.data)
+  })
+
+  eventSource.addEventListener('notification', (event) => {
+    try {
+      const notification = JSON.parse(event.data)
+      console.log('[SSE] 收到通知:', notification)
+      if (onMessage) {
+        onMessage(notification)
+      }
+
+      if (
+        notification.status === 'SUCCESS' ||
+        notification.status === 'FAILED'
+      ) {
+        if (onComplete) {
+          onComplete(notification)
+        }
+        eventSource.close()
+      }
+    } catch (error) {
+      console.error('[SSE] 解析通知失败:', error)
+    }
+  })
+
+  eventSource.onerror = (error) => {
+    console.error('[SSE] 连接错误:', error)
+
+    if (eventSource.readyState === EventSource.CLOSED) {
+      console.log('[SSE] 连接已关闭')
+    } else if (eventSource.readyState === EventSource.CONNECTING) {
+      console.log('[SSE] 正在重连...')
+    } else {
+      console.error('[SSE] 未知错误状态:', eventSource.readyState)
+      if (onError) {
+        onError(new Error('SSE 连接失败'))
+      }
+      eventSource.close()
+    }
+  }
+
+  return eventSource
+}
+
 export default {
   initiateUpload,
   uploadChunk,
   getUploadStatus,
   completeUpload,
+  subscribeFileProcess,
 }

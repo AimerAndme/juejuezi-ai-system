@@ -6,6 +6,7 @@ import com.yupi.yuaiagent.aspect.ExecutionTimeMonitor;
 import com.yupi.yuaiagent.domin.vo.UserChatVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.prompt.ChatOptions;
 import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
@@ -59,7 +60,7 @@ public class IntentRecognitionNode implements NodeAction {
                                        1、关于矿山现场生产数据、设备运行数据、安全指标数据的查询/统计，需支持表单输出的需求，
                                        2、矿山基础信息、钻探信息、巷道工作面信息、储量统计信息、地表检测等
                                        输出：dbChat
-                要求：仅返回匹配场景的对应单词，注意：可能存在多场景的情况，多场景返回所有涉及场景，可选结果依次为：chat、ragChat、ragChat、dbChat
+                要求：仅返回匹配场景的对应单词，注意：可能存在多场景的情况，多场景返回所有涉及场景，可选结果依次为：chat、ragChat、dbChat
                 用户输入内容为：{query}
                 """);
         promptTemplate.add("query", reWriteQuery);
@@ -82,6 +83,8 @@ public class IntentRecognitionNode implements NodeAction {
                                 Map.of(
                                         "nodeId", "IntentRecognitionNode")
                         ))
+                        .options(ChatOptions.builder()
+                                .temperature(0.0).build())
                         .call().content();
                 if (content != null && !content.isBlank()) {
                     log.info("意图识别成功！返回数据。{}", content);

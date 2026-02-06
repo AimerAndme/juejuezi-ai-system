@@ -5,14 +5,20 @@ import com.alibaba.dashscope.exception.UploadFileException;
 import com.rabbitmq.client.Channel;
 import com.yupi.yuaiagent.config.RabbitMQConfig;
 import com.yupi.yuaiagent.domin.constant.FileConstant;
+import com.yupi.yuaiagent.domin.constant.FileProcessStatus;
+import com.yupi.yuaiagent.domin.entity.FileProcessNotification;
 import com.yupi.yuaiagent.domin.entity.FileUpload;
 import com.yupi.yuaiagent.exception.BusinessException;
 import com.yupi.yuaiagent.exception.ErrorCode;
+import com.yupi.yuaiagent.exception.FileParseException;
 import com.yupi.yuaiagent.mapper.FileUploadMapper;
 import com.yupi.yuaiagent.service.FileValidationService;
 import com.yupi.yuaiagent.service.VectorizationService;
+import com.yupi.yuaiagent.service.parse.MixedContentResult;
 import com.yupi.yuaiagent.service.parse.PDFContentExtractor;
 import com.yupi.yuaiagent.service.parse.ParseService;
+import com.yupi.yuaiagent.service.parse.WordContentExtractor;
+import com.yupi.yuaiagent.service.producer.MqAsyncProducer;
 import com.yupi.yuaiagent.utils.FileUtils;
 import com.yupi.yuaiagent.utils.RedisUtils;
 import lombok.AllArgsConstructor;
@@ -32,6 +38,7 @@ import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -46,9 +53,11 @@ public class FileAsyncConsumer {
     private final VectorizationService vectorizationService;
     private final ParseService parseService;
     private final PDFContentExtractor pdfContentExtractor;
+    private final WordContentExtractor wordContentExtractor;
     private final FileValidationService fileValidationService;
     private final TaskExecutor businessTaskExecutor;
     private final RedisUtils redisUtils;
+    private final MqAsyncProducer mqAsyncProducer;
 
     @RabbitListener(
             queues = RabbitMQConfig.FILE_ASYNC_QUEUE,
@@ -66,7 +75,8 @@ public class FileAsyncConsumer {
         try {
             boolean lock = redisUtils.tryLock(key, expireTime);
             if (!lock) {
-                log.info("文件正在处理中，请稍等...");
+                log.info("文件正在处理中，请稍等再重试...");
+                sendfileProcessNotification(fileMd5, new FileUpload(), FileProcessStatus.FAILED, 0, "文件正在处理中，请稍等再重试...", null, null);
                 channel.basicAck(deliveryTag, false);
                 return;
             }
@@ -108,30 +118,71 @@ public class FileAsyncConsumer {
     private void processFile(FileUpload fileUpload, String fileMd5, Channel channel, Long deliveryTag) throws Exception {
         log.info("开始处理文件：{}", fileUpload.getFileName());
 
-        try (InputStream fileStream = downloadFileByFileMd5(fileUpload)) {
-            // 文件下载
-            byte[] fileContentBytes = StreamUtils.copyToByteArray(fileStream);
-            fileValidationService.validateFileContent(fileUpload.getFileName(), fileContentBytes);
+        try {
+            sendfileProcessNotification(fileMd5, fileUpload, FileProcessStatus.PROCESSING, 0, "文件处理中", null, null);
+            log.info("文件处理通知已发送");
 
-            // 文件解析和向量化
-            try (InputStream independentFileStream = new ByteArrayInputStream(fileContentBytes)) {
-                // 数据库入库
-                parseService.parseAndSave(fileMd5, independentFileStream,
-                        fileUpload.getUserId(), fileUpload.getOrgTag(), fileUpload.getIsPublic());
+            try (InputStream fileStream = downloadFileByFileMd5(fileUpload)) {
+                byte[] fileContentBytes = StreamUtils.copyToByteArray(fileStream);
+                fileValidationService.validateFileContent(fileUpload.getFileName(), fileContentBytes);
+                sendfileProcessNotification(fileMd5, fileUpload, FileProcessStatus.PROCESSING, 50, "文件解析中", null, null);
 
-                // 向量化处理
-                vectorizationService.vectorize(fileMd5, fileUpload.getUserId(),
-                        fileUpload.getOrgTag(), fileUpload.getIsPublic());
+                try (InputStream independentFileStream = new ByteArrayInputStream(fileContentBytes)) {
+                    parseService.parseAndSave(fileMd5, independentFileStream,
+                            fileUpload.getUserId(), fileUpload.getOrgTag(), fileUpload.getIsPublic());
 
-                log.info("文件向量化已结束：{}", fileUpload.getFileName());
+                    sendfileProcessNotification(fileMd5, fileUpload, FileProcessStatus.PROCESSING, 80, "向量化处理中", null, null);
 
-                // 处理完成，发送 ACK
-                channel.basicAck(deliveryTag, false);
-                log.debug("文件处理完成，已发送 ACK：{}", fileMd5);
-            } catch (IOException | TikaException e) {
-                throw new RuntimeException(e);
+                    vectorizationService.vectorize(fileMd5, fileUpload.getUserId(),
+                            fileUpload.getOrgTag(), fileUpload.getIsPublic());
+
+                    log.info("文件向量化已结束：{}", fileUpload.getFileName());
+
+                    sendfileProcessNotification(fileMd5, fileUpload, FileProcessStatus.SUCCESS, 100, "文件处理成功", null, null);
+
+                    channel.basicAck(deliveryTag, false);
+                    log.debug("文件处理完成，已发送 ACK：{}", fileMd5);
+                } catch (IOException | TikaException e) {
+                    throw new RuntimeException(e);
+                }
             }
+        } catch (FileParseException e) {
+            log.error("文件验证失败：{}", e.getMessage());
+            List<Map<Integer, String>> errorTextList = e.getErrorTextList();
+            List<Map<Integer, String>> errorImageList = e.getErrorImageList();
+            sendfileProcessNotification(fileMd5, fileUpload, FileProcessStatus.FAILED, 0, "文件验证失败：" + e.getMessage(), errorTextList, errorImageList);
+            throw e;
+        } catch (Exception e) {
+            log.error("文件处理失败：{}", e.getMessage(), e);
+            sendfileProcessNotification(fileMd5, fileUpload, FileProcessStatus.FAILED, 0, "文件处理失败：" + e.getMessage(), null, null);
+            throw e;
+        } finally {
+            redisUtils.unlock(nodupKey + fileMd5 + ":" + fileUpload.getUserId());
+            log.info("文件处理完成，已释放分布式锁：{}", fileMd5);
         }
+        log.info("文件处理完成：{}", fileUpload.getFileName());
+
+    }
+
+    private void sendfileProcessNotification(String fileMd5, FileUpload fileUpload, String fileProcessStatus, int progress, String message, List<Map<Integer, String>> errorTextList, List<Map<Integer, String>> errorImageList) {
+
+        FileProcessNotification parsingNotification = FileProcessNotification.create(
+                fileMd5,
+                fileUpload.getFileName(),
+                fileUpload.getUserId(),
+                fileProcessStatus,
+                progress,
+                message
+        );
+        if (errorImageList != null) {
+            parsingNotification.setErrorImageList(errorImageList);
+        }
+        if (errorTextList != null) {
+            parsingNotification.setErrorTextList(errorTextList);
+        }
+        parsingNotification.setOrgTag(fileUpload.getOrgTag());
+        parsingNotification.setIsPublic(fileUpload.getIsPublic());
+        mqAsyncProducer.sendFileProcessNotification(parsingNotification);
     }
 
     /**
@@ -140,7 +191,7 @@ public class FileAsyncConsumer {
      * @param fileUpload
      * @return
      */
-    private InputStream downloadFileByFileMd5(FileUpload fileUpload) throws IOException, NoApiKeyException, UploadFileException {
+    private InputStream downloadFileByFileMd5(FileUpload fileUpload) throws IOException, NoApiKeyException, UploadFileException, TikaException {
         String fileName = fileUpload.getFileMd5() + "_" + fileUpload.getFileName();
         String filePath = FileUtils.findFileByName(FileConstant.FILE_UPLOAD_SAVE_DIR_, fileName);
         String imagesPath = FileConstant.IMAGES_UPLOAD_SAVE_DIR_;
@@ -150,7 +201,15 @@ public class FileAsyncConsumer {
         fileValidationService.validateFileExtension(fileName);
 
         if (fileName.endsWith(".pdf")) {
-            String s = pdfContentExtractor.extractMixedContentWithVlmCur(fileUpload, filePath, imagesPath, imagesPath);
+            MixedContentResult mixedContentResult = pdfContentExtractor.extractMixedContentWithVlmCur(fileUpload, filePath, imagesPath, imagesPath);
+            if (!mixedContentResult.getErrorTextPages().isEmpty() && !mixedContentResult.getErrorImagePages().isEmpty()) {
+                log.error("文件：{}，处理失败", filePath);
+                throw new FileParseException("file", fileName, "文件处理失败", mixedContentResult.getErrorTextPages(), mixedContentResult.getErrorImagePages());
+            }
+            log.info("文件：{}，已成功处理", filePath);
+            return new ByteArrayInputStream(mixedContentResult.getMixedContent().getBytes());
+        } else if (fileName.endsWith(".docx") || fileName.endsWith(".doc")) {
+            String s = wordContentExtractor.extractWordContentWithVlm(fileUpload, filePath, imagesPath, imagesPath);
             log.info("文件：{}，已成功处理", filePath);
             return new ByteArrayInputStream(s.getBytes());
         }
@@ -170,6 +229,7 @@ public class FileAsyncConsumer {
      */
     @Configuration
     static class TaskExecutorConfig {
+
         @Bean(name = "businessTaskExecutor")
         public TaskExecutor businessTaskExecutor() {
             ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();

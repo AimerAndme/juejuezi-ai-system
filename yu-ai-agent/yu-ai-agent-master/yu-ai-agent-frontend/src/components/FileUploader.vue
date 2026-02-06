@@ -91,18 +91,32 @@
         {{ successMessage }}
       </div>
     </div>
+
+    <!-- 文件处理进度 -->
+    <FileProcessProgress
+      v-if="showProcessProgress"
+      :file-name="selectedFile?.name || ''"
+      :progress="processProgress"
+      :status="processStatus"
+      :message="processMessage"
+      :error-text-list="errorTextList"
+      :error-image-list="errorImageList"
+      @retry="handleRetry"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import {
   initiateUpload,
   uploadChunk,
   getUploadStatus,
   completeUpload,
+  subscribeFileProcess,
 } from '../api/fileUploadApi'
 import { calculateFileMD5, calculateChunkMD5 } from '../utils/md5'
+import FileProcessProgress from './FileProcessProgress.vue'
 
 // 常量配置
 const CHUNK_SIZE = 2 * 1024 * 1024 // 2MB
@@ -126,6 +140,15 @@ const uploadStartTime = ref(0)
 const uploadedBytes = ref(0)
 const uploadSpeed = ref('0 KB/s')
 const estimatedTime = ref('--:--')
+
+// 文件处理进度
+const showProcessProgress = ref(false)
+const processProgress = ref(0)
+const processStatus = ref('PENDING')
+const processMessage = ref('')
+const errorTextList = ref([])
+const errorImageList = ref([])
+let eventSource = null
 
 // 取消上传标志
 let cancelFlag = false
@@ -166,7 +189,7 @@ const handleFileSelect = async (event) => {
       '[文件选择] 开始计算MD5, 文件名:',
       file.name,
       '大小:',
-      file.size
+      file.size,
     )
     fileMd5.value = await calculateFileMD5(file, (progress) => {
       uploadStatus.value = `正在计算文件MD5... ${progress}%`
@@ -239,6 +262,9 @@ const startUpload = async () => {
       uploadStatus.value = '上传完成'
       successMessage.value = initData.message || '文件秒传成功！'
       isUploading.value = false
+
+      // 秒传成功后也要订阅文件处理通知
+      subscribeFileProcessNotification()
       return
     }
 
@@ -270,7 +296,7 @@ const uploadChunks = async () => {
     '大小:',
     file.size,
     'MD5:',
-    fileMd5.value
+    fileMd5.value,
   )
   console.log('[上传分片] File对象:', file)
 
@@ -292,7 +318,7 @@ const uploadChunks = async () => {
     const chunk = file.slice(start, end)
 
     console.log(
-      `[上传分片] 分片${i}: start=${start}, end=${end}, size=${chunk.size}`
+      `[上传分片] 分片${i}: start=${start}, end=${end}, size=${chunk.size}`,
     )
 
     // 计算分片MD5
@@ -352,6 +378,9 @@ const finishUpload = async () => {
     uploadStatus.value = '上传完成'
     successMessage.value = '文件上传成功！'
     canResume.value = false
+
+    // 开始订阅文件处理通知
+    subscribeFileProcessNotification()
   } else {
     throw new Error(response.data.message || '合并失败')
   }
@@ -359,10 +388,83 @@ const finishUpload = async () => {
   isUploading.value = false
 }
 
+// 订阅文件处理通知
+const subscribeFileProcessNotification = () => {
+  // 如果已有连接，先关闭
+  if (eventSource) {
+    console.log('[文件处理] 关闭旧的 SSE 连接')
+    eventSource.close()
+    eventSource = null
+  }
+
+  showProcessProgress.value = true
+  processProgress.value = 0
+  processStatus.value = 'PENDING'
+  processMessage.value = '等待处理...'
+  errorTextList.value = []
+  errorImageList.value = []
+
+  console.log(
+    '[文件处理] 开始订阅 SSE，userId:',
+    getUserId(),
+    'fileMd5:',
+    fileMd5.value,
+  )
+
+  eventSource = subscribeFileProcess(
+    getUserId(),
+    fileMd5.value,
+    (notification) => {
+      console.log('[文件处理] 收到通知:', notification)
+
+      processProgress.value = notification.progress || 0
+      processStatus.value = notification.status || 'PENDING'
+      processMessage.value = notification.message || ''
+
+      if (notification.errorTextList) {
+        errorTextList.value = notification.errorTextList
+      }
+
+      if (notification.errorImageList) {
+        errorImageList.value = notification.errorImageList
+      }
+    },
+    (error) => {
+      console.error('[文件处理] 连接错误:', error)
+      processStatus.value = 'FAILED'
+      processMessage.value = '连接失败，请刷新页面重试'
+    },
+    (notification) => {
+      console.log('[文件处理] 完成:', notification)
+      if (notification.status === 'SUCCESS') {
+        successMessage.value = '文件处理成功！'
+      } else if (notification.status === 'FAILED') {
+        errorMessage.value =
+          '文件处理失败: ' + (notification.message || '未知错误')
+      }
+      // 处理完成后清理 eventSource
+      eventSource = null
+    },
+  )
+}
+
+// 重试处理
+const handleRetry = () => {
+  showProcessProgress.value = false
+  processProgress.value = 0
+  processStatus.value = 'PENDING'
+  processMessage.value = ''
+  errorTextList.value = []
+  errorImageList.value = []
+
+  // 重新订阅
+  subscribeFileProcessNotification()
+}
+
 // 更新进度
 const updateProgress = () => {
   const progress = Math.floor(
-    (uploadedBytes.value / selectedFile.value.size) * 100
+    (uploadedBytes.value / selectedFile.value.size) * 100,
   )
   uploadProgress.value = progress
   uploadStatus.value = `上传中... (${uploadedChunks.value.length}/${totalChunks.value} 分片)`
@@ -420,6 +522,14 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 // 组件挂载时检查是否有未完成的上传
 onMounted(() => {
   // 可以从localStorage恢复未完成的上传任务
+})
+
+// 组件卸载时清理 SSE 连接
+onBeforeUnmount(() => {
+  if (eventSource) {
+    eventSource.close()
+    eventSource = null
+  }
 })
 </script>
 
