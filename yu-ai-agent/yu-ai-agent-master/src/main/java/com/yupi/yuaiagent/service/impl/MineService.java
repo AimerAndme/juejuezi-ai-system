@@ -1,6 +1,7 @@
 package com.yupi.yuaiagent.service.impl;
 
 import com.alibaba.cloud.ai.graph.CompiledGraph;
+import com.alibaba.cloud.ai.graph.NodeOutput;
 import com.alibaba.cloud.ai.graph.OverAllState;
 import com.alibaba.cloud.ai.graph.exception.GraphStateException;
 import com.yupi.yuaiagent.aspect.EnableQuotaLimiter;
@@ -9,13 +10,11 @@ import com.yupi.yuaiagent.domin.entity.MiningAgentConversation;
 import com.yupi.yuaiagent.domin.entity.RagRequestContextData;
 import com.yupi.yuaiagent.domin.vo.UserChatVO;
 import com.yupi.yuaiagent.graph.PreProcessingGraphFactory;
-import com.yupi.yuaiagent.logging.LogContextHolder;
-import com.yupi.yuaiagent.logging.NodeExecutionLog;
-import com.yupi.yuaiagent.logging.StructuredLogBuilder;
 import com.yupi.yuaiagent.mapper.MiningAgentConversationMapper;
 import com.yupi.yuaiagent.service.quota.RedisSlidingWindowLimiterService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 
 import java.util.List;
 import java.util.Map;
@@ -72,6 +71,26 @@ public class MineService implements com.yupi.yuaiagent.service.IMineService {
         //Todo解析Rag回答的上下文
         //parseRagContext(call);
         return (String) call.map(OverAllState::data).orElse(Map.of()).get("chatResult");
+    }
+
+    @Override
+    @EnableQuotaLimiter
+    public Flux<String> chatSee(UserChatVO userChatVO) throws GraphStateException {
+        String userId = userChatVO.getUserId();
+        String conversationId = userChatVO.getConversationId();
+        List<MiningAgentConversation> conversations = miningAgentConversationMapper.selectByUserId(userId);
+        if (conversations == null || conversations.isEmpty()) {
+            throw new RuntimeException("当前用户不存在对话！！");
+        }
+        //CompiledGraph graph = preProcessingGraphFactory.getChatInstance();
+        //CompiledGraph graph = preProcessingGraphFactory.getRagChatInstance();
+        // CompiledGraph graph = preProcessingGraphFactory.getDBInvocationChatInstance();
+        //CompiledGraph graph = preProcessingGraphFactory.getRagChatInstanceWithWrapper();
+        CompiledGraph graph = preProcessingGraphFactory.getDBInvocationChatInstanceWithWrapper();
+        Flux<NodeOutput> flux = graph.fluxStream(Map.of("queryInfo", userChatVO));
+        //Todo解析Rag回答的上下文
+        //parseRagContext(call);
+        return null;
     }
 
     private void parseRagContext(Optional<OverAllState> call) {

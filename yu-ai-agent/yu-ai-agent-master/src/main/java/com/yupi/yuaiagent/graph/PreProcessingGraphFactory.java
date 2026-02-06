@@ -27,14 +27,16 @@ public class PreProcessingGraphFactory {
     private final NodeAction nl2SqlNode;
     private final NodeAction dBInvocationNode;
     private final NodeAction dBResult2NlNode;
+    private final NodeAction ragQueryEnhanceNode;
 
-    public PreProcessingGraphFactory(ChatClient chatClient, NodeAction normalChatNode, NodeAction ragQueryNode, NodeAction nl2SqlNode, @Qualifier("DBInvocationNode") NodeAction dBInvocationNode, @Qualifier("DBResult2NlNode") NodeAction dBResult2NlNode) {
+    public PreProcessingGraphFactory(ChatClient chatClient, NodeAction normalChatNode, NodeAction ragQueryNode, NodeAction nl2SqlNode, @Qualifier("DBInvocationNode") NodeAction dBInvocationNode, @Qualifier("DBResult2NlNode") NodeAction dBResult2NlNode, NodeAction ragQueryEnhanceNode) {
         this.chatClient = chatClient;
         this.normalChatNode = normalChatNode;
         this.ragQueryNode = ragQueryNode;
         this.nl2SqlNode = nl2SqlNode;
         this.dBInvocationNode = dBInvocationNode;
         this.dBResult2NlNode = dBResult2NlNode;
+        this.ragQueryEnhanceNode = ragQueryEnhanceNode;
     }
 
     public CompiledGraph getIntentRecognizeInstance() throws GraphStateException {
@@ -127,16 +129,19 @@ public class PreProcessingGraphFactory {
         stateGraph.addNode("查询重写", AsyncNodeAction.node_async(
                 new LoggingNodeActionWrapper(new QueryRewritingNode(chatClient), "QueryRewritingNode", "查询重写")
         ));
-        stateGraph.addEdge(StateGraph.START, "查询重写");
+
         stateGraph.addNode("意图识别", AsyncNodeAction.node_async(
                 new LoggingNodeActionWrapper(new IntentRecognitionNode(chatClient), "IntentRecognitionNode", "意图识别")
         ));
-        stateGraph.addEdge("查询重写", "意图识别");
+
         stateGraph.addNode("闲聊", AsyncNodeAction.node_async(
                 new LoggingNodeActionWrapper(normalChatNode, "NormalChatNode", "闲聊")
         ));
         stateGraph.addNode("rag专业知识库查询", AsyncNodeAction.node_async(
                 new LoggingNodeActionWrapper(ragQueryNode, "RagQueryNode", "rag专业知识库查询")
+        ));
+        stateGraph.addNode("rag问答hyde增强", AsyncNodeAction.node_async(
+                new LoggingNodeActionWrapper(ragQueryEnhanceNode, "RagQueryEnhanceNode", "rag问答hyde增强")
         ));
         stateGraph.addNode("nl2sql", AsyncNodeAction.node_async(
                 new LoggingNodeActionWrapper(nl2SqlNode, "Nl2SqlNode", "nl2sql")
@@ -147,15 +152,18 @@ public class PreProcessingGraphFactory {
         stateGraph.addNode("最终聊天结果", AsyncNodeAction.node_async(
                 new LoggingNodeActionWrapper(dBResult2NlNode, "DbResult2NlNode", "最终聊天结果")
         ));
+        stateGraph.addEdge(StateGraph.START, "查询重写");
+        stateGraph.addEdge("查询重写", "意图识别");
         stateGraph.addConditionalEdges(
                 "意图识别",
                 AsyncEdgeAction.edge_async(state -> state.value("recognizeResult", "chat")),
                 Map.of("chat", "闲聊",
-                        "ragChat", "rag专业知识库查询",
+                        "ragChat", "rag问答hyde增强",
                         "dbChat", "nl2sql")
         );
-        stateGraph.addEdge("闲聊", StateGraph.END);
+        stateGraph.addEdge("rag问答hyde增强", "rag专业知识库查询");
         stateGraph.addEdge("rag专业知识库查询", StateGraph.END);
+        stateGraph.addEdge("闲聊", StateGraph.END);
         stateGraph.addEdge("nl2sql", "db调用");
         stateGraph.addEdge("db调用", "最终聊天结果");
         stateGraph.addEdge("最终聊天结果", StateGraph.END);

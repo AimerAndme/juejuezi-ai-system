@@ -17,7 +17,7 @@ export const connectSSE = (url, params, onMessage, onError) => {
   // 构建带参数的URL
   const queryString = Object.keys(params)
     .map(
-      (key) => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`
+      (key) => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`,
     )
     .join('&')
 
@@ -57,7 +57,7 @@ export const chatWithMineAgent = (
   query,
   userId,
   conversationId,
-  userRole = 'user'
+  userRole = 'user',
 ) => {
   return request.get('/mine/chat', {
     params: {
@@ -66,6 +66,7 @@ export const chatWithMineAgent = (
       conversationId,
       UserRole: userRole,
     },
+    timeout: 600000,
   })
 }
 

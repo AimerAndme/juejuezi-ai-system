@@ -18,15 +18,25 @@
           </div>
           <div class="message-bubble">
             <div class="message-content">
-              {{ msg.content }}
-              <span
-                v-if="
-                  connectionStatus === 'connecting' &&
-                  index === messages.length - 1
-                "
-                class="typing-indicator"
-                >▋</span
-              >
+              <template v-if="msg.type === 'ai-thinking'">
+                <span class="thinking-text">{{ msg.content }}</span>
+                <span class="thinking-dots">
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                </span>
+              </template>
+              <template v-else>
+                {{ msg.content }}
+                <span
+                  v-if="
+                    connectionStatus === 'connecting' &&
+                    index === messages.length - 1
+                  "
+                  class="typing-indicator"
+                  >▋</span
+                >
+              </template>
             </div>
             <div class="message-time">{{ formatTime(msg.time) }}</div>
           </div>
@@ -128,14 +138,14 @@ watch(
   () => props.messages.length,
   () => {
     scrollToBottom()
-  }
+  },
 )
 
 watch(
   () => props.messages.map((m) => m.content).join(''),
   () => {
     scrollToBottom()
-  }
+  },
 )
 
 onMounted(() => {
@@ -436,6 +446,54 @@ onMounted(() => {
 
 .ai-error {
   opacity: 0.7;
+}
+
+.ai-thinking {
+  opacity: 0.8;
+}
+
+.thinking-text {
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.thinking-dots {
+  display: inline-flex;
+  gap: 4px;
+  margin-left: 8px;
+}
+
+.thinking-dots .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+  animation: thinkingDot 1.4s infinite;
+}
+
+.thinking-dots .dot:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.thinking-dots .dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.thinking-dots .dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes thinkingDot {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.3;
+  }
+  30% {
+    transform: translateY(-8px);
+    opacity: 1;
+  }
 }
 
 .user-question {

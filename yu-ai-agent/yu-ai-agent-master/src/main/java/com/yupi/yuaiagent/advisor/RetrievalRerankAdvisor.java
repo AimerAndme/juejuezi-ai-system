@@ -4,6 +4,7 @@ package com.yupi.yuaiagent.advisor;//
 //
 
 
+import com.alibaba.cloud.ai.dashscope.rerank.DashScopeRerankModel;
 import com.alibaba.cloud.ai.document.DocumentWithScore;
 import com.alibaba.cloud.ai.model.RerankModel;
 import com.alibaba.cloud.ai.model.RerankRequest;
@@ -33,6 +34,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -46,9 +48,10 @@ public class RetrievalRerankAdvisor implements BaseAdvisor {
     private static final Logger logger = LoggerFactory.getLogger(RetrievalRerankAdvisor.class);
     private static final PromptTemplate DEFAULT_PROMPT_TEMPLATE = new PromptTemplate("{query}\n\nContext information is below, surrounded by ---------------------\n---------------------\n{question_answer_context}\n---------------------\nGiven the context and provided history information and not prior knowledge,\nreply to the user comment. If the answer is not in the context, inform\nthe user that you can't answer the question.\n");
     private static final Double DEFAULT_MIN_SCORE = 0.1;
+    private static final Integer DEFAULT_LIMITE_SIZE = 5;
     private static final int DEFAULT_ORDER = 0;
     private final VectorStore vectorStore;
-    private final RerankModel rerankModel;
+    private final RerankModel dashScopeRerankModel;
     private final PromptTemplate promptTemplate;
     private final SearchRequest searchRequest;
     private final Double minScore;
@@ -75,13 +78,13 @@ public class RetrievalRerankAdvisor implements BaseAdvisor {
         this(vectorStore, rerankModel, searchRequest, promptTemplate, minScore, 0);
     }
 
-    public RetrievalRerankAdvisor(VectorStore vectorStore, RerankModel rerankModel, SearchRequest searchRequest, PromptTemplate promptTemplate, Double minScore, int order) {
+    public RetrievalRerankAdvisor(VectorStore vectorStore, RerankModel dashScopeRerankModel, SearchRequest searchRequest, PromptTemplate promptTemplate, Double minScore, int order) {
         Assert.notNull(vectorStore, "The vectorStore must not be null!");
-        Assert.notNull(rerankModel, "The rerankModel must not be null!");
+        Assert.notNull(dashScopeRerankModel, "The rerankModel must not be null!");
         Assert.notNull(searchRequest, "The searchRequest must not be null!");
         Assert.notNull(promptTemplate, "The userTextAdvise must not be null!");
         this.vectorStore = vectorStore;
-        this.rerankModel = rerankModel;
+        this.dashScopeRerankModel = dashScopeRerankModel;
         this.promptTemplate = promptTemplate;
         this.searchRequest = searchRequest;
         this.minScore = minScore;
@@ -102,31 +105,40 @@ public class RetrievalRerankAdvisor implements BaseAdvisor {
                 return documents;
             } else {
                 RerankRequest rerankRequest = new RerankRequest(request.prompt().getUserMessage().getText(), documents);
-                RerankResponse response = this.rerankModel.call(rerankRequest);
+                RerankResponse response = this.dashScopeRerankModel.call(rerankRequest);
                 logger.debug("reranked documents: {}", response);
-                return response != null && response.getResults() != null ? (List) response.getResults().stream().filter((doc) -> {
-                    return doc != null && doc.getScore() >= this.minScore;
-                }).sorted(Comparator.comparingDouble(DocumentWithScore::getScore).reversed()).map(DocumentWithScore::getOutput).collect(Collectors.toList()) : documents;
+                return response != null && response.getResults() != null ? (List) response.getResults().stream()
+                        .sorted(Comparator.comparingDouble(DocumentWithScore::getScore).reversed())
+                        .map(DocumentWithScore::getOutput)
+                        .collect(Collectors.toList()) : documents;
             }
         });
     }
-
     public ChatClientRequest before(ChatClientRequest request, AdvisorChain advisorChain) {
         Map<String, Object> context = request.context();
         UserMessage userMessage = request.prompt().getUserMessage();
         SearchRequest searchRequestToUse = SearchRequest.from(this.searchRequest).query(userMessage.getText()).filterExpression(this.doGetFilterExpression(context)).build();
+        //获取当前hyde多路问询内容
+        List<String> hydeContextList = (List<String>) context.get("hyde_query_list");
         //向量库检索
         //List<Document> documents = this.vectorStore.similaritySearch(searchRequestToUse);
         //List<Document> documents = hybridSearchService.optimizedSearch(userMessage.getText(), 5, 1, 0.3);
-        List<Document> documents = hybridSearchService.searchWithCache(userMessage.getText(), 5, 1, 0.3);
-        log.debug("retrieved documents");
-        context.put("qa_retrieved_documents", documents);
+        List<Document> documents = new ArrayList<>();
+        if (hydeContextList == null || hydeContextList.isEmpty()) {
+            //若未检测到hyde多路问询内容，则使用原始改写的问题进行向量库检索
+            documents = hybridSearchService.searchWithCache(userMessage.getText(), 5, 1, 0.3);
+        } else {
+            for (String hydeQuery : hydeContextList) {
+                documents.addAll(hybridSearchService.searchWithCache(hydeQuery, 5, 1, 0.3));
+            }
+        }
         //TODO(可优化点)放置检索信息到上下文
-
         // RagRequestContextData ragRequestContextData = RagRequestContext.get();
         // ragRequestContextData.setRetrievedDocuments(documents.stream().map(Document::getText).toList());
-        //重新排序
+        //重新排序并裁剪
         documents = this.doRerank(request, documents);
+        //存放rerank后的文档到上下文
+        context.put("qa_retrieved_documents", documents);
         String documentContext = (String) documents.stream().map(Document::getText).collect(Collectors.joining(System.lineSeparator()));
         String augmentedUserText = this.promptTemplate.render(Map.of("query", userMessage.getText(), "question_answer_context", documentContext));
         log.info("RetrievalRerankAdvisor before: {}", LocalDateTime.now());

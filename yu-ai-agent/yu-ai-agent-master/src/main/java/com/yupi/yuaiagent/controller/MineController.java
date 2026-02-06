@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Flux;
 
 import java.time.LocalDateTime;
 
@@ -38,7 +39,7 @@ public class MineController {
     @GetMapping(value = "/chat")
     public Result<?> chat(UserChatVO userChatVO) throws GraphStateException {
         String userId = userChatVO.getUserId();
-        LimitResult limitResult = redisSlidingWindowLimiterService.checkTokenQuota(userId,0,60000,50000,90);
+        LimitResult limitResult = redisSlidingWindowLimiterService.checkTokenQuota(userId, 0, 60000, 50000, 90);
         log.info("limitResult: {}", limitResult);
         if (!limitResult.isAllowed()) {
             return Result.fail("用户请求过于频繁，请稍后再试");
@@ -51,6 +52,26 @@ public class MineController {
         } catch (Exception e) {
             log.error("服务出错：{}", e.getMessage());
             return Result.fail("服务出错：{}");
+        }
+
+    }
+
+    @GetMapping(value = "/chat/see")
+    public Flux<String> chatSee(UserChatVO userChatVO) throws GraphStateException {
+        String userId = userChatVO.getUserId();
+        LimitResult limitResult = redisSlidingWindowLimiterService.checkTokenQuota(userId, 0, 60000, 50000, 90);
+        log.info("limitResult: {}", limitResult);
+        if (!limitResult.isAllowed()) {
+            return Flux.error(new RuntimeException("用户请求过于频繁，请稍后再试"));
+        }
+        try {
+            Flux<String> chat = mineService.chatSee(userChatVO);
+            log.info(String.valueOf(LocalDateTime.now()));
+            return Flux.just("chat");
+
+        } catch (Exception e) {
+            log.error("服务出错：{}", e.getMessage());
+            return Flux.error(new RuntimeException("服务出错：{}"));
         }
 
     }

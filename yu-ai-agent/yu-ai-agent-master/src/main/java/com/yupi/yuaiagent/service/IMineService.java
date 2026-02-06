@@ -10,4 +10,6 @@ public interface IMineService {
     String intentRecognize(String query) throws GraphStateException;
 
     String chat(UserChatVO userChatVO) throws GraphStateException;
+
+    Flux<String> chatSee(UserChatVO userChatVO) throws GraphStateException;
 }

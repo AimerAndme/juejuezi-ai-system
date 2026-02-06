@@ -472,7 +472,6 @@ public class HybridSearchService {
                                 ))
                         )
                 );
-
                 s.size(topK);
                 return s;
             }, EsDocument.class);
@@ -487,6 +486,7 @@ public class HybridSearchService {
                         Map<String, Object> metadata = getMetadata(hit);
                         return Document.builder()
                                 .text(hit.source().getTextContent())
+                                .score(hit.score())
                                 .metadata(metadata)
                                 .build();
                     })

@@ -74,7 +74,9 @@ useHead({
 const router = useRouter()
 const messages = ref([])
 const connectionStatus = ref('disconnected')
-const currentConversationId = ref('') // 当前会话 ID
+const currentConversationId = ref('')
+const thinkingMessageIndex = ref(-1) // 保存思考中消息的索引
+let eventSource = null // 保存 SSE 连接实例
 
 // 添加消息到列表
 const addMessage = (content, isUser, type = '') => {
@@ -94,13 +96,28 @@ const sendMessage = async (message) => {
   const userId = localStorage.getItem('userId')
   const userRole = localStorage.getItem('userRole') || 'user'
   console.log(userId, currentConversationId, userRole)
+
+  // 添加思考中提示
+  thinkingMessageIndex.value = messages.value.length
+  messages.value.push({
+    content: '正在思考中...',
+    isUser: false,
+    type: 'ai-thinking',
+    time: new Date().getTime(),
+  })
+
   try {
     const response = await chatWithMineAgent(
       message,
       userId,
       currentConversationId.value,
-      userRole
+      userRole,
     )
+    // 移除思考中提示
+    if (thinkingMessageIndex.value !== -1) {
+      messages.value.splice(thinkingMessageIndex.value, 1)
+      thinkingMessageIndex.value = -1
+    }
     if (response.data && response.data.code === 200) {
       addMessage(response.data.data, false, 'ai-answer')
     } else {
@@ -108,6 +125,11 @@ const sendMessage = async (message) => {
     }
   } catch (error) {
     console.error('Chat error:', error)
+    // 移除思考中提示
+    if (thinkingMessageIndex.value !== -1) {
+      messages.value.splice(thinkingMessageIndex.value, 1)
+      thinkingMessageIndex.value = -1
+    }
     addMessage('网络错误，请检查连接', false, 'ai-error')
   }
   connectionStatus.value = 'disconnected'
@@ -186,7 +208,7 @@ onMounted(async () => {
     console.log('添加欢迎消息')
     addMessage(
       '您好，我是AI矿山专家。我可以为您解答各种矿山技术问题，提供专业的矿业建议，请问有什么可以帮助您的吗？',
-      false
+      false,
     )
   }
   console.log('=== onMounted 执行完毕 ===')
@@ -206,7 +228,11 @@ onBeforeUnmount(() => {
   background: var(--bg-color);
   position: relative;
   overflow: hidden;
-  font-family: 'Inter', 'PingFang SC', -apple-system, BlinkMacSystemFont,
+  font-family:
+    'Inter',
+    'PingFang SC',
+    -apple-system,
+    BlinkMacSystemFont,
     sans-serif;
   transition: background-color 0.3s ease;
 }
