@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yupi.yuaiagent.mapper.UserQuotaServiceMapper">
+    <resultMap id="BaseResultMap" type="com.yupi.yuaiagent.domin.entity.UserQuota">
+        <id column="user_id" property="userId"/>
+        <result column="quota_qpm" property="quotaQpm"/>
+        <result column="quota_tpm" property="quotaTpm"/>
+        <result column="quota_concurrent" property="quotaConcurrent"/>
+        <result column="user_level" property="userLevel"/>
+        <result column="status" property="status"/>
+        <result column="quota_percent" property="quotaPercent"/>
+        <result column="quota_windows" property="quotaWindows"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.yupi.yuaiagent.domin.entity.UserQuota">
+        INSERT INTO agent.user_quota (user_id, quota_qpm, quota_tpm, quota_concurrent, user_level, status,
+                                      quota_percent,quota_windows)
+        VALUES (#{userId}, #{quotaQpm}, #{quotaTpm}, #{quotaConcurrent}, #{userLevel}, #{status}, #{quotaPercent},#{quotaWindows})
+    </insert>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT user_id, quota_qpm, quota_tpm, quota_concurrent, user_level, status, quota_percent,quota_windows
+        FROM agent.user_quota
+        WHERE user_id = #{userId}
+    </select>
+
+    <select id="selectByUserLevel" resultMap="BaseResultMap">
+        SELECT user_id, quota_qpm, quota_tpm, quota_concurrent, user_level, status, quota_percent,quota_windows
+        FROM agent.user_quota
+        WHERE user_level = #{userLevel}
+    </select>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT user_id, quota_qpm, quota_tpm, quota_concurrent, user_level, status, quota_percent,quota_windows
+        FROM agent.user_quota
+        ORDER BY user_level
+    </select>
+    <select id="selectByUserId" resultType="com.yupi.yuaiagent.domin.entity.UserQuota"
+            parameterType="java.lang.String">
+        SELECT user_id, quota_qpm, quota_tpm, quota_concurrent, user_level, status, quota_percent,quota_windows
+        FROM agent.user_quota
+        WHERE user_id = #{userId}
+    </select>
+
+    <update id="update" parameterType="com.yupi.yuaiagent.domin.entity.UserQuota">
+        UPDATE agent.user_quota
+        SET quota_qpm        = #{quotaQpm},
+            quota_tpm        = #{quotaTpm},
+            quota_concurrent = #{quotaConcurrent},
+            user_level       = #{userLevel},
+            status           = #{status},
+            quota_percent    = #{quotaPercent},
+            quota_windows    = #{quotaWindows}
+        WHERE user_id = #{userId}
+    </update>
+
+    <update id="updateStatus">
+        UPDATE agent.user_quota
+        SET status = #{status}
+        WHERE user_id = #{userId}
+    </update>
+
+    <delete id="delete">
+        DELETE
+        FROM agent.user_quota
+        WHERE user_id = #{userId}
+    </delete>
+</mapper>

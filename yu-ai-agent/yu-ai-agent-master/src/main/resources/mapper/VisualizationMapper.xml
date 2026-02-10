@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.yupi.yuaiagent.mapper.VisualizationMapper">
+
+    <select id="calculateHistogram" resultType="java.util.List">
+        SELECT 
+            FLOOR((CAST(${columnName} AS DOUBLE PRECISION) - #{minValue}) / #{intervalWidth}) as interval_index,
+            COUNT(*) as count,
+            MIN(CAST(${columnName} AS DOUBLE PRECISION)) as min_value,
+            MAX(CAST(${columnName} AS DOUBLE PRECISION)) as max_value
+        FROM ${tableName}
+        WHERE CAST(${columnName} AS DOUBLE PRECISION) >= #{minValue}
+          AND CAST(${columnName} AS DOUBLE PRECISION) &lt;= #{maxValue}
+          AND area_id = #{areaId}
+        GROUP BY interval_index
+        ORDER BY interval_index
+    </select>
+
+    <select id="getScatterData" resultType="java.util.Map">
+        SELECT 
+            CAST(${xColumnName} AS DOUBLE PRECISION) as x,
+            CAST(${yColumnName} AS DOUBLE PRECISION) as y
+        FROM ${tableName}
+        WHERE RANDOM() &lt; #{sampleRate}
+          AND area_id = #{areaId}
+    </select>
+
+</mapper>
