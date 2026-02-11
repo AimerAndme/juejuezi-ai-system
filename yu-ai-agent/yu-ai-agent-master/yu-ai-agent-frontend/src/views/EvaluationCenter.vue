@@ -136,7 +136,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useHead } from '@vueuse/head'
-import AppButton from '../components/AppButton.vue'
+import AppButton from '../components/common/AppButton.vue'
 import {
   runEvaluationFromDataset,
   runFullEvaluation as runFullEvaluationApi,

@@ -204,7 +204,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import AppButton from '../components/AppButton.vue'
+import AppButton from '../components/common/AppButton.vue'
 import * as api from '../api/dataCenterApi'
 import '../styles/data-detail.scss'
 

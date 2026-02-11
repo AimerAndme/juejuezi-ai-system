@@ -116,8 +116,8 @@
 <script setup>
 import { useRouter } from 'vue-router'
 import { useHead } from '@vueuse/head'
-import AppFooter from '../components/AppFooter.vue'
-import AppButton from '../components/AppButton.vue'
+import AppFooter from '../components/layout/AppFooter.vue'
+import AppButton from '../components/common/AppButton.vue'
 
 // 设置页面标题和元数据
 useHead({
@@ -204,12 +204,27 @@ const navigateTo = (path) => {
   box-shadow: var(--shadow-md);
   padding: 30px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all var(--transition-normal) ease;
   display: flex;
   flex-direction: column;
   border: 1px solid var(--card-border);
-  animation: fadeIn 0.6s ease-in;
+  animation: fadeInUp 0.6s ease-out;
   min-height: 300px;
+  position: relative;
+  overflow: hidden;
+}
+
+.app-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--transition-normal) ease;
 }
 
 .mine-card {
@@ -229,13 +244,50 @@ const navigateTo = (path) => {
 }
 
 .app-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-xl);
   border-color: var(--primary-color);
 }
 
+.app-card:hover::before {
+  transform: scaleX(1);
+}
+
 .app-card:hover .app-icon {
-  transform: scale(1.05);
+  transform: scale(1.1) rotate(5deg);
+  box-shadow: var(--shadow-lg);
+}
+
+.app-card:hover .app-title {
+  color: var(--primary-color);
+}
+
+.app-card:hover .feature-item {
+  transform: translateX(6px);
+  background: rgba(22, 119, 255, 0.1);
+}
+
+.app-card:active {
+  transform: translateY(-2px);
+}
+
+/* 卡片内容动画 */
+.app-card .app-info {
+  transition: transform var(--transition-normal) ease;
+}
+
+.app-card:hover .app-info {
+  transform: translateY(-4px);
+}
+
+/* 卡片按钮动画 */
+.app-card .app-button {
+  transition: all var(--transition-normal) ease;
+}
+
+.app-card:hover .app-button {
+  transform: translateY(4px);
+  box-shadow: var(--shadow-md);
 }
 
 .card-header {

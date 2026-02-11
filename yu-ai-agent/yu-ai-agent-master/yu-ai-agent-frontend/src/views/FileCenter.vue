@@ -290,8 +290,8 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import FileUploader from '../components/FileUploader.vue'
-import FileManager from '../components/FileManager.vue'
+import FileUploader from '../components/file/FileUploader.vue'
+import FileManager from '../components/file/FileManager.vue'
 import {
   getFileExtractedImagesByMd5,
   deleteFileExtractedImageById,

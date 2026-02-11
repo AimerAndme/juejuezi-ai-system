@@ -14,39 +14,153 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
-  /* java2ai.com 风格配色 */
-  --primary-color: #1677ff;
-  --primary-hover: #4096ff;
-  --secondary-color: #00d1b2;
-  --tertiary-color: #ff4d4f;
-  --bg-color: #ffffff;
-  --bg-light: #f5f7fa;
-  --card-bg: #ffffff;
-  --card-border: #e8e8e8;
-  --text-primary: #262626;
-  --text-secondary: #8c8c8c;
-  --text-tertiary: #bfbfbf;
-  --border-color: #e8e8e8;
-  --divider-color: #f0f0f0;
+  /* ========== 设计令牌体系 ========== */
+
+  /* 1. 颜色系统 */
+  /* 主色调 */
+  --color-primary: #1677ff;
+  --color-primary-hover: #4096ff;
+  --color-primary-active: #096dd9;
+  --color-primary-light: #e6f7ff;
+  --color-primary-dark: #0050b3;
+
+  /* 辅助色 */
+  --color-secondary: #00d1b2;
+  --color-secondary-hover: #52c41a;
+  --color-secondary-active: #389e0d;
+  
+  /* 功能色 */
+  --color-success: #52c41a;
+  --color-success-hover: #73d13d;
+  --color-success-active: #389e0d;
+  
+  --color-warning: #faad14;
+  --color-warning-hover: #ffc53d;
+  --color-warning-active: #d48806;
+  
+  --color-danger: #ff4d4f;
+  --color-danger-hover: #ff7875;
+  --color-danger-active: #cf1322;
+  
+  --color-info: #1890ff;
+  --color-info-hover: #40a9ff;
+  --color-info-active: #096dd9;
+
+  /* 中性色 */
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #f5f7fa;
+  --color-bg-tertiary: #f0f2f5;
+  --color-bg-quaternary: #e8e8e8;
+  
+  --color-text-primary: #262626;
+  --color-text-secondary: #8c8c8c;
+  --color-text-tertiary: #bfbfbf;
+  --color-text-quaternary: #f5f5f5;
+  
+  --color-border-primary: #e8e8e8;
+  --color-border-secondary: #f0f0f0;
+  --color-border-tertiary: #fafafa;
+
+  /* 2. 阴影系统 */
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.09);
   --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
   --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.15);
-  --radius-sm: 6px;
-  --radius-md: 10px;
+  --shadow-xl: 0 16px 64px rgba(0, 0, 0, 0.2);
+  --shadow-2xl: 0 24px 96px rgba(0, 0, 0, 0.25);
+
+  /* 3. 圆角系统 */
+  --radius-sm: 4px;
+  --radius-md: 8px;
   --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 24px;
   --radius-full: 50%;
-  --transition: all 0.3s ease;
+
+  /* 4. 字体系统 */
+  --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-md: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 24px;
+  --font-size-3xl: 30px;
+  --font-size-4xl: 36px;
+  
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+
+  /* 5. 间距系统 */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 28px;
+  --space-8: 32px;
+  --space-9: 36px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+
+  /* 6. 动效系统 */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.3s ease;
+  --transition-slow: 0.5s ease;
+  
+  --transition-ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --transition-ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --transition-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* 7. Z-index 系统 */
+  --z-index-dropdown: 1000;
+  --z-index-sticky: 1020;
+  --z-index-fixed: 1030;
+  --z-index-modal-backdrop: 1040;
+  --z-index-modal: 1050;
+  --z-index-popover: 1060;
+  --z-index-tooltip: 1070;
+
+  /* ========== 兼容变量 ========== */
+  --primary-color: var(--color-primary);
+  --primary-hover: var(--color-primary-hover);
+  --secondary-color: var(--color-secondary);
+  --tertiary-color: var(--color-danger);
+  --bg-color: var(--color-bg-primary);
+  --bg-light: var(--color-bg-secondary);
+  --card-bg: var(--color-bg-primary);
+  --card-border: var(--color-border-primary);
+  --text-primary: var(--color-text-primary);
+  --text-secondary: var(--color-text-secondary);
+  --text-tertiary: var(--color-text-tertiary);
+  --border-color: var(--color-border-primary);
+  --divider-color: var(--color-border-secondary);
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-full: var(--radius-full);
+  --transition: var(--transition-normal);
 
   /* 保留原有变量以兼容 */
   --light-orange: #ffd580;
   --orange: #ffa500;
-  --logo-color: var(--primary-color);
-  --bg-white: var(--card-bg);
-  --border-light: var(--border-color);
+  --logo-color: var(--color-primary);
+  --bg-white: var(--color-bg-primary);
+  --border-light: var(--color-border-primary);
   --shadow-light: var(--shadow-sm);
   --shadow-medium: var(--shadow-md);
   --shadow-heavy: var(--shadow-lg);
-  --bg-card: var(--card-bg);
+  --bg-card: var(--color-bg-primary);
   --shadow-card: var(--shadow-md);
   --font-family-base: inherit;
   --font-family-title: 'Inter', 'PingFang SC', sans-serif;
@@ -59,19 +173,91 @@
   color: var(--text-primary);
   background-color: var(--bg-color);
 
-  --bg-color: #1a1a1a;
-  --bg-light: #242424;
-  --card-bg: #2c2c2c;
-  --card-border: #3d3d3d;
-  --text-primary: #e0e0e0;
-  --text-secondary: #a0a0a0;
-  --text-tertiary: #757575;
-  --border-color: #3d3d3d;
-  --divider-color: #3d3d3d;
+  /* 深色模式颜色系统 */
+  --color-primary: #1677ff;
+  --color-primary-hover: #4096ff;
+  --color-primary-active: #096dd9;
+  --color-primary-light: rgba(22, 119, 255, 0.1);
+  --color-primary-dark: #0050b3;
+
+  --color-secondary: #00d1b2;
+  --color-secondary-hover: #52c41a;
+  --color-secondary-active: #389e0d;
+  
+  --color-success: #52c41a;
+  --color-success-hover: #73d13d;
+  --color-success-active: #389e0d;
+  
+  --color-warning: #faad14;
+  --color-warning-hover: #ffc53d;
+  --color-warning-active: #d48806;
+  
+  --color-danger: #ff4d4f;
+  --color-danger-hover: #ff7875;
+  --color-danger-active: #cf1322;
+  
+  --color-info: #1890ff;
+  --color-info-hover: #40a9ff;
+  --color-info-active: #096dd9;
+
+  /* 深色模式中性色 */
+  --color-bg-primary: #1a1a1a;
+  --color-bg-secondary: #242424;
+  --color-bg-tertiary: #2c2c2c;
+  --color-bg-quaternary: #3d3d3d;
+  
+  --color-text-primary: #e0e0e0;
+  --color-text-secondary: #a0a0a0;
+  --color-text-tertiary: #757575;
+  --color-text-quaternary: #434343;
+  
+  --color-border-primary: #3d3d3d;
+  --color-border-secondary: #434343;
+  --color-border-tertiary: #4c4c4c;
+
+  /* 深色模式阴影 */
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
-  --primary-hover: #69b1ff;
+  --shadow-xl: 0 16px 64px rgba(0, 0, 0, 0.6);
+  --shadow-2xl: 0 24px 96px rgba(0, 0, 0, 0.7);
+
+  /* 更新兼容变量 */
+  --primary-color: var(--color-primary);
+  --primary-hover: var(--color-primary-hover);
+  --secondary-color: var(--color-secondary);
+  --tertiary-color: var(--color-danger);
+  --bg-color: var(--color-bg-primary);
+  --bg-light: var(--color-bg-secondary);
+  --card-bg: var(--color-bg-tertiary);
+  --card-border: var(--color-border-primary);
+  --text-primary: var(--color-text-primary);
+  --text-secondary: var(--color-text-secondary);
+  --text-tertiary: var(--color-text-tertiary);
+  --border-color: var(--color-border-primary);
+  --divider-color: var(--color-border-secondary);
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-full: var(--radius-full);
+  --transition: var(--transition-normal);
+
+  /* 保留原有变量以兼容 */
+  --light-orange: #ffd580;
+  --orange: #ffa500;
+  --logo-color: var(--color-primary);
+  --bg-white: var(--color-bg-primary);
+  --border-light: var(--color-border-primary);
+  --shadow-light: var(--shadow-sm);
+  --shadow-medium: var(--shadow-md);
+  --shadow-heavy: var(--shadow-lg);
+  --bg-card: var(--color-bg-tertiary);
+  --shadow-card: var(--shadow-md);
+  --font-family-base: inherit;
+  --font-family-title: 'Inter', 'PingFang SC', sans-serif;
 }
 
 a {
@@ -213,15 +399,496 @@ html {
   scroll-behavior: smooth;
 }
 
+/* ========== 预设动画类 ========== */
+
+/* 淡入动画 */
+.fade-in {
+  animation: fadeIn var(--transition-normal) ease-in-out;
+}
+
+.fade-in-up {
+  animation: fadeInUp var(--transition-normal) ease-out;
+}
+
+.fade-in-down {
+  animation: fadeInDown var(--transition-normal) ease-out;
+}
+
+.fade-in-left {
+  animation: fadeInLeft var(--transition-normal) ease-out;
+}
+
+.fade-in-right {
+  animation: fadeInRight var(--transition-normal) ease-out;
+}
+
+/* 淡出动画 */
+.fade-out {
+  animation: fadeOut var(--transition-normal) ease-in-out;
+}
+
+.fade-out-up {
+  animation: fadeOutUp var(--transition-normal) ease-in;
+}
+
+.fade-out-down {
+  animation: fadeOutDown var(--transition-normal) ease-in;
+}
+
+.fade-out-left {
+  animation: fadeOutLeft var(--transition-normal) ease-in;
+}
+
+.fade-out-right {
+  animation: fadeOutRight var(--transition-normal) ease-in;
+}
+
+/* 滑动动画 */
+.slide-in-up {
+  animation: slideInUp var(--transition-normal) ease-out;
+}
+
+.slide-in-down {
+  animation: slideInDown var(--transition-normal) ease-out;
+}
+
+.slide-in-left {
+  animation: slideInLeft var(--transition-normal) ease-out;
+}
+
+.slide-in-right {
+  animation: slideInRight var(--transition-normal) ease-out;
+}
+
+/* 缩放动画 */
+.scale-in {
+  animation: scaleIn var(--transition-normal) ease-out;
+}
+
+.scale-out {
+  animation: scaleOut var(--transition-normal) ease-in;
+}
+
+.scale-in-center {
+  animation: scaleInCenter var(--transition-normal) ease-out;
+}
+
+.scale-out-center {
+  animation: scaleOutCenter var(--transition-normal) ease-in;
+}
+
+/* 旋转动画 */
+.rotate-in {
+  animation: rotateIn var(--transition-normal) ease-out;
+}
+
+.rotate-out {
+  animation: rotateOut var(--transition-normal) ease-in;
+}
+
+/* 弹跳动画 */
+.bounce-in {
+  animation: bounceIn var(--transition-normal) ease-out;
+}
+
+.bounce-in-up {
+  animation: bounceInUp var(--transition-normal) ease-out;
+}
+
+.bounce-in-down {
+  animation: bounceInDown var(--transition-normal) ease-out;
+}
+
+/* 脉冲动画 */
+.pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* 呼吸动画 */
+.breathing {
+  animation: breathing 3s ease-in-out infinite;
+}
+
+/* 摇摆动画 */
+.swing {
+  animation: swing 1s ease-in-out infinite;
+}
+
+/* 震动动画 */
+.shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+/* 闪光动画 */
+.flash {
+  animation: flash 1s ease-in-out infinite;
+}
+
 /* 通用动效类 */
 .hover-scale:hover {
   transform: scale(1.05);
+  transition: transform var(--transition-normal) ease;
 }
 
 .hover-shadow:hover {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  transition: box-shadow var(--transition-normal) ease;
 }
 
 .dark-mode .hover-shadow:hover {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* ========== 动画关键帧 ========== */
+
+/* 淡入淡出 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes fadeOutUp {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+}
+
+@keyframes fadeOutDown {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+}
+
+@keyframes fadeOutLeft {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+}
+
+@keyframes fadeOutRight {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+}
+
+/* 滑动 */
+@keyframes slideInUp {
+  from {
+    transform: translateY(100%);
+    visibility: visible;
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInDown {
+  from {
+    transform: translateY(-100%);
+    visibility: visible;
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+    visibility: visible;
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    visibility: visible;
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* 缩放 */
+@keyframes scaleIn {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes scaleOut {
+  from {
+    transform: scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+}
+
+@keyframes scaleInCenter {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes scaleOutCenter {
+  from {
+    transform: scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: scale(0);
+    opacity: 0;
+  }
+}
+
+/* 旋转 */
+@keyframes rotateIn {
+  from {
+    transform: rotate(-180deg);
+    opacity: 0;
+  }
+  to {
+    transform: rotate(0deg);
+    opacity: 1;
+  }
+}
+
+@keyframes rotateOut {
+  from {
+    transform: rotate(0deg);
+    opacity: 1;
+  }
+  to {
+    transform: rotate(180deg);
+    opacity: 0;
+  }
+}
+
+/* 弹跳 */
+@keyframes bounceIn {
+  from, 20%, 40%, 60%, 80%, to {
+    animation-timing-function: cubic-bezier(0.215, 0.610, 0.355, 1.000);
+  }
+  0% {
+    opacity: 0;
+    transform: scale3d(0.3, 0.3, 0.3);
+  }
+  20% {
+    transform: scale3d(1.1, 1.1, 1.1);
+  }
+  40% {
+    transform: scale3d(0.9, 0.9, 0.9);
+  }
+  60% {
+    opacity: 1;
+    transform: scale3d(1.03, 1.03, 1.03);
+  }
+  80% {
+    transform: scale3d(0.97, 0.97, 0.97);
+  }
+  to {
+    opacity: 1;
+    transform: scale3d(1, 1, 1);
+  }
+}
+
+@keyframes bounceInUp {
+  from, 60%, 75%, 90%, to {
+    animation-timing-function: cubic-bezier(0.215, 0.610, 0.355, 1.000);
+  }
+  from {
+    opacity: 0;
+    transform: translate3d(0, 3000px, 0);
+  }
+  60% {
+    opacity: 1;
+    transform: translate3d(0, -20px, 0);
+  }
+  75% {
+    transform: translate3d(0, 10px, 0);
+  }
+  90% {
+    transform: translate3d(0, -5px, 0);
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes bounceInDown {
+  from, 60%, 75%, 90%, to {
+    animation-timing-function: cubic-bezier(0.215, 0.610, 0.355, 1.000);
+  }
+  0% {
+    opacity: 0;
+    transform: translate3d(0, -3000px, 0);
+  }
+  60% {
+    opacity: 1;
+    transform: translate3d(0, 25px, 0);
+  }
+  75% {
+    transform: translate3d(0, -10px, 0);
+  }
+  90% {
+    transform: translate3d(0, 5px, 0);
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* 脉冲 */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* 呼吸 */
+@keyframes breathing {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* 摇摆 */
+@keyframes swing {
+  20% {
+    transform: rotate3d(0, 0, 1, 15deg);
+  }
+  40% {
+    transform: rotate3d(0, 0, 1, -10deg);
+  }
+  60% {
+    transform: rotate3d(0, 0, 1, 5deg);
+  }
+  80% {
+    transform: rotate3d(0, 0, 1, -5deg);
+  }
+  100% {
+    transform: rotate3d(0, 0, 1, 0deg);
+  }
+}
+
+/* 震动 */
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-5px);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(5px);
+  }
+}
+
+/* 闪光 */
+@keyframes flash {
+  0%, 50%, 100% {
+    opacity: 1;
+  }
+  25%, 75% {
+    opacity: 0;
+  }
 }

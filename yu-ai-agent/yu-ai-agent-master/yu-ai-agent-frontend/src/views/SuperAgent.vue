@@ -52,8 +52,8 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { useHead } from '@vueuse/head'
-import ChatRoom from '../components/ChatRoom.vue'
-import AppFooter from '../components/AppFooter.vue'
+import ChatRoom from '../components/chat/ChatRoom.vue'
+import AppFooter from '../components/layout/AppFooter.vue'
 import { chatWithManus } from '../api'
 
 // 设置页面标题和元数据

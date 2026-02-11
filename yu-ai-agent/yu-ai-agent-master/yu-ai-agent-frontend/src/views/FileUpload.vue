@@ -7,7 +7,7 @@
 </template>
 
 <script setup>
-import FileUploader from '../components/FileUploader.vue'
+import FileUploader from '../components/file/FileUploader.vue'
 </script>
 
 <style scoped>

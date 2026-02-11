@@ -1,5 +1,7 @@
 package com.yupi.yuaiagent.logging;
 
+import org.springframework.context.ApplicationContext;
+
 import java.util.HashMap;
 import java.util.Map;
 

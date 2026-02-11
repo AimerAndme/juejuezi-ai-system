@@ -1,5 +1,5 @@
 <script setup>
-import HelloWorld from './components/HelloWorld.vue'
+import HelloWorld from './components/deprecated/HelloWorld.vue'
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { logout } from './api/index.js'
@@ -117,7 +117,9 @@ const handleLogout = async () => {
     </header>
 
     <main class="app-content">
-      <router-view />
+      <transition name="page" mode="out-in">
+        <router-view />
+      </transition>
     </main>
   </div>
 </template>
@@ -475,5 +477,86 @@ button {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-secondary);
+}
+
+/* 页面过渡动画 */
+.page-enter-active,
+.page-leave-active {
+  transition: all 0.5s ease;
+}
+
+.page-enter-from {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.page-leave-to {
+  opacity: 0;
+  transform: translateY(-20px);
+}
+
+/* 元素入场动画类 */
+.fade-in-section {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.fade-in-section.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* 交错入场动画 */
+.stagger-in-section {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+}
+
+.stagger-in-section.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* 延迟动画类 */
+.delay-100 {
+  transition-delay: 100ms;
+}
+
+.delay-200 {
+  transition-delay: 200ms;
+}
+
+.delay-300 {
+  transition-delay: 300ms;
+}
+
+.delay-400 {
+  transition-delay: 400ms;
+}
+
+.delay-500 {
+  transition-delay: 500ms;
+}
+
+.delay-600 {
+  transition-delay: 600ms;
+}
+
+.delay-700 {
+  transition-delay: 700ms;
+}
+
+.delay-800 {
+  transition-delay: 800ms;
+}
+
+.delay-900 {
+  transition-delay: 900ms;
+}
+
+.delay-1000 {
+  transition-delay: 1000ms;
 }
 </style>
