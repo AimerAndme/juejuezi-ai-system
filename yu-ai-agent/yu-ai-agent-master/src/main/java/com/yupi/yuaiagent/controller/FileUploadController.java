@@ -36,7 +36,6 @@ public class FileUploadController {
                 result.put("data", null);
                 return result;
             }
-
             InitiateUploadResponse response = fileUploadService.initiateUpload(request);
             result.put("code", 200);
             result.put("message", "初始化成功");

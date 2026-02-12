@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -71,6 +72,23 @@ public class MineService implements com.yupi.yuaiagent.service.IMineService {
         //Todo解析Rag回答的上下文
         //parseRagContext(call);
         return (String) call.map(OverAllState::data).orElse(Map.of()).get("chatResult");
+    }
+
+    @Override
+    public Map<String, Object> chatTest(String query) throws GraphStateException {
+        CompiledGraph graph = preProcessingGraphFactory.getRagChatInstance();
+        UserChatVO userChatVO = new UserChatVO();
+        userChatVO.setUserId("f8bcb4f7-d61a-4062-90b7-b90216f74c7e");
+        userChatVO.setConversationId("82c1890a-4cfe-4b04-91c4-674fc65efaf1");
+        userChatVO.setQuery(query);
+        userChatVO.setUserRole("manager");
+        Optional<OverAllState> call = graph.call(Map.of("queryInfo", userChatVO));
+        //Todo解析Rag回答的上下文
+        //parseRagContext(call);
+        Map<String, Object> resultMap = new HashMap<>();
+        resultMap.put("chatResult", call.map(OverAllState::data).orElse(Map.of()).get("chatResult"));
+        resultMap.put("retrievedDocuments", RagRequestContext.get().getRetrievedDocuments());
+        return resultMap;
     }
 
     @Override

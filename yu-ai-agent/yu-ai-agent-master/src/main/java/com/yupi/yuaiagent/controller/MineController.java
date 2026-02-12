@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -56,6 +57,20 @@ public class MineController {
 
     }
 
+    @GetMapping(value = "/chat/test")
+    public Result<?> chatTest(String query) throws GraphStateException {
+        try {
+            Map<String, Object> map = mineService.chatTest(query);
+            log.info(String.valueOf(LocalDateTime.now()));
+            return Result.success(map);
+
+        } catch (Exception e) {
+            log.error("服务出错：{}", e.getMessage());
+            return Result.fail("服务出错：{}");
+        }
+
+    }
+
     @GetMapping(value = "/chat/see")
     public Flux<String> chatSee(UserChatVO userChatVO) throws GraphStateException {
         String userId = userChatVO.getUserId();
@@ -73,6 +88,5 @@ public class MineController {
             log.error("服务出错：{}", e.getMessage());
             return Flux.error(new RuntimeException("服务出错：{}"));
         }
-
     }
 }

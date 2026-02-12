@@ -37,20 +37,20 @@ public class LoggingNodeActionWrapper implements NodeAction {
         nodeExecutionLog.setBeforState(state);
         ZoneId zoneId = ZoneId.systemDefault();
         try {
-            Map<String, Object> result = delegate.apply(state);
-            nodeExecutionLog.setEndTime(LocalDateTime.now());
-            nodeExecutionLog.setResult(result.toString());
-            nodeExecutionLog.setDuration(nodeExecutionLog.getEndTime().atZone(zoneId).toInstant().toEpochMilli() - nodeExecutionLog.getStartTime().atZone(zoneId).toInstant().toEpochMilli());
-            nodeExecutionLog.setExecutionStatus(ExecutionStatus.SUCCESS);
-            LogContextHolder.addNodeLog(nodeId, nodeExecutionLog);
-            return result;
-        } catch (Exception e) {
-            nodeExecutionLog.setEndTime(LocalDateTime.now());
-            nodeExecutionLog.setDuration(nodeExecutionLog.getEndTime().atZone(zoneId).toInstant().toEpochMilli() - nodeExecutionLog.getStartTime().atZone(zoneId).toInstant().toEpochMilli());
-            nodeExecutionLog.setExecutionStatus(ExecutionStatus.FAILED);
-            nodeExecutionLog.setErrorMessage(e.getMessage());
-            LogContextHolder.addNodeLog(nodeId, nodeExecutionLog);
-            throw e;
+                Map<String, Object> result = delegate.apply(state);
+                nodeExecutionLog.setEndTime(LocalDateTime.now());
+                nodeExecutionLog.setResult(result.toString());
+                nodeExecutionLog.setDuration(nodeExecutionLog.getEndTime().atZone(zoneId).toInstant().toEpochMilli() - nodeExecutionLog.getStartTime().atZone(zoneId).toInstant().toEpochMilli());
+                nodeExecutionLog.setExecutionStatus(ExecutionStatus.SUCCESS);
+                LogContextHolder.addNodeLog(nodeId, nodeExecutionLog);
+                return result;
+            } catch (Exception e) {
+                nodeExecutionLog.setEndTime(LocalDateTime.now());
+                nodeExecutionLog.setDuration(nodeExecutionLog.getEndTime().atZone(zoneId).toInstant().toEpochMilli() - nodeExecutionLog.getStartTime().atZone(zoneId).toInstant().toEpochMilli());
+                nodeExecutionLog.setExecutionStatus(ExecutionStatus.FAILED);
+                nodeExecutionLog.setErrorMessage(e.getMessage());
+                LogContextHolder.addNodeLog(nodeId, nodeExecutionLog);
+                throw e;
         }
     }
 }
