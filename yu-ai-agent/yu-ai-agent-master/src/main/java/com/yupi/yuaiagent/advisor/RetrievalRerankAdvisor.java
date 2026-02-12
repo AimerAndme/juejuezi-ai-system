@@ -4,7 +4,6 @@ package com.yupi.yuaiagent.advisor;//
 //
 
 
-import com.alibaba.cloud.ai.dashscope.rerank.DashScopeRerankModel;
 import com.alibaba.cloud.ai.document.DocumentWithScore;
 import com.alibaba.cloud.ai.model.RerankModel;
 import com.alibaba.cloud.ai.model.RerankRequest;
@@ -116,6 +115,7 @@ public class RetrievalRerankAdvisor implements BaseAdvisor {
             }
         });
     }
+
     public ChatClientRequest before(ChatClientRequest request, AdvisorChain advisorChain) {
         Map<String, Object> context = request.context();
         UserMessage userMessage = request.prompt().getUserMessage();
@@ -134,11 +134,16 @@ public class RetrievalRerankAdvisor implements BaseAdvisor {
                 documents.addAll(hybridSearchService.searchWithCache(hydeQuery, 5, 1, 0.3));
             }
         }
-        //TODO(可优化点)放置检索信息到上下文
-         RagRequestContextData ragRequestContextData = RagRequestContext.get();
-         ragRequestContextData.setRetrievedDocuments(documents.stream().map(Document::getText).toList());
+
         //重新排序并裁剪
         documents = this.doRerank(request, documents);
+        //TODO(可优化点)放置检索信息到上下文
+        RagRequestContextData ragRequestContextData = RagRequestContext.get();
+        if (ragRequestContextData == null) {
+            ragRequestContextData = new RagRequestContextData();
+            ragRequestContextData.setRetrievedDocuments(documents.stream().map(Document::getText).toList());
+            RagRequestContext.set(ragRequestContextData);
+        }
         //存放rerank后的文档到上下文
         context.put("qa_retrieved_documents", documents);
         String documentContext = (String) documents.stream().map(Document::getText).collect(Collectors.joining(System.lineSeparator()));

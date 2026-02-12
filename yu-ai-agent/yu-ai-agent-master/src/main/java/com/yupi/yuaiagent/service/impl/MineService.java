@@ -76,7 +76,7 @@ public class MineService implements com.yupi.yuaiagent.service.IMineService {
 
     @Override
     public Map<String, Object> chatTest(String query) throws GraphStateException {
-        CompiledGraph graph = preProcessingGraphFactory.getRagChatInstance();
+        CompiledGraph graph = preProcessingGraphFactory.getDBInvocationChatInstanceWithWrapper();
         UserChatVO userChatVO = new UserChatVO();
         userChatVO.setUserId("f8bcb4f7-d61a-4062-90b7-b90216f74c7e");
         userChatVO.setConversationId("82c1890a-4cfe-4b04-91c4-674fc65efaf1");
