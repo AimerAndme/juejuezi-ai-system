@@ -1,9 +1,12 @@
 package com.yupi.yuaiagent.config;
 
+import com.yupi.yuaiagent.logging.LogContextHolder;
+import com.yupi.yuaiagent.logging.NodeExecutionLog;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
+import java.util.Map;
 import java.util.concurrent.ThreadPoolExecutor;
 
 @Configuration
@@ -12,36 +15,48 @@ public class ThreadPoolConfig {
     @Bean("pdfPageExecutor")
     public ThreadPoolTaskExecutor pdfPageExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        
+
         int corePoolSize = Runtime.getRuntime().availableProcessors();
         executor.setCorePoolSize(corePoolSize);
         executor.setMaxPoolSize(corePoolSize * 2);
         executor.setQueueCapacity(100);
         executor.setKeepAliveSeconds(60);
         executor.setThreadNamePrefix("pdf-page-processor-");
-        
+
         executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
-        
+//        executor.setTaskDecorator(runnable -> {
+//            Map<String, NodeExecutionLog> allNodeLogs = LogContextHolder.getAllNodeLogs();
+//            return () -> {
+//                try {
+//                    // 将数据设置到子线程中
+//                    LogContextHolder.add(allNodeLogs);
+//                    // 执行业务逻辑
+//                    runnable.run();
+//                } finally {
+//                    // 清理线程数据，避免内存泄漏
+//                    LogContextHolder.clear();
+//                }
+//            };
+//        });
         executor.initialize();
-        
         return executor;
     }
 
     @Bean("pdfImageExecutor")
     public ThreadPoolTaskExecutor pdfImageExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        
+
         int corePoolSize = Runtime.getRuntime().availableProcessors();
         executor.setCorePoolSize(corePoolSize);
         executor.setMaxPoolSize(corePoolSize * 2);
         executor.setQueueCapacity(200);
         executor.setKeepAliveSeconds(60);
         executor.setThreadNamePrefix("pdf-image-processor-");
-        
+
         executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
-        
+
         executor.initialize();
-        
+
         return executor;
     }
 }

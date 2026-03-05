@@ -1,7 +1,5 @@
 package com.yupi.yuaiagent.logging;
 
-import org.springframework.context.ApplicationContext;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -13,6 +11,10 @@ public class LogContextHolder {
 
     public static void addNodeLog(String nodeId, NodeExecutionLog log) {
         threadLocalLogContext.get().put(nodeId, log);
+    }
+
+    public static void add(Map<String, NodeExecutionLog> map) {
+        threadLocalLogContext.set(map);
     }
 
     public static NodeExecutionLog getNodeLog(String nodeId) {
