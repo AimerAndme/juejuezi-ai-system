@@ -1,9 +1,6 @@
 package com.yupi.yuaiagent.config;
 
-import com.yupi.yuaiagent.advisor.MessageMemoryAdvisor;
-import com.yupi.yuaiagent.advisor.MyLoggerAdvisor;
-import com.yupi.yuaiagent.advisor.ReReadingAdvisor;
-import com.yupi.yuaiagent.advisor.RetrievalRerankAdvisor;
+import com.yupi.yuaiagent.advisor.*;
 import com.yupi.yuaiagent.chatmemory.RedisChatMemory;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
@@ -23,6 +20,7 @@ public class ChatClientConfig {
     private final ToolCallbackProvider toolCallbackProvider;
     private final RedisChatMemory redisChatMemory;
     private final RetrievalRerankAdvisor retrievalRerankAdvisor;
+    private final MyThreadPoolLoggerAdvisor myThreadPoolLoggerAdvisor;
     private final MyLoggerAdvisor myLoggerAdvisor;
     private final ToolCallback[] mineControllerTools;
     @Autowired
@@ -30,11 +28,14 @@ public class ChatClientConfig {
     @Autowired
     public RedisTemplate redisTemplate;
 
-    public ChatClientConfig(ToolCallbackProvider toolCallbackProvider, RedisChatMemory redisChatMemory, RetrievalRerankAdvisor retrievalRerankAdvisor, MyLoggerAdvisor myLoggerAdvisor, ToolCallback[] mineControllerTools) {
+    public ChatClientConfig(ToolCallbackProvider toolCallbackProvider, RedisChatMemory redisChatMemory, RetrievalRerankAdvisor retrievalRerankAdvisor, MyThreadPoolLoggerAdvisor myThreadPoolLoggerAdvisor, MyLoggerAdvisor myLoggerAdvisor, ToolCallback[] mineControllerTools) {
         this.toolCallbackProvider = toolCallbackProvider;
         this.redisChatMemory = redisChatMemory;
         this.retrievalRerankAdvisor = retrievalRerankAdvisor;
+        this.myThreadPoolLoggerAdvisor = myThreadPoolLoggerAdvisor;
         this.myLoggerAdvisor = myLoggerAdvisor;
+
+
         this.mineControllerTools = mineControllerTools;
     }
 
@@ -44,7 +45,7 @@ public class ChatClientConfig {
         return ChatClient.builder(dashscopeChatModel)
                 .defaultAdvisors(
                         MessageChatMemoryAdvisor.builder(redisChatMemory).build(),
-                        new MyLoggerAdvisor()
+                        new MyThreadPoolLoggerAdvisor()
                         , new ReReadingAdvisor()
                 ).build();
     }
@@ -58,6 +59,17 @@ public class ChatClientConfig {
                 .defaultToolCallbacks(toolCallbackProvider)
                 .build();
     }
+
+    //线程池日志收集chatClient
+    @Bean
+    public ChatClient logChatClient() {
+        return ChatClient
+                .builder(dashscopeChatModel)
+                .defaultSystem(SYSTEM_PROMPT)
+                .defaultAdvisors(myThreadPoolLoggerAdvisor)
+                .build();
+    }
+
     //意图识别client
     @Bean
     public ChatClient intentChatClient() {
@@ -68,6 +80,7 @@ public class ChatClientConfig {
                 .defaultToolCallbacks(toolCallbackProvider)
                 .build();
     }
+
     //记忆通用client
     @Bean
     public ChatClient memoryChatClient() {

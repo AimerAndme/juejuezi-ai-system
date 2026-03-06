@@ -10,7 +10,7 @@ public class LogContextHolder {
     private final static ThreadLocal<Map<String, NodeExecutionLog>> threadLocalLogContext = ThreadLocal.withInitial(HashMap::new);
 
     public static void addNodeLog(String nodeId, NodeExecutionLog log) {
-        threadLocalLogContext.get().put(nodeId, log);
+        threadLocalLogContext.get().put(nodeId,log);
     }
 
     public static void add(Map<String, NodeExecutionLog> map) {

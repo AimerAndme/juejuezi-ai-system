@@ -4,11 +4,15 @@ import com.alibaba.cloud.ai.graph.OverAllState;
 import com.alibaba.cloud.ai.graph.action.NodeAction;
 import com.yupi.yuaiagent.aspect.ExecutionTimeMonitor;
 import com.yupi.yuaiagent.domin.vo.UserChatVO;
+import com.yupi.yuaiagent.logging.LogContextHolder;
+import com.yupi.yuaiagent.logging.NodeExecutionLog;
 import com.yupi.yuaiagent.utils.ExecutionTimeUtils;
 import com.yupi.yuaiagent.utils.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.ChatClientResponse;
 import org.springframework.ai.chat.prompt.PromptTemplate;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -19,7 +23,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -28,10 +31,13 @@ public class RagQueryEnhanceNode implements NodeAction {
     private final ChatClient ragChatClient;
     private final ChatClient chatClient;
     private final ThreadPoolTaskExecutor pdfPageExecutor;
-    public RagQueryEnhanceNode(ChatClient ragChatClient, ChatClient chatClient, ThreadPoolTaskExecutor   pdfPageExecutor) {
+    private final ChatClient logChatClient;
+
+    public RagQueryEnhanceNode(ChatClient ragChatClient, ChatClient chatClient, ThreadPoolTaskExecutor pdfPageExecutor, @Qualifier("logChatClient") ChatClient logChatClient) {
         this.ragChatClient = ragChatClient;
         this.chatClient = chatClient;
         this.pdfPageExecutor = pdfPageExecutor;
+        this.logChatClient = logChatClient;
     }
 
     @Override
@@ -73,33 +79,39 @@ public class RagQueryEnhanceNode implements NodeAction {
         List<String> queries = JsonUtils.fromJson(content, ArrayList.class);
         List<String> hydeQueryAnswer = new ArrayList<>();
         //2、hyde假设文档
-        List<CompletableFuture<Void>> hydeFutureList = new ArrayList<>();
+        List<CompletableFuture<ChatClientResponse>> hydeFutureList = new ArrayList<>();
         for (String query : queries) {
-            CompletableFuture<Void> completableFuture = CompletableFuture.runAsync(() -> {
+            CompletableFuture<ChatClientResponse> completableFuture = CompletableFuture.supplyAsync(() -> {
                 log.info(" hydePromptTemplate 开始执行");
                 PromptTemplate hydePromptTemplate = new PromptTemplate("""
                         根据用户问题，生成一段详细、专业的模拟标准答案文档，用于优化向量检索。仅输出文档内容
                          用户问题：{queryInfo}"
                         """);
                 hydePromptTemplate.add("queryInfo", query);
-                String hydeContent = ExecutionTimeUtils.monitorExecutionTime("hypeChatClient", () -> {
-                    return chatClient
-                            .prompt(hydePromptTemplate.render())
-                            .user(queryInfo.getQuery())
-                            .advisors(spec -> spec.params(
-                                    Map.of("chat_memory_conversation_id", queryInfo.getConversationId(),
-                                            "nodeId", "RagQueryEnhanceNode")
-                            ))
-                            .call().content();
-                });
-                hydeQueryAnswer.add(hydeContent);
-            },pdfPageExecutor).exceptionally(e -> {
+                ChatClientResponse call = logChatClient
+                        .prompt(hydePromptTemplate.render())
+                        .user(queryInfo.getQuery())
+                        .advisors(spec -> spec.params(
+                                Map.of("chat_memory_conversation_id", queryInfo.getConversationId(),
+                                        "nodeId", "RagQueryEnhanceNode")
+                        ))
+                        .call().chatClientResponse();
+                hydeQueryAnswer.add(call.chatResponse().getResult().getOutput().getText());
+                return call;
+            }, pdfPageExecutor).exceptionally(e -> {
                 log.error("hydePromptTemplate执行时发生异常:{},query:{}", e.getMessage(), query);
-                return null;
+                throw new RuntimeException("HYDE generation failed for query: " + query, e);
             });
             hydeFutureList.add(completableFuture);
         }
         CompletableFuture<Void> allFutures = CompletableFuture.allOf(hydeFutureList.toArray(new CompletableFuture[0]));
+        int i = 1;
+        for (CompletableFuture<ChatClientResponse> future : hydeFutureList) {
+            ChatClientResponse chatClientResponse = future.get();
+            NodeExecutionLog chatLog = (NodeExecutionLog) chatClientResponse.context().get("chatLog");
+            LogContextHolder.addNodeLog("RagQueryEnhanceNode-hyde-" + i, chatLog);
+            i++;
+        }
         try {
             allFutures.get(30, TimeUnit.SECONDS);
         } catch (InterruptedException | ExecutionException e) {

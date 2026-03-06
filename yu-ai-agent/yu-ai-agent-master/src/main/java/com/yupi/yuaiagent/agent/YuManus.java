@@ -1,6 +1,6 @@
 package com.yupi.yuaiagent.agent;
 
-import com.yupi.yuaiagent.advisor.MyLoggerAdvisor;
+import com.yupi.yuaiagent.advisor.MyThreadPoolLoggerAdvisor;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.tool.ToolCallback;
@@ -30,7 +30,7 @@ public class YuManus extends ToolCallAgent {
         this.setMaxSteps(20);
         // 初始化 AI 对话客户端
         ChatClient chatClient = ChatClient.builder(dashscopeChatModel)
-                .defaultAdvisors(new MyLoggerAdvisor())
+                .defaultAdvisors(new MyThreadPoolLoggerAdvisor())
                 .build();
         this.setChatClient(chatClient);
     }

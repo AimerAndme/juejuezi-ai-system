@@ -1,19 +1,15 @@
 package com.yupi.yuaiagent.app;
 
-import com.yupi.yuaiagent.advisor.MyLoggerAdvisor;
+import com.yupi.yuaiagent.advisor.MyThreadPoolLoggerAdvisor;
 import com.yupi.yuaiagent.chatmemory.RedisChatMemory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.model.ChatModel;
-import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
-
-import java.util.Map;
 
 /**
  * 基于Redis实现对话记忆的聊天客户端
@@ -43,7 +39,7 @@ public class RedisChatApp {
                 .defaultSystem(SYSTEM_PROMPT)
                 .defaultAdvisors(
                         MessageChatMemoryAdvisor.builder(redisChatMemory).build(),
-                        new MyLoggerAdvisor()
+                        new MyThreadPoolLoggerAdvisor()
                 )
                 .build();
 

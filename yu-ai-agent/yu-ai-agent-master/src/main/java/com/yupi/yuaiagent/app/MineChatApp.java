@@ -1,7 +1,7 @@
 package com.yupi.yuaiagent.app;
 
 
-import com.yupi.yuaiagent.advisor.MyLoggerAdvisor;
+import com.yupi.yuaiagent.advisor.MyThreadPoolLoggerAdvisor;
 import com.yupi.yuaiagent.chatmemory.RedisChatMemory;
 import com.yupi.yuaiagent.rag.QueryRewriter;
 import jakarta.annotation.Resource;
@@ -10,7 +10,6 @@ import org.redisson.api.RedissonClient;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.api.Advisor;
-import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.memory.InMemoryChatMemoryRepository;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
@@ -86,7 +85,7 @@ public class MineChatApp {
                 .defaultAdvisors(
                         MessageChatMemoryAdvisor.builder(redisChatMemory).build(),
                         // 自定义日志 Advisor，可按需开启
-                        new MyLoggerAdvisor()
+                        new MyThreadPoolLoggerAdvisor()
                 //                        // 自定义推理增强 Advisor，可按需开启
                 //, new ReReadingAdvisor()
                 )
@@ -198,7 +197,7 @@ public class MineChatApp {
                 .user(message)
                 .advisors(spec -> spec.param(ChatMemory.CONVERSATION_ID, chatId))
                 // 开启日志，便于观察效果
-                .advisors(new MyLoggerAdvisor())
+                .advisors(new MyThreadPoolLoggerAdvisor())
                 .toolCallbacks(allTools)
                 .call()
                 .chatResponse();
@@ -221,7 +220,7 @@ public class MineChatApp {
                 .user(message)
                 .advisors(spec -> spec.param(ChatMemory.CONVERSATION_ID, chatId))
                 // 开启日志，便于观察效果
-                .advisors(new MyLoggerAdvisor())
+                .advisors(new MyThreadPoolLoggerAdvisor())
                 .toolCallbacks(toolCallbackProvider)
                 .call()
                 .chatResponse();
