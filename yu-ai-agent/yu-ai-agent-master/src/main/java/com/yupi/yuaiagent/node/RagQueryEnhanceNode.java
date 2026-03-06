@@ -22,7 +22,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -77,7 +78,7 @@ public class RagQueryEnhanceNode implements NodeAction {
                     .call().content();
         });
         List<String> queries = JsonUtils.fromJson(content, ArrayList.class);
-        List<String> hydeQueryAnswer = new ArrayList<>();
+        List<String> hydeQueryAnswer = new CopyOnWriteArrayList<>();
         //2、hyde假设文档
         List<CompletableFuture<ChatClientResponse>> hydeFutureList = new ArrayList<>();
         for (String query : queries) {
@@ -96,7 +97,6 @@ public class RagQueryEnhanceNode implements NodeAction {
                                         "nodeId", "RagQueryEnhanceNode")
                         ))
                         .call().chatClientResponse();
-                hydeQueryAnswer.add(call.chatResponse().getResult().getOutput().getText());
                 return call;
             }, pdfPageExecutor).exceptionally(e -> {
                 log.error("hydePromptTemplate执行时发生异常:{},query:{}", e.getMessage(), query);
@@ -104,19 +104,24 @@ public class RagQueryEnhanceNode implements NodeAction {
             });
             hydeFutureList.add(completableFuture);
         }
-        CompletableFuture<Void> allFutures = CompletableFuture.allOf(hydeFutureList.toArray(new CompletableFuture[0]));
+        try {
+            CompletableFuture.allOf(hydeFutureList.toArray(new CompletableFuture[0]))
+                    .orTimeout(30, TimeUnit.SECONDS)
+                    .join(); // ← 使用 join()，不处理 checked exception
+        } catch (CompletionException e) {
+            log.warn("部分 hyde 任务超时或失败，继续聚合可用结果", e);
+        }
         int i = 1;
         for (CompletableFuture<ChatClientResponse> future : hydeFutureList) {
-            ChatClientResponse chatClientResponse = future.get();
-            NodeExecutionLog chatLog = (NodeExecutionLog) chatClientResponse.context().get("chatLog");
-            LogContextHolder.addNodeLog("RagQueryEnhanceNode-hyde-" + i, chatLog);
+            try {
+                ChatClientResponse chatClientResponse = future.join();
+                hydeQueryAnswer.add(chatClientResponse.chatResponse().getResult().getOutput().getText());
+                NodeExecutionLog chatLog = (NodeExecutionLog) chatClientResponse.context().get("chatLog");
+                LogContextHolder.addNodeLog("RagQueryEnhanceNode-hyde-" + i, chatLog);
+            } catch (Exception e) {
+                log.warn("获取 hyde #{} 结果时异常（已记录失败日志）", i, e);
+            }
             i++;
-        }
-        try {
-            allFutures.get(30, TimeUnit.SECONDS);
-        } catch (InterruptedException | ExecutionException e) {
-            log.error("等待hydeFutureList完成时发生异常:{}", e.getMessage());
-            return Map.of("hydeQueryAnswer", hydeQueryAnswer); // Return the result even if an exception occurs
         }
         log.info("ragQueryEnhanceNode 执行完成, hydeQueryAnswer: {}", hydeQueryAnswer);
         return Map.of("hydeQueryAnswer", hydeQueryAnswer);
